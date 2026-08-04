@@ -20,13 +20,13 @@ export const FourPillars: React.FC<FourPillarsProps> = ({ pillars, className = '
   return (
     <div className={`grid grid-cols-4 gap-1.5 text-center ${className}`} data-testid="four-pillars">
       {items.map((item) => {
-        const ganColor = WUXING_COLORS[item.ganWuXing] ?? 'text-slate-300';
-        const zhiColor = WUXING_COLORS[item.zhiWuXing] ?? 'text-slate-300';
+        const ganColor = WUXING_COLORS[item.ganWuXing] ?? 'text-slate-700 dark:text-slate-300';
+        const zhiColor = WUXING_COLORS[item.zhiWuXing] ?? 'text-slate-700 dark:text-slate-300';
 
         return (
           <div key={item.label} className="flex flex-col items-center gap-0.5">
             {/* 柱標籤 */}
-            <span className="text-[9px] text-slate-500 font-medium tracking-wider">
+            <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium tracking-wider">
               {item.label}
             </span>
             {/* 天干 */}
@@ -38,11 +38,11 @@ export const FourPillars: React.FC<FourPillarsProps> = ({ pillars, className = '
               {item.zhi}
             </span>
             {/* 五行標籤 */}
-            <span className="text-[8px] text-slate-500 font-mono">
+            <span className="text-[8px] text-slate-500 dark:text-slate-400 font-mono">
               {item.ganWuXing}{item.zhiWuXing}
             </span>
             {/* 納音 */}
-            <span className="text-[8px] text-slate-600 font-mono truncate w-full">
+            <span className="text-[8px] text-slate-600 dark:text-slate-500 font-mono truncate w-full">
               {item.nayin}
             </span>
           </div>
