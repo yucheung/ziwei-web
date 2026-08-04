@@ -43,6 +43,13 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
 
+  // 元件卸載時中斷進行中的 SSE 連線
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   // 當配置 Modal 關閉時同步最新載入的 config
   const handleSaveConfig = (newConfig: LLMConfig) => {
     saveLLMConfig(newConfig);
@@ -86,6 +93,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       { role: 'user' as const, content: userPrompt },
     ];
 
+    abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
     try {
@@ -419,7 +427,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
               <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-              API Key (儲存於瀏覽器 LocalStorage)
+              API Key (暫存於此分頁，關閉即清除)
             </label>
             <div className="relative">
               <input

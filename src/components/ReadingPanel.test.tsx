@@ -198,6 +198,26 @@ describe('ReadingPanel Component Test Suite', () => {
     expect(callSignal?.aborted).toBe(true);
   });
 
+  it('aborts ongoing stream when component is unmounted', async () => {
+    let callSignal: AbortSignal | undefined;
+    vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+      callSignal = callbacks.signal;
+      return new Promise(() => {});
+    });
+
+    const { unmount } = render(<ReadingPanel chart={mockChart} />);
+
+    const generateBtn = screen.getByRole('button', { name: /生成 AI 命盤解讀/i });
+    fireEvent.click(generateBtn);
+
+    expect(callSignal?.aborted).toBe(false);
+
+    unmount();
+
+    expect(callSignal?.aborted).toBe(true);
+  });
+
+
   it('allows copying reading text to clipboard', async () => {
     vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
       callbacks.onFinish?.('命格分析結果');
