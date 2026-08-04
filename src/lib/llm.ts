@@ -180,25 +180,6 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
   }
 }
 
-function decodeChunk(value: any, decoder: TextDecoder): string {
-  if (typeof value === 'string') return value;
-  if (!value) return '';
-
-  try {
-    const decoded = decoder.decode(value, { stream: true });
-    if (decoded) return decoded;
-  } catch {}
-
-  try {
-    if (value.length !== undefined) {
-      const bytes = new Uint8Array(value);
-      return new TextDecoder('utf-8').decode(bytes);
-    }
-  } catch {}
-
-  return String(value);
-}
-
 /**
  * 呼叫 OpenAI-compatible SSE Streaming 介面
  */
