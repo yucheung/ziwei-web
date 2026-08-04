@@ -7,6 +7,8 @@ import {
   getAnheIndex,
   getGridPosition,
 } from '../data/palace-layout';
+import { FourPillars } from './FourPillars';
+import { calculateFourPillars } from '../lib/bazi';
 
 export interface ChartGridProps {
   /** iztro 產生的完整 Astrolabe 物件或符合格式的命盤物件 */
@@ -185,6 +187,26 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
               </span>
             </div>
           </div>
+
+          {/* 四柱八字 */}
+          {(() => {
+            const [sYear, sMonth, sDay] = (astrolabe.solarDate || '').split('-').map(Number);
+            const timeRangeStr = (astrolabe as Record<string, unknown>).timeRange as string | undefined;
+            let hour = 12;
+            if (timeRangeStr) {
+              const match = timeRangeStr.match(/^(\d{2}):\d{2}/);
+              if (match) hour = parseInt(match[1], 10);
+            }
+            if (sYear && sMonth && sDay) {
+              const fp = calculateFourPillars(sYear, sMonth, sDay, hour);
+              return (
+                <div className="border-t border-slate-800 pt-2 mt-2">
+                  <FourPillars pillars={fp} />
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* 當前點擊宮位之三方四正速覽 */}
           {selectedPalace && (
