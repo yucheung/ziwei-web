@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy } from 'react';
 import { Compass, Calendar, Clock, User, Sparkles, ShieldCheck, Layers, Bot, TrendingUp, Settings } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
@@ -12,7 +12,7 @@ const ReadingPanel = lazy(() => import('./components/ReadingPanel').then((m) => 
 const MatchPanel = lazy(() => import('./components/MatchPanel').then((m) => ({ default: m.MatchPanel })));
 
 export default function App() {
-  const { t, locale, setLocale } = useTranslation();
+  const { t } = useTranslation();
 
   const [solarDate, setSolarDate] = useState('2000-08-16');
   const [timeIndex, setTimeIndex] = useState('2'); // 丑時 (1:00 - 3:00)

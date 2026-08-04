@@ -92,10 +92,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'iztro-vendor': ['iztro', 'lunar-typescript'],
-          'react-vendor': ['react', 'react-dom'],
-          'ui-vendor': ['lucide-react']
+        manualChunks(id) {
+          if (id.includes('iztro') || id.includes('lunar-typescript')) {
+            return 'iztro-vendor';
+          }
+          if (id.includes('react-dom') || id.includes('/react/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('lucide-react')) {
+            return 'ui-vendor';
+          }
         }
       }
     }
