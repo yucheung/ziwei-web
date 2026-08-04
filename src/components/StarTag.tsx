@@ -73,24 +73,26 @@ export const StarTag: React.FC<StarTagProps> = ({
     }
   };
 
-  // 亮度標記色彩樣式
+  // 亮度標記色彩樣式 (廟紅/旺橙/得黃/利藍/平灰/陷暗)
+  // 同時處理繁體(廟)與簡體(庙)字元
   const getBrightnessStyle = (b?: string) => {
     if (!b) return 'text-slate-400';
     switch (b) {
       case '廟':
-        return 'text-amber-300 font-bold';
+      case '庙':
+        return 'text-rose-400 font-bold';
       case '旺':
-        return 'text-amber-400 font-medium';
+        return 'text-orange-400 font-medium';
       case '得':
-        return 'text-amber-200/80';
+        return 'text-yellow-400';
       case '利':
-        return 'text-slate-300';
+        return 'text-blue-400';
       case '平':
         return 'text-slate-400';
       case '不':
         return 'text-slate-500';
       case '陷':
-        return 'text-rose-400 font-semibold';
+        return 'text-slate-600 font-semibold';
       default:
         return 'text-slate-400';
     }
