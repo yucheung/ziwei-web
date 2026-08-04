@@ -267,7 +267,16 @@ export async function callLLMStream(
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunkStr = decodeChunk(value, decoder);
+      let chunkStr = '';
+      if (typeof value === 'string') {
+        chunkStr = value;
+      } else if (value) {
+        try {
+          chunkStr = decoder.decode(value as any, { stream: true });
+        } catch {
+          chunkStr = String(value);
+        }
+      }
       buffer += chunkStr;
 
       const lines = buffer.split('\n');
