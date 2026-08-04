@@ -6,6 +6,8 @@ export const zhTW = {
   'app.match': '雙人合盤',
   'app.engine': 'iztro 引擎',
   'app.language': '語言',
+  'app.chartError': '排盤發生錯誤',
+  'match.defaultPersonA': '乾造 (男方)',
 
   // ─── Birth Input Form ───
   'form.title': '生辰資料輸入',

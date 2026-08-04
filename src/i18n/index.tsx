@@ -44,9 +44,25 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const defaultT = (key: TranslationKey, params?: Record<string, string>): string => {
+  let text = translations['zh-TW']?.[key] ?? key;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      text = text.replace(`{${k}}`, v);
+    }
+  }
+  return text;
+};
+
+const defaultContext: I18nContextValue = {
+  locale: 'zh-TW',
+  setLocale: () => {},
+  t: defaultT,
+};
+
 export function useTranslation() {
   const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error('useTranslation must be used within I18nProvider');
+  if (!ctx) return defaultContext;
   return ctx;
 }
 

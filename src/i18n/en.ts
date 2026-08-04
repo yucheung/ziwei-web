@@ -8,6 +8,8 @@ export const en: Record<TranslationKey, string> = {
   'app.match': 'Match Chart',
   'app.engine': 'iztro Engine',
   'app.language': 'Language',
+  'app.chartError': 'Chart calculation error',
+  'match.defaultPersonA': 'Person A (Male)',
 
   // ─── Birth Input Form ───
   'form.title': 'Birth Data Input',
