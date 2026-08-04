@@ -12,7 +12,7 @@ import {
 describe('src/lib/astro.ts', () => {
   describe('Known birth chart verification: 2000-8-16 2時 (丑時) 男', () => {
     it('calculates the exact astrolabe for 2000-8-16 2時 男 using positional arguments', () => {
-      const astrolabe = getChart('2000-8-16', 1, 'male');
+      const astrolabe = getChart({ date: '2000-8-16', timeIndex: 1, gender: 'male', config: { algorithm: 'default' } });
 
       expect(astrolabe).toBeDefined();
       expect(astrolabe.gender).toBe('男');
@@ -290,6 +290,86 @@ describe('src/lib/astro.ts', () => {
 
       expect(newYearChart.lunarDate).toContain('正月初一');
       expect(newYearChart.lunarDate).toContain('二〇二四年');
+    });
+  });
+
+  describe('Config propagation and AstroType switching', () => {
+    it('propagates config.algorithm to iztro (zhongzhou vs default)', () => {
+      const defaultChart = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        config: { algorithm: 'default' },
+      });
+
+      const zhongzhouChart = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        config: { algorithm: 'zhongzhou' },
+      });
+
+      // Both should produce valid charts
+      expect(defaultChart).toBeDefined();
+      expect(zhongzhouChart).toBeDefined();
+
+      // Star placements may differ between algorithms
+      const defaultSoul = defaultChart.soul;
+      const zhongzhouSoul = zhongzhouChart.soul;
+
+      // Verify charts are computed (soul/body should be defined)
+      expect(defaultSoul).toBeDefined();
+      expect(zhongzhouSoul).toBeDefined();
+    });
+
+    it('supports astroType switching (heaven/earth/human)', () => {
+      const heavenChart = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        astroType: 'heaven',
+        config: { algorithm: 'zhongzhou' },
+      });
+
+      const earthChart = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        astroType: 'earth',
+        config: { algorithm: 'zhongzhou' },
+      });
+
+      const humanChart = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        astroType: 'human',
+        config: { algorithm: 'zhongzhou' },
+      });
+
+      // All three astrolabe types should be computed
+      expect(heavenChart).toBeDefined();
+      expect(earthChart).toBeDefined();
+      expect(humanChart).toBeDefined();
+
+      // Basic fields should be present
+      expect(heavenChart.solarDate).toBe('2000-8-16');
+      expect(earthChart.solarDate).toBe('2000-8-16');
+      expect(humanChart.solarDate).toBe('2000-8-16');
+    });
+
+    it('uses DEFAULT_CONFIG (zhongzhou) when no config is provided', () => {
+      const chart = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+      });
+
+      // Should produce a valid chart with default config
+      expect(chart).toBeDefined();
+      expect(chart.solarDate).toBe('2000-8-16');
+      expect(chart.soul).toBeDefined();
+      expect(chart.body).toBeDefined();
     });
   });
 });

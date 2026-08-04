@@ -1,5 +1,18 @@
 import { astro } from 'iztro';
+import type { Config, AstroType } from 'iztro/lib/data/types/astro';
 import { Lunar, LunarYear } from 'lunar-typescript';
+
+export type { Config, AstroType };
+
+/** 預設流派：中州派 */
+export const DEFAULT_ALGORITHM: NonNullable<Config['algorithm']> = 'zhongzhou';
+
+/**
+ * 預設斗數設定 (中州派)
+ */
+export const DEFAULT_CONFIG: Config = {
+  algorithm: DEFAULT_ALGORITHM,
+};
 
 /**
  * 城市經度對照表（用於真太陽時校正）
@@ -109,6 +122,10 @@ export interface GetChartOptions {
   language?: string;
   /** 是否修正閏月 (iztro 預設 true) */
   fixLeap?: boolean;
+  /** iztro Config：四化/亮度/流派/晚子時/年界等 */
+  config?: Config;
+  /** 星盤類型：heaven(天盤) / earth(地盤) / human(人盤)，預設 'heaven' */
+  astroType?: AstroType;
 }
 
 export interface ParsedDate {
@@ -526,14 +543,22 @@ export function getChart(
   }
 
   const fixLeap = opts.fixLeap ?? true;
+  const astroType = opts.astroType ?? 'heaven';
+  const config = opts.config ?? DEFAULT_CONFIG;
 
-  // 6. 調用 iztro
-  if (isLunar) {
-    const lunarDateStr = `${finalYear}-${finalMonth}-${finalDay}`;
-    return astro.byLunar(lunarDateStr, timeIndex, normGender, isLeapMonth, fixLeap, opts.language);
-  } else {
-    const finalSolarDateStr = `${finalYear}-${finalMonth}-${finalDay}`;
-    return astro.bySolar(finalSolarDateStr, timeIndex, normGender, fixLeap, opts.language);
-  }
+  // 6. 調用 iztro (優先使用 withOptions 以支援 config 與 astroType)
+  const option = {
+    type: (isLunar ? 'lunar' : 'solar') as 'solar' | 'lunar',
+    dateStr: isLunar ? `${finalYear}-${finalMonth}-${finalDay}` : `${finalYear}-${finalMonth}-${finalDay}`,
+    timeIndex,
+    gender: normGender,
+    isLeapMonth,
+    fixLeap,
+    language: opts.language,
+    config,
+    astroType,
+  };
+
+  return astro.withOptions(option);
 }
 

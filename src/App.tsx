@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Compass, Calendar, Clock, User, Sparkles, ShieldCheck, Layers, Bot, TrendingUp } from 'lucide-react';
+import { Compass, Calendar, Clock, User, Sparkles, ShieldCheck, Layers, Bot, TrendingUp, Settings } from 'lucide-react';
 import { getChart } from './lib/astro';
+import type { Config, AstroType } from './lib/astro';
+import { DEFAULT_CONFIG } from './lib/astro';
 import { ChartGrid } from './components/ChartGrid';
 import { ReadingPanel } from './components/ReadingPanel';
 import { MatchPanel } from './components/MatchPanel';
@@ -15,6 +17,10 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'single' | 'match'>('single');
   const [activeTab, setActiveTab] = useState<'chart' | 'fortunes' | 'reading'>('chart');
 
+  // 斗數設定
+  const [config, setConfig] = useState<Config>(() => ({ ...DEFAULT_CONFIG }));
+  const [astroType, setAstroType] = useState<AstroType>('heaven');
+
   // 初始化星盤資料
   const [astrolabe, setAstrolabe] = useState(() => {
     try {
@@ -23,6 +29,8 @@ export default function App() {
         timeIndex: 2,
         gender: 'male',
         language: 'zh-TW',
+        config: DEFAULT_CONFIG,
+        astroType: 'heaven',
       });
     } catch {
       return null;
@@ -38,6 +46,8 @@ export default function App() {
         gender,
         isLunar: calendarType === 'lunar',
         language: 'zh-TW',
+        config,
+        astroType,
       });
       setAstrolabe(chart);
     } catch (err) {
@@ -212,6 +222,89 @@ export default function App() {
                       >
                         坤造 (女)
                       </button>
+                    </div>
+                  </div>
+
+                  {/* 斗數設定區塊 */}
+                  <div className="mt-4 pt-4 border-t border-slate-800">
+                    <h3 className="text-xs font-semibold text-slate-400 flex items-center gap-1 mb-3">
+                      <Settings className="w-3.5 h-3.5" />
+                      斗數設定
+                    </h3>
+
+                    {/* 流派切換 */}
+                    <div className="mb-3">
+                      <label className="block text-xs font-medium text-slate-400 mb-1">流派</label>
+                      <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => setConfig((c) => ({ ...c, algorithm: 'default' }))}
+                          className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all ${
+                            config.algorithm === 'default'
+                              ? 'bg-amber-500 text-slate-950 font-semibold shadow-md'
+                              : 'text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          通行版
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfig((c) => ({ ...c, algorithm: 'zhongzhou' }))}
+                          className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all ${
+                            config.algorithm === 'zhongzhou'
+                              ? 'bg-amber-500 text-slate-950 font-semibold shadow-md'
+                              : 'text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          中州派
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 三盤切換 */}
+                    <div className="mb-3">
+                      <label className="block text-xs font-medium text-slate-400 mb-1">星盤類型</label>
+                      <div className="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                        {(['heaven', 'earth', 'human'] as AstroType[]).map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setAstroType(t)}
+                            className={`py-1 px-1 text-xs font-medium rounded-lg transition-all ${
+                              astroType === t
+                                ? 'bg-purple-500 text-white font-semibold shadow-md'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            {t === 'heaven' ? '天盤' : t === 'earth' ? '地盤' : '人盤'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 晚子時 / 年界 */}
+                    <div className="mb-3">
+                      <label className="block text-xs font-medium text-slate-400 mb-1">晚子時處理</label>
+                      <select
+                        value={config.dayDivide ?? 'current'}
+                        onChange={(e) => setConfig((c) => ({ ...c, dayDivide: e.target.value as 'current' | 'forward' }))}
+                        className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      >
+                        <option value="current">晚子時算當日 (current)</option>
+                        <option value="forward">晚子時算來日 (forward)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-1">年界分界</label>
+                      <select
+                        value={config.yearDivide ?? 'normal'}
+                        onChange={(e) => setConfig((c) => ({ ...c, yearDivide: e.target.value as 'normal' | 'exact' }))}
+                        className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      >
+                        <option value="normal">正月初一 (normal)</option>
+                        <option value="exact">立春 (exact)</option>
+                      </select>
                     </div>
                   </div>
 

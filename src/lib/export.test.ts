@@ -21,7 +21,7 @@ describe('src/lib/export.ts', () => {
   let sampleAstrolabe: ExportAstrolabe;
 
   beforeEach(() => {
-    sampleAstrolabe = getChart('2000-08-16', 1, 'male');
+    sampleAstrolabe = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', config: { algorithm: 'default' } });
   });
 
   describe('escapeCsvField', () => {
