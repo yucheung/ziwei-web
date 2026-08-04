@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Compass, Calendar, Clock, User, Sparkles, ShieldCheck, Layers, Bot, TrendingUp, Settings } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { getChart } from './lib/astro';
 import type { Config, AstroType } from './lib/astro';
 import { DEFAULT_CONFIG } from './lib/astro';
-import { ChartGrid } from './components/ChartGrid';
-import { ReadingPanel } from './components/ReadingPanel';
-import { MatchPanel } from './components/MatchPanel';
-import { FortunePanel } from './components/FortunePanel';
+
+const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ default: m.ChartGrid })));
+const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => ({ default: m.FortunePanel })));
+const ReadingPanel = lazy(() => import('./components/ReadingPanel').then((m) => ({ default: m.ReadingPanel })));
+const MatchPanel = lazy(() => import('./components/MatchPanel').then((m) => ({ default: m.MatchPanel })));
 
 export default function App() {
   const { t, locale, setLocale } = useTranslation();

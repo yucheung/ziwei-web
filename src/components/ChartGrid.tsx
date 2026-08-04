@@ -3,7 +3,6 @@ import { Compass, Sparkles, Target, Layers, Shield, Zap } from 'lucide-react';
 import { PalaceCell, PalaceData, FlyingMutagenBadge } from './PalaceCell';
 import { StarTag } from './StarTag';
 import {
-  getSanfangSizhengIndices,
   getAnheIndex,
   getGridPosition,
 } from '../data/palace-layout';
@@ -27,7 +26,7 @@ export interface ChartGridProps {
     sign?: string;
     gender?: string;
     palaces: PalaceData[];
-    surroundedPalaces?: (targetIndex: number) => {
+    surroundedPalaces: (targetIndex: number) => {
       target: PalaceData;
       opposite: PalaceData;
       wealth: PalaceData;
@@ -101,23 +100,23 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
 
   const { palaces } = astrolabe;
 
-  // 計算三方四正與暗合宮位索引
-  const sanfang = getSanfangSizhengIndices(selectedIndex);
+  // 使用 iztro 原生 API 計算三方四正與暗合宮位索引
+  const sanfang = astrolabe.surroundedPalaces(selectedIndex);
   const anheIdx = getAnheIndex(selectedIndex);
 
   // 當前選擇的宮位資料
-  const selectedPalace = palaces[selectedIndex];
-  const oppositePalace = palaces[sanfang.opposite];
-  const careerPalace = palaces[sanfang.career];
-  const wealthPalace = palaces[sanfang.wealth];
+  const selectedPalace = sanfang.target;
+  const oppositePalace = sanfang.opposite;
+  const careerPalace = sanfang.career;
+  const wealthPalace = sanfang.wealth;
   const anhePalace = palaces[anheIdx];
 
   // 計算特定宮位相對於 selectedIndex 的角色
   const getPalaceRole = (index: number) => {
-    if (index === sanfang.target) return 'target';
-    if (index === sanfang.opposite) return 'opposite';
-    if (index === sanfang.career) return 'career';
-    if (index === sanfang.wealth) return 'wealth';
+    if (index === sanfang.target.index) return 'target';
+    if (index === sanfang.opposite.index) return 'opposite';
+    if (index === sanfang.career.index) return 'career';
+    if (index === sanfang.wealth.index) return 'wealth';
     if (index === anheIdx) return 'anhe';
     return null;
   };

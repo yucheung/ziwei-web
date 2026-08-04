@@ -1,13 +1,4 @@
-import { Solar, Lunar } from 'lunar-typescript';
-
-/** 天干 */
-const TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const;
-
-/** 地支 */
-const DI_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const;
-
-/** 五行 */
-const WU_XING = ['木', '火', '土', '金', '水'] as const;
+import { Solar } from 'lunar-typescript';
 
 /** 天干→五行 */
 export const GAN_WUXING: Record<string, string> = {

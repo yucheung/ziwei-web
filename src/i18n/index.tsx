@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { zhTW, type TranslationKey } from './zh-TW';
 import { en } from './en';
 import { Locale, LOCALES, getInitialLocale, saveLocale } from './locale';
@@ -16,8 +16,15 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+interface I18nProviderProps {
+  children: ReactNode;
+  defaultLocale?: Locale;
+}
+
+export function I18nProvider({ children, defaultLocale }: I18nProviderProps) {
+  const [locale, setLocaleState] = useState<Locale>(
+    defaultLocale || getInitialLocale()
+  );
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);

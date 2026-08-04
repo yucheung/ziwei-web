@@ -1,9 +1,9 @@
 import React from 'react';
-import type { FourPillars } from '../lib/bazi';
+import type { FourPillars as FourPillarsData } from '../lib/bazi';
 import { WUXING_COLORS } from '../lib/bazi';
 
 interface FourPillarsProps {
-  pillars: FourPillars;
+  pillars: FourPillarsData;
   className?: string;
 }
 

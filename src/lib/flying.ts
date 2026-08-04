@@ -201,7 +201,7 @@ export function calculateAllFlyingIn(
   const allFlyingOut = palaces.map((p) => calculateFlyingOut(p, palaces));
 
   // 初始化每個宮位的飛入陣列
-  const flyingInResults: PalaceFlyingResult['flyingIn'][][] = palaces.map(
+  const flyingInResults: PalaceFlyingResult['flyingIn'][] = palaces.map(
     () => [],
   );
 

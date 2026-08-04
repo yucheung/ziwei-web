@@ -4,11 +4,12 @@ import App from './App';
 import { astro } from 'iztro';
 
 describe('Ziwei Web App Smoke Test', () => {
-  it('renders application title correctly', () => {
+  it('renders application title correctly', async () => {
     render(<App />);
     expect(screen.getByText('紫微斗數 Web 專業版')).toBeInTheDocument();
-    expect(screen.getByText('生辰資料輸入')).toBeInTheDocument();
-    expect(screen.getByText('生成紫微命盤')).toBeInTheDocument();
+    // Use findBy to wait for lazy-loaded components
+    expect(await screen.findByText('生辰資料輸入')).toBeInTheDocument();
+    expect(await screen.findByText('生成紫微命盤')).toBeInTheDocument();
   });
 
   it('imports iztro engine successfully', () => {
