@@ -1,0 +1,138 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  escapeCsvField,
+  generateChartCsv,
+  generateChartSummaryText,
+  exportElementToCanvas,
+  exportShareCardToDataUrl,
+  downloadFile,
+  downloadChartCsv,
+  downloadChartSummaryText,
+  ExportAstrolabe,
+} from './export';
+import { getChart } from './astro';
+import html2canvas from 'html2canvas';
+
+vi.mock('html2canvas', () => ({
+  default: vi.fn(),
+}));
+
+describe('src/lib/export.ts', () => {
+  let sampleAstrolabe: ExportAstrolabe;
+
+  beforeEach(() => {
+    sampleAstrolabe = getChart('2000-08-16', 1, 'male');
+  });
+
+  describe('escapeCsvField', () => {
+    it('handles undefined and null', () => {
+      expect(escapeCsvField(undefined)).toBe('""');
+      expect(escapeCsvField(null)).toBe('""');
+    });
+
+    it('wraps plain text with quotes', () => {
+      expect(escapeCsvField('hello')).toBe('"hello"');
+      expect(escapeCsvField(123)).toBe('"123"');
+    });
+
+    it('escapes quotes, commas, and newlines correctly', () => {
+      expect(escapeCsvField('a,b')).toBe('"a,b"');
+      expect(escapeCsvField('a"b')).toBe('"a""b"');
+      expect(escapeCsvField('line1\nline2')).toBe('"line1\nline2"');
+    });
+  });
+
+  describe('generateChartCsv', () => {
+    it('generates valid CSV string with UTF-8 BOM', () => {
+      const csv = generateChartCsv(sampleAstrolabe);
+
+      // Must start with UTF-8 BOM
+      expect(csv.startsWith('\uFEFF')).toBe(true);
+
+      // Basic info section
+      expect(csv).toContain('=== 紫微斗數命盤基本資料 ===');
+      expect(csv).toContain('"2000-8-16"');
+      expect(csv).toContain('"庚辰 甲申 丙午 己丑"');
+      expect(csv).toContain('"木三局"');
+      expect(csv).toContain('"武曲"');
+      expect(csv).toContain('"文昌"');
+
+      // 12 Palaces section
+      expect(csv).toContain('=== 十二宮星曜與干支明細 ===');
+      expect(csv).toContain('"宮位名稱","天干","地支","身宮"');
+      expect(csv).toContain('"命宫"');
+      expect(csv).toContain('"未"');
+      expect(csv).toContain('"癸"');
+      expect(csv).toContain('"迁移"');
+      expect(csv).toContain('天同');
+      expect(csv).toContain('巨门');
+    });
+  });
+
+  describe('generateChartSummaryText', () => {
+    it('generates clean Telegram/social share summary text', () => {
+      const text = generateChartSummaryText(sampleAstrolabe);
+
+      expect(text).toContain('☯️【紫微斗數命盤摘要】☯️');
+      expect(text).toContain('📅 陽曆：2000-8-16');
+      expect(text).toContain('📜 八字：庚辰 甲申 丙午 己丑');
+      expect(text).toContain('🔮 局數：木三局 | 性別：男');
+      expect(text).toContain('✨ 命主：武曲 | 身主：文昌');
+      expect(text).toContain('• 命宫');
+      expect(text).toContain('• 迁移');
+      expect(text).toContain('💡 由 紫微斗數 Web 專業版 自動生成');
+    });
+  });
+
+  describe('Share Card Export (html2canvas integration)', () => {
+    it('calls html2canvas with element and options', async () => {
+      const fakeCanvas = {
+        toDataURL: vi.fn().mockReturnValue('data:image/png;base64,fakeimage'),
+      } as unknown as HTMLCanvasElement;
+
+      vi.mocked(html2canvas).mockResolvedValue(fakeCanvas);
+
+      const fakeElement = document.createElement('div');
+      fakeElement.id = 'chart-container';
+
+      const canvas = await exportElementToCanvas(fakeElement, { scale: 2 });
+      expect(html2canvas).toHaveBeenCalledWith(fakeElement, expect.objectContaining({
+        scale: 2,
+        backgroundColor: '#020617',
+      }));
+      expect(canvas).toBe(fakeCanvas);
+
+      const dataUrl = await exportShareCardToDataUrl(fakeElement);
+      expect(dataUrl).toBe('data:image/png;base64,fakeimage');
+    });
+
+    it('throws error if no element provided', async () => {
+      // @ts-expect-error testing missing element argument
+      await expect(exportElementToCanvas(null)).rejects.toThrow('Export element is required');
+    });
+  });
+
+  describe('Download Helpers', () => {
+    it('downloadFile executes DOM append and click when window exists', () => {
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      const removeChildSpy = vi.spyOn(document.body, 'removeChild');
+      const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fakeurl');
+      const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+      downloadFile('test content', 'test.txt', 'text/plain');
+
+      expect(appendChildSpy).toHaveBeenCalled();
+      expect(removeChildSpy).toHaveBeenCalled();
+      expect(createObjectURLSpy).toHaveBeenCalled();
+      expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:fakeurl');
+
+      createObjectURLSpy.mockRestore();
+      revokeObjectURLSpy.mockRestore();
+    });
+
+    it('downloadChartCsv and downloadChartSummaryText do not crash', () => {
+      expect(() => downloadChartCsv(sampleAstrolabe)).not.toThrow();
+      expect(() => downloadChartSummaryText(sampleAstrolabe)).not.toThrow();
+    });
+  });
+});
