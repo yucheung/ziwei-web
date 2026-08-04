@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import { ReadingPanel } from './ReadingPanel';
 import * as llmModule from '../lib/llm';
 import { getChart } from '../lib/astro';

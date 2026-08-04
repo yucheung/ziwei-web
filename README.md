@@ -33,12 +33,29 @@
 
 ## 技術棧 (Tech Stack)
 
-- **Core & Framework:** React 19, TypeScript, Vite 6
-- **Styling:** Tailwind CSS v4
-- **Astrology Engine:** [iztro](https://github.com/SylarLong/iztro) (確定性紫微斗數排盤引擎)
-- **Icons & UI:** Lucide React
-- **Exporting:** html2canvas
-- **Testing:** Vitest, Testing Library, Happy-DOM / JSDOM
+### 現成組件 (Third-party components)
+
+| 組件 | 用途 |
+|---|---|
+| **[iztro](https://github.com/SylarLong/iztro) 2.5.8** | 核心排盤引擎（確定性計算：12 宮、14 主星、四化、三方四正、大限/流年/流月） |
+| **lunar-typescript 1.8** | 陰陽曆轉換、閏月、節氣（iztro 曆法底座） |
+| **React 19 / React DOM** | UI 框架 |
+| **html2canvas 1.4** | 命盤分享卡（DOM → PNG） |
+| **Lucide React** | 圖示庫 |
+
+### 開發工具 (Dev tooling)
+
+- **Vite 8**（建置）· **TypeScript 7** · **Tailwind CSS v4**（樣式）
+- **Vitest 4** + Testing Library + Happy-DOM / JSDOM（測試，107 tests）
+
+### 自研核心 (In-house modules)
+
+- **`src/lib/astro.ts`** — iztro 封裝 + 時辰/閏月驗證 + **真太陽時**（含均時差 equation-of-time 修正）
+- **`src/lib/llm.ts` / `prompts.ts`** — client-side LLM 解讀層，4 個 OpenAI-compatible provider 可切換（Gemini / DeepSeek / Kimi / OpenRouter），API key 存 sessionStorage（分頁關閉即清除）
+- **`src/lib/fortunes.ts`** — 大限/流年運限 · **`match.ts`** — 雙人合盤（四化互飛）· **`export.ts`** — CSV 匯出
+- **UI 組件** — ChartGrid（12 宮格盤面）、ReadingPanel、MatchPanel、FortunePanel
+
+> 設計原則：**排盤 = 確定性計算**（iztro，不依賴 LLM）→ 保證星盤準確；**解讀 = LLM 層**（使用者自帶 API key，瀏覽器直呼，無後端）。
 
 ## 本地開發與測試 (Development & Testing)
 

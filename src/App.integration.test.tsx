@@ -1,9 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import App from './App';
-import * as llmModule from './lib/llm';
-
 // Mock LLM module for ReadingPanel sub-component
 vi.mock('./lib/llm', async () => {
   const actual = await vi.importActual<typeof import('./lib/llm')>('./lib/llm');
