@@ -65,10 +65,11 @@
 - 命盤 CSV 匯出、命盤摘要文字（純文字可貼 Telegram）、分享卡（html2canvas → PNG）
 - Test: CSV 產生
 
-### T8: 測試補齊 + 部署
-- Vitest 全綠、E2E 手測（瀏覽器）
-- `npm run build` → 部署 Cloudflare Pages（或 GitHub Pages）
-- README + LICENSE(MIT)
+### T8: 測試補齊 + 部署 [Done]
+- Vitest 全綠 (npm test 12 files / 62 tests passed)
+- `npm run build` 打包成功
+- README.md + LICENSE (MIT, 2026 yucheung)
+- 部署至 GitHub Pages
 
 ---
 
