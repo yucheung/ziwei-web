@@ -24,12 +24,37 @@ import {
   testLLMConnection,
 } from '../lib/llm';
 import { buildReadingPrompt, ReadingType } from '../lib/prompts';
+import { useTranslation, type TranslationKey } from '../i18n';
 
 interface ReadingPanelProps {
   chart: any;
 }
 
+const READING_TYPES: Array<{ id: ReadingType; labelKey: TranslationKey }> = [
+  { id: 'overall', labelKey: 'reading.overall' },
+  { id: 'palaces', labelKey: 'reading.palaces' },
+  { id: 'mutagens', labelKey: 'reading.mutagens' },
+  { id: 'patterns', labelKey: 'reading.patterns' },
+  { id: 'comprehensive', labelKey: 'reading.comprehensive' },
+];
+
+const PALACE_OPTIONS: Array<{ id: string; key: TranslationKey }> = [
+  { id: '\u547d\u5bae', key: 'palace.ming' },
+  { id: '\u5144\u5f1f\u5bae', key: 'palace.xiongdi' },
+  { id: '\u592b\u59bb\u5bae', key: 'palace.fuqi' },
+  { id: '\u5b50\u5973\u5bae', key: 'palace.zinv' },
+  { id: '\u8ca1\u5e1b\u5bae', key: 'palace.caibo' },
+  { id: '\u75be\u5384\u5bae', key: 'palace.jie' },
+  { id: '\u9077\u79fb\u5bae', key: 'palace.qianyi' },
+  { id: '\u5096\u5f79\u5bae', key: 'palace.puyi' },
+  { id: '\u5b98\u797f\u5bae', key: 'palace.guanlu' },
+  { id: '\u7530\u5b85\u5bae', key: 'palace.tianzhai' },
+  { id: '\u798f\u5fb7\u5bae', key: 'palace.fude' },
+  { id: '\u7236\u6bcd\u5bae', key: 'palace.fumu' },
+];
+
 export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
+  const { t } = useTranslation();
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
   const [readingType, setReadingType] = useState<ReadingType>('overall');
   const [customInstructions, setCustomInstructions] = useState('');
@@ -43,14 +68,14 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
 
-  // 元件卸載時中斷進行中的 SSE 連線
+  // Abort active SSE connection on unmount
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
     };
   }, []);
 
-  // 當配置 Modal 關閉時同步最新載入的 config
+  // Sync config when modal closes
   const handleSaveConfig = (newConfig: LLMConfig) => {
     saveLLMConfig(newConfig);
     setLlmConfig(newConfig);
@@ -58,7 +83,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
     setErrorMsg(null);
   };
 
-  // 自動捲動到串流文字底部
+  // Auto scroll to stream bottom
   useEffect(() => {
     if (isLoading && outputEndRef.current) {
       outputEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -67,13 +92,13 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
   const handleStartReading = async () => {
     if (!chart) {
-      setErrorMsg('請先在上表單輸入生辰資料並生成命盤！');
+      setErrorMsg(t('reading.error.noChart'));
       return;
     }
 
     if (!llmConfig.apiKey && llmConfig.provider !== 'custom') {
       setIsConfigOpen(true);
-      setErrorMsg('請先在設定中輸入您的 API Key。');
+      setErrorMsg(t('reading.error.noKey'));
       return;
     }
 
@@ -103,7 +128,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           setReadingText(fullText);
         },
         onError: (err) => {
-          setErrorMsg(`解讀出錯: ${err.message || String(err)}`);
+          setErrorMsg(`${t('reading.error.prefix')}: ${err.message || String(err)}`);
           setIsLoading(false);
         },
         onFinish: (fullText) => {
@@ -113,7 +138,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       });
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        setErrorMsg(`呼叫 LLM 失敗: ${err.message || String(err)}`);
+        setErrorMsg(`${t('reading.error.apiError')}: ${err.message || String(err)}`);
       }
       setIsLoading(false);
     }
@@ -139,7 +164,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
   return (
     <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col gap-5 shadow-2xl relative">
-      {/* 區塊標題與模型設定開關 */}
+      {/* Header & Model Settings toggle */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
@@ -147,12 +172,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-              AI 多模型命盤結構化解讀
+              {t('reading.title')}
             </h3>
             <p className="text-xs text-slate-400">
-              當前模型：
+              {t('reading.currentModel')}：
               <span className="text-amber-400 font-mono font-medium ml-1">
-                {currentProviderName} ({llmConfig.model || '未設定'})
+                {currentProviderName} ({llmConfig.model || t('reading.notSet')})
               </span>
             </p>
           </div>
@@ -164,81 +189,71 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-medium text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
         >
           <Settings className="w-3.5 h-3.5 text-amber-400" />
-          API 與模型設定
+          {t('reading.apiSettings')}
         </button>
       </div>
 
-      {/* 尚未輸入 API Key 提示條 */}
+      {/* API Key Missing Banner */}
       {!llmConfig.apiKey && llmConfig.provider !== 'custom' && (
         <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-200">
           <div className="flex items-center gap-2.5">
             <Zap className="w-4 h-4 text-amber-400 shrink-0 animate-bounce" />
-            <span>
-              尚未設定 API Key！點擊「API 與模型設定」即可開啓 Gemini / DeepSeek / Claude / OpenAI AI 深度解讀。
-            </span>
+            <span>{t('reading.noApiKey')}</span>
           </div>
           <button
             onClick={() => setIsConfigOpen(true)}
             className="px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition-colors shrink-0 ml-2 cursor-pointer"
           >
-            前往設定
+            {t('reading.goSettings')}
           </button>
         </div>
       )}
 
-      {/* 解讀模式切換 Pills */}
+      {/* Topic Pills */}
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-slate-400">選擇解讀主題</label>
+        <label className="block text-xs font-medium text-slate-400">{t('reading.chooseTopic')}</label>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {[
-            { id: 'overall', label: '🌟 命格總覽' },
-            { id: 'palaces', label: '🏛️ 十二宮剖析' },
-            { id: 'mutagens', label: '⚡ 生年四化' },
-            { id: 'patterns', label: '☯️ 格局吉凶' },
-            { id: 'comprehensive', label: '📖 全盤大師解讀' },
-          ].map((type) => (
+          {READING_TYPES.map((type) => (
             <button
               key={type.id}
               type="button"
-              onClick={() => setReadingType(type.id as ReadingType)}
+              onClick={() => setReadingType(type.id)}
               className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center ${
                 readingType === type.id
                   ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-500/60 text-amber-300 shadow-md shadow-amber-500/10'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
               }`}
             >
-              {type.label}
+              {t(type.labelKey)}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 補充提問與宮位焦點 */}
+      {/* Focus & Custom Questions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {readingType === 'palaces' && (
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">特定宮位焦點 (選填)</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">{t('reading.focusPalace')}</label>
             <select
               value={focusPalace}
               onChange={(e) => setFocusPalace(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
-              <option value="">預設 (三大核心宮位)</option>
-              {['命宮', '兄弟宮', '夫妻宮', '子女宮', '財帛宮', '疾厄宮', '遷移宮', '僕役宮', '官祿宮', '田宅宮', '福德宮', '父母宮'].map(
-                (p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                )
-              )}
+              <option value="">{t('reading.defaultFocus')}</option>
+              {PALACE_OPTIONS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {t(p.key)}
+                </option>
+              ))}
             </select>
           </div>
         )}
         <div className={readingType === 'palaces' ? 'sm:col-span-2' : 'sm:col-span-3'}>
-          <label className="block text-xs font-medium text-slate-400 mb-1">補充提問 / 關注事項 (選填)</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1">{t('reading.customQ')}</label>
           <input
             type="text"
-            placeholder="例如：想了解近兩年事業轉職與創業機會..."
+            placeholder={t('reading.customPlaceholder')}
             value={customInstructions}
             onChange={(e) => setCustomInstructions(e.target.value)}
             className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
@@ -246,7 +261,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         </div>
       </div>
 
-      {/* 按鈕與操作 */}
+      {/* Actions */}
       <div className="flex items-center gap-3">
         {!isLoading ? (
           <button
@@ -255,7 +270,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
             className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
-            生成 AI 命盤解讀
+            {t('reading.generate')}
           </button>
         ) : (
           <button
@@ -264,7 +279,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
             className="flex-1 py-3 px-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold text-xs sm:text-sm hover:bg-rose-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer animate-pulse"
           >
             <Square className="w-4 h-4 fill-rose-300" />
-            停止生成
+            {t('reading.stop')}
           </button>
         )}
 
@@ -276,18 +291,18 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" /> 已複製
+                <Check className="w-4 h-4 text-emerald-400" /> {t('reading.copied')}
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-slate-400" /> 複製解讀
+                <Copy className="w-4 h-4 text-slate-400" /> {t('reading.copy')}
               </>
             )}
           </button>
         )}
       </div>
 
-      {/* 錯誤訊息提示 */}
+      {/* Error Message Banner */}
       {errorMsg && (
         <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
@@ -295,7 +310,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         </div>
       )}
 
-      {/* 解讀輸出區域 */}
+      {/* Reading Output Area */}
       <div className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-950/80 border border-slate-800/80 p-4 sm:p-5 text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30">
         {readingText ? (
           <div className="whitespace-pre-wrap font-sans text-slate-200 leading-relaxed">
@@ -304,12 +319,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         ) : isLoading ? (
           <div className="h-40 flex flex-col items-center justify-center text-slate-400 space-y-3">
             <RefreshCw className="w-6 h-6 text-amber-400 animate-spin" />
-            <p className="text-xs">AI 大師正在運算紫微星盤與四化能量...</p>
+            <p className="text-xs">{t('reading.loading')}</p>
           </div>
         ) : (
           <div className="h-40 flex flex-col items-center justify-center text-slate-500 space-y-2 text-center">
             <BookOpen className="w-8 h-8 text-slate-700" />
-            <p className="text-xs">點擊「生成 AI 命盤解讀」，即刻獲得多模型結構化命理剖析</p>
+            <p className="text-xs">{t('reading.hint')}</p>
           </div>
         )}
         <div ref={outputEndRef} />
@@ -334,6 +349,7 @@ interface ModalProps {
 }
 
 const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<LLMConfig>({ ...config });
   const [showApiKey, setShowApiKey] = useState(false);
   const [testStatus, setTestStatus] = useState<{ loading: boolean; message: string; success?: boolean }>({
@@ -359,7 +375,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
   };
 
   const handleTest = async () => {
-    setTestStatus({ loading: true, message: '連線測試中...' });
+    setTestStatus({ loading: true, message: t('llm.testing') });
     const result = await testLLMConnection(formData);
     setTestStatus({
       loading: false,
@@ -376,7 +392,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-base font-bold text-amber-300 flex items-center gap-2">
             <Sliders className="w-5 h-5 text-amber-400" />
-            OpenAI-Compatible LLM 多模型設定
+            {t('llm.title')}
           </h3>
           <button
             onClick={onClose}
@@ -395,7 +411,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
         >
           {/* Provider Preset Dropdown */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">模型服務商預設</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">{t('llm.provider')}</label>
             <select
               value={formData.provider}
               onChange={(e) => handleProviderChange(e.target.value)}
@@ -412,7 +428,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
           {/* Base URL */}
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1">
-              Base URL (OpenAI-compatible 端點)
+              {t('llm.baseUrl')}
             </label>
             <input
               type="text"
@@ -427,7 +443,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
               <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-              API Key (暫存於此分頁，關閉即清除)
+              {t('llm.apiKey')}
             </label>
             <div className="relative">
               <input
@@ -449,7 +465,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* Model Name */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">模型名稱 (Model Name)</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1">{t('llm.modelName')}</label>
             <input
               type="text"
               value={formData.model}
@@ -461,7 +477,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
             {/* Model Suggestions */}
             {currentPreset && currentPreset.modelSuggestions.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                <span className="text-[10px] text-slate-400">快速選擇:</span>
+                <span className="text-[10px] text-slate-400">{t('llm.quickSelect')}:</span>
                 {currentPreset.modelSuggestions.map((m) => (
                   <button
                     key={m}
@@ -479,8 +495,8 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
           {/* Temperature Slider */}
           <div>
             <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-              <span>溫度 (Temperature): {formData.temperature}</span>
-              <span className="text-[10px] text-slate-400">0.1 (精準) ~ 1.0 (富文采)</span>
+              <span>{t('llm.temperature')}: {formData.temperature}</span>
+              <span className="text-[10px] text-slate-400">{t('llm.tempHint')}</span>
             </div>
             <input
               type="range"
@@ -493,7 +509,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
             />
           </div>
 
-          {/* 測試結果訊息 */}
+          {/* Test Status Message */}
           {testStatus.message && (
             <div
               className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
@@ -511,7 +527,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
             </div>
           )}
 
-          {/* 按鈕組合 */}
+          {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
             <button
               type="button"
@@ -520,13 +536,13 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
               className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {testStatus.loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-              測試 API 連線
+              {t('llm.test')}
             </button>
             <button
               type="submit"
               className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer"
             >
-              儲存設定
+              {t('llm.save')}
             </button>
           </div>
         </form>

@@ -178,7 +178,7 @@ export const zhTW = {
   'llm.quickSelect': '快速選擇',
   'llm.temperature': '溫度 (Temperature)',
   'llm.tempHint': '0.1 (精準) ~ 1.0 (富文采)',
-  'llm.test': '測試連線',
+  'llm.test': '測試 API 連線',
   'llm.testing': '連線測試中...',
   'llm.save': '儲存設定',
   'llm.cancel': '取消',
@@ -198,6 +198,53 @@ export const zhTW = {
   'match.emotional': '情感默契',
   'match.personality': '性格互補',
   'match.careerWealth': '事業財運',
+
+  // ─── Theme ───
+  'theme.switchToLight': '切換至淺色模式',
+  'theme.switchToDark': '切換至深色模式',
+
+  // ─── Chart Grid Additional ───
+  'chart.fiveElementsDefault': '五行局',
+
+  // ─── Palaces ───
+  'palace.ming': '命宮',
+  'palace.xiongdi': '兄弟宮',
+  'palace.fuqi': '夫妻宮',
+  'palace.zinv': '子女宮',
+  'palace.caibo': '財帛宮',
+  'palace.jie': '疾厄宮',
+  'palace.qianyi': '遷移宮',
+  'palace.puyi': '僕役宮',
+  'palace.guanlu': '官祿宮',
+  'palace.tianzhai': '田宅宮',
+  'palace.fude': '福德宮',
+  'palace.fumu': '父母宮',
+
+  // ─── Match Panel Additional ───
+  'match.defaultPersonB': '坤造 (女方)',
+  'match.preset1NameA': '張先生 (甲)',
+  'match.preset1NameB': '林小姐 (乙)',
+  'match.preset2NameA': '陳先生 (丙)',
+  'match.preset2NameB': '黃小姐 (丁)',
+  'match.birthSolarDate': '出生日期 (陽曆)',
+  'match.branchRelation': '地支關係',
+  'match.longtermStability': '長遠穩定',
+  'match.sideBySideTitle': '雙盤對照 · 命宮與夫妻宮星曜比對',
+  'match.crossFlyingTitle': '十干四化互飛氣場比對 (Cross Flying Mutagens)',
+  'match.crossFlyingSubtitle': '點擊切換天干飛化源點，檢視四化（祿、權、科、忌）對落入對方宮位之影響',
+  'match.lunarBirth': '農曆生辰',
+  'match.stemBranch': '天干地支',
+  'match.mingStars': '命宮 (地支 {branch}) 主星',
+  'match.fuqiStars': '夫妻宮主星',
+  'match.wealthStars': '財帛宮主星',
+  'match.crossSourceText': '來源：{source} 的 {stemType}（天干【{stem}】），飛入 {target} 的星盤：',
+  'match.targetPalaceLabel': '飛入目標宮位',
+  'match.relPointsTitle': '關係重點與相處之道 (Relationship Key Points)',
+  'match.mingVsMingTitle': '命宮與命宮性格互動',
+  'match.mingVsFuqiTitle': '夫妻宮投射與契合',
+  'match.strengthsTitle': '契合亮點 (Strengths)',
+  'match.risksTitle': '潛在磨合 (Risks)',
+  'match.adviceTitle': '相處建議 (Advice)',
 } as const;
 
 export type TranslationKey = keyof typeof zhTW;

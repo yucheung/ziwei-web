@@ -14,6 +14,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { analyzeMatch, MatchResult, MutagenKind } from '../lib/match';
+import { useTranslation } from '../i18n';
 
 interface MatchPanelProps {
   initialPersonA?: {
@@ -31,14 +32,16 @@ interface MatchPanelProps {
 }
 
 export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialPersonB }) => {
+  const { t } = useTranslation();
+
   // Person A inputs
-  const [nameA, setNameA] = useState(initialPersonA?.name || '乾造 (男方)');
+  const [nameA, setNameA] = useState(initialPersonA?.name || t('match.defaultPersonA'));
   const [dateA, setDateA] = useState(initialPersonA?.date || '2000-08-16');
   const [timeA, setTimeA] = useState<string>(String(initialPersonA?.timeIndex ?? '2'));
   const [genderA, setGenderA] = useState<'male' | 'female'>(initialPersonA?.gender || 'male');
 
   // Person B inputs
-  const [nameB, setNameB] = useState(initialPersonB?.name || '坤造 (女方)');
+  const [nameB, setNameB] = useState(initialPersonB?.name || t('match.defaultPersonB'));
   const [dateB, setDateB] = useState(initialPersonB?.date || '2002-05-20');
   const [timeB, setTimeB] = useState<string>(String(initialPersonB?.timeIndex ?? '6'));
   const [genderB, setGenderB] = useState<'male' | 'female'>(initialPersonB?.gender || 'female');
@@ -71,37 +74,37 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
   const loadPresetPair = (pairType: 1 | 2) => {
     if (pairType === 1) {
-      setNameA('張先生 (甲)');
+      setNameA(t('match.preset1NameA'));
       setDateA('1996-03-15');
-      setTimeA('6'); // 午時
+      setTimeA('6');
       setGenderA('male');
 
-      setNameB('林小姐 (乙)');
+      setNameB(t('match.preset1NameB'));
       setDateB('1998-11-20');
-      setTimeB('2'); // 寅時
+      setTimeB('2');
       setGenderB('female');
     } else {
-      setNameA('陳先生 (丙)');
+      setNameA(t('match.preset2NameA'));
       setDateA('1992-07-08');
-      setTimeA('8'); // 申時
+      setTimeA('8');
       setGenderA('male');
 
-      setNameB('黃小姐 (丁)');
+      setNameB(t('match.preset2NameB'));
       setDateB('1994-01-28');
-      setTimeB('10'); // 戌時
+      setTimeB('10');
       setGenderB('female');
     }
   };
 
   const getMutagenBadgeStyle = (mutagen: MutagenKind) => {
     switch (mutagen) {
-      case '祿':
+      case '\u797f':
         return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
-      case '權':
+      case '\u6b0a':
         return 'bg-amber-500/20 text-amber-400 border-amber-500/40';
-      case '科':
+      case '\u79d1':
         return 'bg-sky-500/20 text-sky-400 border-sky-500/40';
-      case '忌':
+      case '\u5fcc':
         return 'bg-rose-500/20 text-rose-400 border-rose-500/40';
     }
   };
@@ -116,11 +119,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               <Heart className="w-5 h-5 fill-rose-500/30 animate-pulse" />
             </span>
             <h2 className="text-xl font-bold bg-gradient-to-r from-rose-200 via-amber-200 to-purple-300 bg-clip-text text-transparent">
-              雙人紫微命盤合盤 (Astrolabe Match)
+              {t('match.title')}
             </h2>
           </div>
           <p className="text-xs text-slate-400">
-            雙盤並排對照 · 十干四化互飛氣場 · 情感與性格契合度深度評估
+            {t('match.subtitle')}
           </p>
         </div>
 
@@ -132,7 +135,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            預設合盤 1
+            {t('match.preset1')}
           </button>
           <button
             type="button"
@@ -140,7 +143,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            預設合盤 2
+            {t('match.preset2')}
           </button>
         </div>
       </div>
@@ -152,16 +155,16 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <span className="font-semibold text-amber-300 text-sm flex items-center gap-2">
               <User className="w-4 h-4 text-amber-400" />
-              甲方 (Person A 生辰資料)
+              {t('match.personA')}
             </span>
             <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              主盤 A
+              {t('match.labelA')}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">姓名 / 標籤</label>
+              <label className="block text-xs text-slate-400 mb-1">{t('match.nameLabel')}</label>
               <input
                 type="text"
                 value={nameA}
@@ -171,7 +174,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1">性別</label>
+              <label className="block text-xs text-slate-400 mb-1">{t('form.gender')}</label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
@@ -182,7 +185,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                       : 'bg-slate-950 border-slate-800 text-slate-400'
                   }`}
                 >
-                  乾造 (男)
+                  {t('form.male')}
                 </button>
                 <button
                   type="button"
@@ -193,7 +196,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                       : 'bg-slate-950 border-slate-800 text-slate-400'
                   }`}
                 >
-                  坤造 (女)
+                  {t('form.female')}
                 </button>
               </div>
             </div>
@@ -202,7 +205,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-amber-400" /> 出生日期 (陽曆)
+                <Calendar className="w-3.5 h-3.5 text-amber-400" /> {t('match.birthSolarDate')}
               </label>
               <input
                 type="date"
@@ -214,26 +217,26 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
             <div>
               <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-amber-400" /> 出生時辰
+                <Clock className="w-3.5 h-3.5 text-amber-400" /> {t('form.birthTime')}
               </label>
               <select
                 value={timeA}
                 onChange={(e) => setTimeA(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
               >
-                <option value="0">早子時 (00:00 - 01:00)</option>
-                <option value="1">丑時 (01:00 - 03:00)</option>
-                <option value="2">寅時 (03:00 - 05:00)</option>
-                <option value="3">卯時 (05:00 - 07:00)</option>
-                <option value="4">辰時 (07:00 - 09:00)</option>
-                <option value="5">巳時 (09:00 - 11:00)</option>
-                <option value="6">午時 (11:00 - 13:00)</option>
-                <option value="7">未時 (13:00 - 15:00)</option>
-                <option value="8">申時 (15:00 - 17:00)</option>
-                <option value="9">酉時 (17:00 - 19:00)</option>
-                <option value="10">戌時 (19:00 - 21:00)</option>
-                <option value="11">亥時 (21:00 - 23:00)</option>
-                <option value="12">夜子時 (23:00 - 24:00)</option>
+                <option value="0">{t('time.0')}</option>
+                <option value="1">{t('time.1')}</option>
+                <option value="2">{t('time.2')}</option>
+                <option value="3">{t('time.3')}</option>
+                <option value="4">{t('time.4')}</option>
+                <option value="5">{t('time.5')}</option>
+                <option value="6">{t('time.6')}</option>
+                <option value="7">{t('time.7')}</option>
+                <option value="8">{t('time.8')}</option>
+                <option value="9">{t('time.9')}</option>
+                <option value="10">{t('time.10')}</option>
+                <option value="11">{t('time.11')}</option>
+                <option value="12">{t('time.12')}</option>
               </select>
             </div>
           </div>
@@ -244,16 +247,16 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <span className="font-semibold text-purple-300 text-sm flex items-center gap-2">
               <User className="w-4 h-4 text-purple-400" />
-              乙方 (Person B 生辰資料)
+              {t('match.personB')}
             </span>
             <span className="text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
-              對照盤 B
+              {t('match.labelB')}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">姓名 / 標籤</label>
+              <label className="block text-xs text-slate-400 mb-1">{t('match.nameLabel')}</label>
               <input
                 type="text"
                 value={nameB}
@@ -263,7 +266,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1">性別</label>
+              <label className="block text-xs text-slate-400 mb-1">{t('form.gender')}</label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
@@ -274,7 +277,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                       : 'bg-slate-950 border-slate-800 text-slate-400'
                   }`}
                 >
-                  乾造 (男)
+                  {t('form.male')}
                 </button>
                 <button
                   type="button"
@@ -285,7 +288,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                       : 'bg-slate-950 border-slate-800 text-slate-400'
                   }`}
                 >
-                  坤造 (女)
+                  {t('form.female')}
                 </button>
               </div>
             </div>
@@ -294,7 +297,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-purple-400" /> 出生日期 (陽曆)
+                <Calendar className="w-3.5 h-3.5 text-purple-400" /> {t('match.birthSolarDate')}
               </label>
               <input
                 type="date"
@@ -306,26 +309,26 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
             <div>
               <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-purple-400" /> 出生時辰
+                <Clock className="w-3.5 h-3.5 text-purple-400" /> {t('form.birthTime')}
               </label>
               <select
                 value={timeB}
                 onChange={(e) => setTimeB(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               >
-                <option value="0">早子時 (00:00 - 01:00)</option>
-                <option value="1">丑時 (01:00 - 03:00)</option>
-                <option value="2">寅時 (03:00 - 05:00)</option>
-                <option value="3">卯時 (05:00 - 07:00)</option>
-                <option value="4">辰時 (07:00 - 09:00)</option>
-                <option value="5">巳時 (09:00 - 11:00)</option>
-                <option value="6">午時 (11:00 - 13:00)</option>
-                <option value="7">未時 (13:00 - 15:00)</option>
-                <option value="8">申時 (15:00 - 17:00)</option>
-                <option value="9">酉時 (17:00 - 19:00)</option>
-                <option value="10">戌時 (19:00 - 21:00)</option>
-                <option value="11">亥時 (21:00 - 23:00)</option>
-                <option value="12">夜子時 (23:00 - 24:00)</option>
+                <option value="0">{t('time.0')}</option>
+                <option value="1">{t('time.1')}</option>
+                <option value="2">{t('time.2')}</option>
+                <option value="3">{t('time.3')}</option>
+                <option value="4">{t('time.4')}</option>
+                <option value="5">{t('time.5')}</option>
+                <option value="6">{t('time.6')}</option>
+                <option value="7">{t('time.7')}</option>
+                <option value="8">{t('time.8')}</option>
+                <option value="9">{t('time.9')}</option>
+                <option value="10">{t('time.10')}</option>
+                <option value="11">{t('time.11')}</option>
+                <option value="12">{t('time.12')}</option>
               </select>
             </div>
           </div>
@@ -334,7 +337,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
       {!matchResult ? (
         <div className="glass-panel p-8 text-center text-rose-400 border border-rose-500/30 rounded-2xl">
-          無法計算合盤，請確認生辰日期與時辰輸入是否正確。
+          {t('match.error')}
         </div>
       ) : (
         <>
@@ -354,7 +357,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               </h3>
               <p className="text-xs text-slate-400 flex items-center gap-1 justify-center">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                地支關係：{matchResult.compatibility.branchRelation}
+                {t('match.branchRelation')}：{matchResult.compatibility.branchRelation}
               </p>
             </div>
 
@@ -362,15 +365,15 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             <div className="lg:col-span-8 space-y-4">
               <h4 className="text-sm font-semibold text-slate-300 border-b border-slate-800 pb-2 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-400" />
-                多維度合盤契合指數
+                {t('match.multiDimScore')}
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* 情感契合 */}
+                {/* Emotional Harmony */}
                 <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="text-slate-300 flex items-center gap-1">
-                      <Heart className="w-3.5 h-3.5 text-rose-400" /> 情感默契
+                      <Heart className="w-3.5 h-3.5 text-rose-400" /> {t('match.emotional')}
                     </span>
                     <span className="text-rose-400 font-bold">{matchResult.compatibility.emotionalHarmony}%</span>
                   </div>
@@ -382,11 +385,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   </div>
                 </div>
 
-                {/* 性格互補 */}
+                {/* Personality Match */}
                 <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="text-slate-300 flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-amber-400" /> 性格互補
+                      <Users className="w-3.5 h-3.5 text-amber-400" /> {t('match.personality')}
                     </span>
                     <span className="text-amber-400 font-bold">{matchResult.compatibility.personalityMatch}%</span>
                   </div>
@@ -398,11 +401,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   </div>
                 </div>
 
-                {/* 事業財運 */}
+                {/* Career & Wealth */}
                 <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="text-slate-300 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> 事業財運
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> {t('match.careerWealth')}
                     </span>
                     <span className="text-emerald-400 font-bold">{matchResult.compatibility.careerWealthSynergy}%</span>
                   </div>
@@ -414,11 +417,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   </div>
                 </div>
 
-                {/* 長遠穩定 */}
+                {/* Longterm Stability */}
                 <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="text-slate-300 flex items-center gap-1">
-                      <Compass className="w-3.5 h-3.5 text-purple-400" /> 長遠穩定
+                      <Compass className="w-3.5 h-3.5 text-purple-400" /> {t('match.longtermStability')}
                     </span>
                     <span className="text-purple-400 font-bold">{matchResult.compatibility.longtermStability}%</span>
                   </div>
@@ -437,7 +440,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl space-y-4">
             <h3 className="text-base font-semibold text-amber-300 flex items-center gap-2 border-b border-slate-800 pb-3">
               <ArrowRightLeft className="w-4 h-4" />
-              雙盤對照 · 命宮與夫妻宮星曜比對
+              {t('match.sideBySideTitle')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
@@ -450,35 +453,39 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               <div className="bg-slate-950/60 p-5 rounded-xl border border-amber-500/30 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <h4 className="font-bold text-amber-400 text-sm">{matchResult.personA.name}</h4>
-                  <span className="text-xs text-slate-400">{matchResult.personA.gender}</span>
+                  <span className="text-xs text-slate-400">
+                    {matchResult.personA.gender === 'female' ? t('form.female') : t('form.male')}
+                  </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-400">農曆生辰：</span>
+                    <span className="text-slate-400">{t('match.lunarBirth')}：</span>
                     <p className="text-slate-200 font-mono">{matchResult.personA.lunarDate}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">天干地支：</span>
+                    <span className="text-slate-400">{t('match.stemBranch')}：</span>
                     <p className="text-slate-200 font-semibold">{matchResult.personA.chineseDate}</p>
                   </div>
                 </div>
                 <div className="border-t border-slate-800/80 pt-2 space-y-1 text-xs">
                   <p>
-                    <span className="text-slate-400">命宮 (地支 {matchResult.personA.soulPalaceBranch}) 主星：</span>
+                    <span className="text-slate-400">
+                      {t('match.mingStars', { branch: matchResult.personA.soulPalaceBranch })}：
+                    </span>
                     <span className="text-amber-300 font-bold ml-1">
-                      {matchResult.personA.mingMajorStars.join('、')}
+                      {matchResult.personA.mingMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">夫妻宮主星：</span>
+                    <span className="text-slate-400">{t('match.fuqiStars')}：</span>
                     <span className="text-rose-300 font-semibold ml-1">
-                      {matchResult.personA.fuqiMajorStars.join('、')}
+                      {matchResult.personA.fuqiMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">財帛宮主星：</span>
+                    <span className="text-slate-400">{t('match.wealthStars')}：</span>
                     <span className="text-emerald-300 ml-1">
-                      {matchResult.personA.wealthMajorStars.join('、')}
+                      {matchResult.personA.wealthMajorStars.join('\u3001')}
                     </span>
                   </p>
                 </div>
@@ -488,35 +495,39 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               <div className="bg-slate-950/60 p-5 rounded-xl border border-purple-500/30 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <h4 className="font-bold text-purple-400 text-sm">{matchResult.personB.name}</h4>
-                  <span className="text-xs text-slate-400">{matchResult.personB.gender}</span>
+                  <span className="text-xs text-slate-400">
+                    {matchResult.personB.gender === 'female' ? t('form.female') : t('form.male')}
+                  </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-400">農曆生辰：</span>
+                    <span className="text-slate-400">{t('match.lunarBirth')}：</span>
                     <p className="text-slate-200 font-mono">{matchResult.personB.lunarDate}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">天干地支：</span>
+                    <span className="text-slate-400">{t('match.stemBranch')}：</span>
                     <p className="text-slate-200 font-semibold">{matchResult.personB.chineseDate}</p>
                   </div>
                 </div>
                 <div className="border-t border-slate-800/80 pt-2 space-y-1 text-xs">
                   <p>
-                    <span className="text-slate-400">命宮 (地支 {matchResult.personB.soulPalaceBranch}) 主星：</span>
+                    <span className="text-slate-400">
+                      {t('match.mingStars', { branch: matchResult.personB.soulPalaceBranch })}：
+                    </span>
                     <span className="text-purple-300 font-bold ml-1">
-                      {matchResult.personB.mingMajorStars.join('、')}
+                      {matchResult.personB.mingMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">夫妻宮主星：</span>
+                    <span className="text-slate-400">{t('match.fuqiStars')}：</span>
                     <span className="text-rose-300 font-semibold ml-1">
-                      {matchResult.personB.fuqiMajorStars.join('、')}
+                      {matchResult.personB.fuqiMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">財帛宮主星：</span>
+                    <span className="text-slate-400">{t('match.wealthStars')}：</span>
                     <span className="text-emerald-300 ml-1">
-                      {matchResult.personB.wealthMajorStars.join('、')}
+                      {matchResult.personB.wealthMajorStars.join('\u3001')}
                     </span>
                   </p>
                 </div>
@@ -530,10 +541,10 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               <div>
                 <h3 className="text-base font-semibold text-amber-300 flex items-center gap-2">
                   <Zap className="w-4 h-4 text-amber-400" />
-                  十干四化互飛氣場比對 (Cross Flying Mutagens)
+                  {t('match.crossFlyingTitle')}
                 </h3>
                 <p className="text-xs text-slate-400">
-                  點擊切換天干飛化源點，檢視四化（祿、權、科、忌）對落入對方宮位之影響
+                  {t('match.crossFlyingSubtitle')}
                 </p>
               </div>
 
@@ -562,10 +573,12 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 <div className="text-xs text-slate-300 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
                   <span>
-                    來源：<strong className="text-amber-300">{matchResult.crossMutagens[activeGroupIndex].sourcePerson}</strong> 的
-                    <strong className="text-amber-300">{matchResult.crossMutagens[activeGroupIndex].stemType}</strong>（天干【
-                    {matchResult.crossMutagens[activeGroupIndex].stem}】），飛入{' '}
-                    <strong className="text-purple-300">{matchResult.crossMutagens[activeGroupIndex].targetPerson}</strong> 的星盤：
+                    {t('match.crossSourceText', {
+                      source: matchResult.crossMutagens[activeGroupIndex].sourcePerson,
+                      stemType: matchResult.crossMutagens[activeGroupIndex].stemType,
+                      stem: matchResult.crossMutagens[activeGroupIndex].stem,
+                      target: matchResult.crossMutagens[activeGroupIndex].targetPerson,
+                    })}
                   </span>
                 </div>
 
@@ -581,10 +594,10 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                             detail.mutagen
                           )}`}
                         >
-                          化{detail.mutagen}
+                          {t('chart.hua')}{detail.mutagen}
                         </span>
                         <span className="text-xs font-semibold text-slate-300">
-                          飛入目標宮位：<strong className="text-amber-300">{detail.targetPalaceName}</strong>（{detail.starName}）
+                          {t('match.targetPalaceLabel')}：<strong className="text-amber-300">{detail.targetPalaceName}</strong>（{detail.starName}）
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 leading-relaxed">{detail.description}</p>
@@ -599,21 +612,21 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl space-y-6">
             <h3 className="text-base font-semibold text-amber-300 flex items-center gap-2 border-b border-slate-800 pb-3">
               <Heart className="w-4 h-4 text-rose-400" />
-              關係重點與相處之道 (Relationship Key Points)
+              {t('match.relPointsTitle')}
             </h3>
 
             {/* Analysis Paragraphs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 space-y-1.5">
                 <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
-                  <Users className="w-4 h-4" /> 命宮與命宮性格互動
+                  <Users className="w-4 h-4" /> {t('match.mingVsMingTitle')}
                 </h4>
                 <p className="text-slate-300 leading-relaxed">{matchResult.relationshipPoints.mingVsMingText}</p>
               </div>
 
               <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 space-y-1.5">
                 <h4 className="font-bold text-rose-400 flex items-center gap-1.5">
-                  <Heart className="w-4 h-4" /> 夫妻宮投射與契合
+                  <Heart className="w-4 h-4" /> {t('match.mingVsFuqiTitle')}
                 </h4>
                 <p className="text-slate-300 leading-relaxed">{matchResult.relationshipPoints.mingVsFuQiText}</p>
               </div>
@@ -624,7 +637,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               {/* Strengths */}
               <div className="bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/30 space-y-3">
                 <h4 className="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" /> 契合亮點 (Strengths)
+                  <CheckCircle2 className="w-4 h-4" /> {t('match.strengthsTitle')}
                 </h4>
                 <ul className="space-y-2 text-xs text-slate-300">
                   {matchResult.relationshipPoints.strengths.map((item, i) => (
@@ -639,7 +652,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               {/* Risks */}
               <div className="bg-rose-950/20 p-4 rounded-xl border border-rose-500/30 space-y-3">
                 <h4 className="font-bold text-rose-400 text-xs flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4" /> 潛在磨合 (Risks)
+                  <AlertTriangle className="w-4 h-4" /> {t('match.risksTitle')}
                 </h4>
                 <ul className="space-y-2 text-xs text-slate-300">
                   {matchResult.relationshipPoints.risks.map((item, i) => (
@@ -654,7 +667,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               {/* Advice */}
               <div className="bg-amber-950/20 p-4 rounded-xl border border-amber-500/30 space-y-3">
                 <h4 className="font-bold text-amber-400 text-xs flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" /> 相處建議 (Advice)
+                  <Sparkles className="w-4 h-4" /> {t('match.adviceTitle')}
                 </h4>
                 <ul className="space-y-2 text-xs text-slate-300">
                   {matchResult.relationshipPoints.advice.map((item, i) => (

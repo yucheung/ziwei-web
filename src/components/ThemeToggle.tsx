@@ -1,5 +1,6 @@
 import { Moon, Sun } from 'lucide-react';
 import type { Theme } from '../hooks/useTheme';
+import { useTranslation } from '../i18n';
 
 interface ThemeToggleProps {
   theme: Theme;
@@ -7,12 +8,13 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
       onClick={onToggle}
       className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-      aria-label={`切換至${theme === 'dark' ? '淺色' : '深色'}模式`}
+      aria-label={theme === 'dark' ? t('theme.switchToLight') : t('theme.switchToDark')}
     >
       {theme === 'dark' ? (
         <Sun className="w-5 h-5 text-amber-400" />

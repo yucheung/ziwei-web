@@ -12,13 +12,13 @@ export const ZHI_WUXING: Record<string, string> = {
   午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水',
 };
 
-/** 五行→顏色 CSS class（Tailwind 用） */
+/** 五行→顏色 CSS class（Tailwind 用，提供 light & dark 雙模式） */
 export const WUXING_COLORS: Record<string, string> = {
-  '木': 'text-green-400',
-  '火': 'text-red-400',
-  '土': 'text-yellow-400',
-  '金': 'text-slate-300',
-  '水': 'text-blue-400',
+  '木': 'text-emerald-600 dark:text-emerald-400',
+  '火': 'text-rose-600 dark:text-rose-400',
+  '土': 'text-amber-600 dark:text-amber-400',
+  '金': 'text-slate-600 dark:text-slate-300',
+  '水': 'text-blue-600 dark:text-blue-400',
 };
 
 /** 一柱 = 天干 + 地支 */

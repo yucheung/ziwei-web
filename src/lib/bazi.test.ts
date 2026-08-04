@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateFourPillars, calculateFourPillarsFromTimeIndex, GAN_WUXING, ZHI_WUXING } from './bazi';
+import { calculateFourPillars, calculateFourPillarsFromTimeIndex, GAN_WUXING, ZHI_WUXING, WUXING_COLORS } from './bazi';
 
 describe('src/lib/bazi.ts', () => {
   describe('calculateFourPillars', () => {
@@ -95,6 +95,13 @@ describe('src/lib/bazi.ts', () => {
       for (const b of branches) {
         expect(ZHI_WUXING[b]).toBeDefined();
         expect(['木', '火', '土', '金', '水']).toContain(ZHI_WUXING[b]);
+      }
+    });
+
+    it('WUXING_COLORS contains dark mode variants for WCAG AA contrast', () => {
+      const wuxingKeys = ['木', '火', '土', '金', '水'];
+      for (const key of wuxingKeys) {
+        expect(WUXING_COLORS[key]).toContain('dark:text-');
       }
     });
   });
