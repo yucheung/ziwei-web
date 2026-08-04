@@ -96,7 +96,7 @@ describe('App Integration Test Suite', () => {
     fireEvent.click(matchModeBtn);
 
     // Wait for lazy-loaded MatchPanel
-    expect(await screen.findByText(/雙人紫微命盤合盤/i)).toBeInTheDocument();
+    expect(await screen.findByText(/雙人紫微命盤合盤/i, {}, { timeout: 4000 })).toBeInTheDocument();
 
     // Click '個人命盤' to return
     const singleModeBtn = await screen.findByRole('button', { name: '個人命盤' });

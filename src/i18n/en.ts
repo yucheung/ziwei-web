@@ -104,6 +104,7 @@ export const en: Record<TranslationKey, string> = {
   'fortune.nextYear': 'Next Year',
   'fortune.yearAfter': 'Year After',
   'fortune.decadal': 'Current Decadal (10-Year Fortune)',
+  'fortune.decadalShort': 'Decadal',
   'fortune.decadalOverlap': 'Decadal Life Palace overlaps natal',
   'fortune.originalPalace': 'Original Palace #',
   'fortune.gong': '',
@@ -112,8 +113,9 @@ export const en: Record<TranslationKey, string> = {
   'fortune.quan': 'Quan (Power)',
   'fortune.ke': 'Ke (Fame)',
   'fortune.ji': 'Ji (Obstacle)',
-  'fortune.levelOverlap': 'Life Palace overlaps natal',
-  'fortune.levelMutagen': 'Heavenly Stem Mutagens',
+  'fortune.current': 'Current ',
+  'fortune.levelOverlap': ' Life Palace overlaps natal',
+  'fortune.levelMutagen': ' Stem',
   'fortune.decadalTable': 'Decadal Fortune Table (10-year periods)',
   'fortune.greenHint': 'Green highlight = current decadal',
   'fortune.ageRange': 'Age Range',
@@ -138,6 +140,8 @@ export const en: Record<TranslationKey, string> = {
   'fortune.monthly.sub': 'Monthly Fortune',
   'fortune.daily.sub': 'Daily Fortune',
   'fortune.hourly.sub': 'Hourly Fortune',
+  'fortune.decadalLife': 'Decadal Life',
+  'fortune.levelLife': 'Life',
 
   // ─── Reading Panel ───
   'reading.title': 'AI Multi-Model Chart Reading',

@@ -102,6 +102,7 @@ export const zhTW = {
   'fortune.nextYear': '明年',
   'fortune.yearAfter': '後年',
   'fortune.decadal': '當前大限 (十年運勢)',
+  'fortune.decadalShort': '大限',
   'fortune.decadalOverlap': '大限命宮重疊本命',
   'fortune.originalPalace': '原盤第',
   'fortune.gong': '宮',
@@ -110,8 +111,9 @@ export const zhTW = {
   'fortune.quan': '化權',
   'fortune.ke': '化科',
   'fortune.ji': '化忌',
+  'fortune.current': '當前',
   'fortune.levelOverlap': '命宮重疊本命',
-  'fortune.levelMutagen': '天干四化引動',
+  'fortune.levelMutagen': '天干',
   'fortune.decadalTable': '大限運勢推算表 (10年大限)',
   'fortune.greenHint': '綠色 Highlight 為當前大限所在',
   'fortune.ageRange': '歲數範圍',
@@ -136,6 +138,8 @@ export const zhTW = {
   'fortune.monthly.sub': '月份運勢',
   'fortune.daily.sub': '日期運勢',
   'fortune.hourly.sub': '時辰運勢',
+  'fortune.decadalLife': '限命',
+  'fortune.levelLife': '命',
 
   // ─── Reading Panel ───
   'reading.title': 'AI 多模型命盤結構化解讀',
