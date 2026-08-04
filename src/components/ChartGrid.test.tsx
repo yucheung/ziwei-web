@@ -114,10 +114,33 @@ describe('ChartGrid Component', () => {
         (s) => s.brightness
       );
       if (starWithBrightness) {
-        expect(screen.getByText(starWithBrightness.name)).toBeInTheDocument();
+        const nameEls = screen.getAllByText(starWithBrightness.name);
+        expect(nameEls.length).toBeGreaterThanOrEqual(1);
         const brightnessEls = screen.getAllByText(starWithBrightness.brightness!);
         expect(brightnessEls.length).toBeGreaterThanOrEqual(1);
       }
+    });
+  });
+
+  describe('flying stars display', () => {
+    it('renders flying star badges on palace cells', () => {
+      const astrolabe = getChart('2000-08-16', 2, 'male');
+      render(<ChartGrid astrolabe={astrolabe} />);
+
+      // Flying badge containers should exist (title="飛星四化標記")
+      const containers = document.querySelectorAll('[title="飛星四化標記"]');
+      expect(containers.length).toBeGreaterThan(0);
+    });
+
+    it('renders flying star detail panel when a palace is selected', () => {
+      const astrolabe = getChart('2000-08-16', 2, 'male');
+      render(<ChartGrid astrolabe={astrolabe} />);
+
+      // Click on a palace to show detail
+      fireEvent.click(screen.getByTestId('palace-cell-申'));
+
+      // Flying star detail section should appear
+      expect(screen.getByText(/飛星四化/)).toBeInTheDocument();
     });
   });
 });

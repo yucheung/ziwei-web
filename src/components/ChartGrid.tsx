@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Compass, Sparkles, Target, Layers, Shield } from 'lucide-react';
-import { PalaceCell, PalaceData } from './PalaceCell';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Compass, Sparkles, Target, Layers, Shield, Zap } from 'lucide-react';
+import { PalaceCell, PalaceData, FlyingMutagenBadge } from './PalaceCell';
 import { StarTag } from './StarTag';
 import {
   getSanfangSizhengIndices,
   getAnheIndex,
   getGridPosition,
 } from '../data/palace-layout';
-import { FourPillars } from './FourPillars';
-import { calculateFourPillars } from '../lib/bazi';
+import {
+  calculateFlyingStars,
+  getPalaceMutagenLabels,
+  type FlyingPalace,
+  type FlyingStarsResult,
+} from '../lib/flying';
 
 export interface ChartGridProps {
   /** iztro 產生的完整 Astrolabe 物件或符合格式的命盤物件 */
@@ -46,7 +50,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   // 尋找命宮預設索引 (若無則預設 0)
   const defaultIndex = React.useMemo(() => {
     if (!astrolabe || !astrolabe.palaces || astrolabe.palaces.length === 0) return 0;
-    const idx = astrolabe.palaces.findIndex((p) => p.name === '命宮');
+    const idx = astrolabe.palaces.findIndex((p) => p.name === '命宫' || p.name === '命宮');
     return idx >= 0 ? idx : 0;
   }, [astrolabe]);
 
@@ -59,6 +63,20 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
 
   // 選取的宮位索引 (受控 vs 非受控)
   const selectedIndex = propSelectedIndex !== undefined ? propSelectedIndex : internalSelectedIndex;
+
+  // 計算飛星四化
+  const flyingResult: FlyingStarsResult | null = useMemo(() => {
+    if (!astrolabe || !astrolabe.palaces || astrolabe.palaces.length !== 12) return null;
+    const flyingPalaces: FlyingPalace[] = astrolabe.palaces.map((p) => ({
+      index: p.index,
+      name: p.name,
+      heavenlyStem: p.heavenlyStem,
+      earthlyBranch: p.earthlyBranch,
+      majorStars: p.majorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
+      minorStars: p.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
+    }));
+    return calculateFlyingStars(flyingPalaces);
+  }, [astrolabe]);
 
   const handleCellClick = (index: number) => {
     setInternalSelectedIndex(index);
@@ -104,6 +122,26 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
     return null;
   };
 
+  // 取得宮位的飛星四化標記
+  const getFlyingBadges = (index: number): FlyingMutagenBadge[] => {
+    if (!flyingResult) return [];
+    const labels = getPalaceMutagenLabels(index, flyingResult);
+    return labels.map((l) => ({
+      star: l.star,
+      type: l.type,
+      source: l.source,
+      fromPalace: l.fromPalace,
+    }));
+  };
+
+  // 取得選中宮位的飛星四化詳情
+  const getSelectedFlyingDetail = () => {
+    if (!flyingResult) return null;
+    return flyingResult.palaces[selectedIndex] ?? null;
+  };
+
+  const selectedFlyingDetail = getSelectedFlyingDetail();
+
   return (
     <div className={`space-y-6 ${className}`}>
       {/* 4x4 宮位網格陣列 */}
@@ -113,6 +151,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
           const { row, col } = getGridPosition(index);
           const role = getPalaceRole(index);
           const isSelected = index === selectedIndex;
+          const flyingBadges = getFlyingBadges(index);
 
           return (
             <div
@@ -126,6 +165,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
                 palace={palace}
                 isSelected={isSelected}
                 role={role}
+                flyingBadges={flyingBadges}
                 onClick={() => handleCellClick(index)}
               />
             </div>
@@ -187,26 +227,6 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
               </span>
             </div>
           </div>
-
-          {/* 四柱八字 */}
-          {(() => {
-            const [sYear, sMonth, sDay] = (astrolabe.solarDate || '').split('-').map(Number);
-            const timeRangeStr = (astrolabe as Record<string, unknown>).timeRange as string | undefined;
-            let hour = 12;
-            if (timeRangeStr) {
-              const match = timeRangeStr.match(/^(\d{2}):\d{2}/);
-              if (match) hour = parseInt(match[1], 10);
-            }
-            if (sYear && sMonth && sDay) {
-              const fp = calculateFourPillars(sYear, sMonth, sDay, hour);
-              return (
-                <div className="border-t border-slate-800 pt-2 mt-2">
-                  <FourPillars pillars={fp} />
-                </div>
-              );
-            }
-            return null;
-          })()}
 
           {/* 當前點擊宮位之三方四正速覽 */}
           {selectedPalace && (
@@ -356,6 +376,68 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
               </div>
             </div>
           </div>
+
+          {/* 飛星四化詳情面板 */}
+          {selectedFlyingDetail && (
+            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+              <h4 className="text-xs font-bold text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5" />
+                飛星四化 (本宮天干：{selectedFlyingDetail.heavenlyStem})
+              </h4>
+
+              {/* 飛出：本宮天干四化 → 飛入各宮 */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-slate-400 font-medium">▸ 飛出 (本宮四化飛入)</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {selectedFlyingDetail.flyingOut.map((fly, i) => (
+                    <div
+                      key={`out-${i}`}
+                      className={`px-2 py-1 rounded text-[11px] border ${
+                        fly.targetPalaceIndex === selectedIndex
+                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
+                          : 'bg-slate-800/50 border-slate-700/50 text-slate-300'
+                      }`}
+                    >
+                      <span className="font-bold">{fly.star}</span>
+                      <span className="text-slate-400"> 化</span>
+                      <span className={`font-bold ${
+                        fly.type === '祿' ? 'text-emerald-400' :
+                        fly.type === '權' ? 'text-rose-400' :
+                        fly.type === '科' ? 'text-sky-400' :
+                        'text-purple-400'
+                      }`}>{fly.type}</span>
+                      <span className="text-slate-500 text-[10px]"> → {fly.targetPalaceName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 飛入：從其他宮位飛入此宮的四化 */}
+              {selectedFlyingDetail.flyingIn.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-slate-400 font-medium">▸ 飛入 (從其他宮位飛來)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedFlyingDetail.flyingIn.map((fly, i) => (
+                      <div
+                        key={`in-${i}`}
+                        className="px-2 py-1 rounded text-[11px] border border-dashed bg-slate-800/30 border-slate-600/50 text-slate-300"
+                      >
+                        <span className="font-bold">{fly.star}</span>
+                        <span className="text-slate-400"> 化</span>
+                        <span className={`font-bold ${
+                          fly.type === '祿' ? 'text-emerald-400' :
+                          fly.type === '權' ? 'text-rose-400' :
+                          fly.type === '科' ? 'text-sky-400' :
+                          'text-purple-400'
+                        }`}>{fly.type}</span>
+                        <span className="text-slate-500 text-[10px]"> ← {fly.sourcePalaceName}({fly.sourceStem})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

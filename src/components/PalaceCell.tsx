@@ -30,10 +30,20 @@ export interface PalaceData {
   ages?: number[];
 }
 
+/** 飛入四化標記 */
+export interface FlyingMutagenBadge {
+  star: string;
+  type: '祿' | '權' | '科' | '忌';
+  /** 'native' = 本宮天干四化落在本宮; 'flying' = 從其他宮位飛入 */
+  source: 'native' | 'flying';
+  fromPalace?: string;
+}
+
 export interface PalaceCellProps {
   palace: PalaceData;
   isSelected?: boolean;
   role?: 'target' | 'opposite' | 'career' | 'wealth' | 'anhe' | null;
+  flyingBadges?: FlyingMutagenBadge[];
   onClick?: () => void;
   className?: string;
 }
@@ -42,6 +52,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
   palace,
   isSelected = false,
   role = null,
+  flyingBadges = [],
   onClick,
   className = '',
 }) => {
@@ -73,6 +84,18 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
         return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 shadow-md">暗合宮</span>;
       default:
         return null;
+    }
+  };
+
+  // 飛星四化標記色彩
+  const getFlyingBadgeStyle = (type: string, source: string) => {
+    const base = source === 'flying' ? 'border-dashed ' : '';
+    switch (type) {
+      case '祿': return `${base}bg-emerald-500/20 text-emerald-300 border-emerald-500/40`;
+      case '權': return `${base}bg-rose-500/20 text-rose-300 border-rose-500/40`;
+      case '科': return `${base}bg-sky-500/20 text-sky-300 border-sky-500/40`;
+      case '忌': return `${base}bg-purple-600/25 text-purple-200 border-purple-500/40`;
+      default: return `${base}bg-slate-700/50 text-slate-200 border-slate-600`;
     }
   };
 
@@ -170,24 +193,41 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
       </div>
 
       {/* 底部宮位資訊資訊列 */}
-      <div className="border-t border-slate-800/80 pt-1 mt-1 flex items-end justify-between">
-        {/* 12 神 & 大限歲數 */}
-        <div className="flex flex-col text-[10px] text-slate-400 font-mono leading-tight">
-          {decadal?.range && (
-            <span className="text-amber-400/90 font-medium">
-              {decadal.range[0]}-{decadal.range[1]}
-            </span>
-          )}
-          {changsheng12 && <span className="text-slate-400">{changsheng12}</span>}
-        </div>
+      <div className="border-t border-slate-800/80 pt-1 mt-1 flex flex-col gap-1">
+        {/* 飛星四化標記列 */}
+        {flyingBadges.length > 0 && (
+          <div className="flex flex-wrap gap-0.5" title="飛星四化標記">
+            {flyingBadges.map((badge, i) => (
+              <span
+                key={`fly-${i}`}
+                className={`px-1 py-0.5 rounded text-[9px] font-bold border ${getFlyingBadgeStyle(badge.type, badge.source)}`}
+                title={`${badge.star}化${badge.type}${badge.source === 'flying' ? ` (飛入自${badge.fromPalace})` : ' (本宮)'}`}
+              >
+                {badge.star.slice(0, 1)}{badge.type}
+              </span>
+            ))}
+          </div>
+        )}
 
-        {/* 天干地支 + 宮位名稱 */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-xs font-mono font-bold text-amber-300">
-            {heavenlyStem}
-            {earthlyBranch}
-          </span>
-          <span className="text-sm font-bold text-slate-100">{name}</span>
+        <div className="flex items-end justify-between">
+          {/* 12 神 & 大限歲數 */}
+          <div className="flex flex-col text-[10px] text-slate-400 font-mono leading-tight">
+            {decadal?.range && (
+              <span className="text-amber-400/90 font-medium">
+                {decadal.range[0]}-{decadal.range[1]}
+              </span>
+            )}
+            {changsheng12 && <span className="text-slate-400">{changsheng12}</span>}
+          </div>
+
+          {/* 天干地支 + 宮位名稱 */}
+          <div className="flex items-baseline gap-1">
+            <span className="text-xs font-mono font-bold text-amber-300">
+              {heavenlyStem}
+              {earthlyBranch}
+            </span>
+            <span className="text-sm font-bold text-slate-100">{name}</span>
+          </div>
         </div>
       </div>
     </div>
