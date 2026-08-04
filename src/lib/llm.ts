@@ -1,5 +1,10 @@
 /**
  * OpenAI-Compatible 多模型 LLM Client 層
+ *
+ * 安全設計：
+ * - API Key 存於 sessionStorage（分頁關閉即清除），降低 XSS 竊取風險
+ * - 非機密設定 (provider/baseUrl/model/temperature) 仍用 localStorage 持久化
+ * - SSE 串流加入 AbortSignal.timeout 與 finally reader.releaseLock()
  */
 
 export interface LLMProviderPreset {
@@ -68,7 +73,19 @@ export interface LLMConfig {
   maxTokens?: number;
 }
 
+/** localStorage key for non-sensitive settings */
 export const STORAGE_KEY = 'ziwei_llm_config';
+
+/** sessionStorage key for API Key (cleared when tab/browser closes) */
+export const API_KEY_SESSION_KEY = 'ziwei_llm_apikey';
+
+/** Default timeout (ms) for SSE streaming fetch */
+export const DEFAULT_STREAM_TIMEOUT_MS = 60_000;
+
+/** 安全警告：提醒使用者前端存儲 API Key 的風險 */
+export const API_KEY_SECURITY_WARNING =
+  '⚠️ 安全提醒：API Key 僅暫存於本瀏覽器分頁（sessionStorage），關閉分頁即自動清除。' +
+  '即便如此，前端儲存 API Key 仍有 XSS 風險，建議僅在可信網路環境使用，並定期輪換 Key。';
 
 export const DEFAULT_LLM_CONFIG: LLMConfig = {
   provider: 'gemini',
@@ -80,29 +97,54 @@ export const DEFAULT_LLM_CONFIG: LLMConfig = {
 };
 
 export function loadLLMConfig(): LLMConfig {
-  if (typeof window === 'undefined' || !window.localStorage) {
+  if (typeof window === 'undefined') {
     return { ...DEFAULT_LLM_CONFIG };
   }
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...DEFAULT_LLM_CONFIG, ...parsed };
-    }
+    // Non-sensitive settings from localStorage
+    const saved = window.localStorage?.getItem(STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    // API Key from sessionStorage (tab-scoped, no persistence)
+    const sessionKey = window.sessionStorage?.getItem(API_KEY_SESSION_KEY) ?? '';
+    return {
+      ...DEFAULT_LLM_CONFIG,
+      ...parsed,
+      apiKey: sessionKey,
+    };
   } catch (e) {
-    console.error('Failed to load LLM config from localStorage:', e);
+    console.error('Failed to load LLM config:', e);
   }
   return { ...DEFAULT_LLM_CONFIG };
 }
 
 export function saveLLMConfig(config: LLMConfig): void {
-  if (typeof window === 'undefined' || !window.localStorage) {
+  if (typeof window === 'undefined') {
     return;
   }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    // Separate API key from other settings
+    const { apiKey, ...nonSensitive } = config;
+    // Non-sensitive settings → localStorage (persists across sessions)
+    window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(nonSensitive));
+    // API Key → sessionStorage (cleared when tab closes)
+    window.sessionStorage?.setItem(API_KEY_SESSION_KEY, apiKey || '');
   } catch (e) {
-    console.error('Failed to save LLM config to localStorage:', e);
+    console.error('Failed to save LLM config:', e);
+  }
+}
+
+/**
+ * 一鍵清除所有存儲的 LLM 設定與 API Key
+ */
+export function clearLLMConfig(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.localStorage?.removeItem(STORAGE_KEY);
+    window.sessionStorage?.removeItem(API_KEY_SESSION_KEY);
+  } catch (e) {
+    console.error('Failed to clear LLM config:', e);
   }
 }
 
@@ -186,9 +228,10 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
 export async function callLLMStream(
   messages: ChatMessage[],
   config: LLMConfig,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  timeoutMs: number = DEFAULT_STREAM_TIMEOUT_MS
 ): Promise<string> {
-  const { apiKey, baseUrl, model, temperature } = config;
+  const { apiKey, baseUrl, model, temperature, maxTokens } = config;
   if (!apiKey && config.provider !== 'custom') {
     throw new Error('未設定 API Key，請點擊「API 設定」設定您的 API Key');
   }
@@ -208,16 +251,28 @@ export async function callLLMStream(
     headers['Authorization'] = `Bearer ${apiKey.trim()}`;
   }
 
+  // Merge user-provided AbortSignal with a timeout signal to prevent
+  // the request from hanging indefinitely if the upstream API stalls.
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const mergedSignal = callbacks.signal
+    ? AbortSignal.any([callbacks.signal, timeoutSignal])
+    : timeoutSignal;
+
+  const body: Record<string, unknown> = {
+    model: model.trim(),
+    messages,
+    temperature: temperature ?? 0.7,
+    stream: true,
+  };
+  if (maxTokens && maxTokens > 0) {
+    body.max_tokens = maxTokens;
+  }
+
   const response = await fetch(endpoint, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      model: model.trim(),
-      messages,
-      temperature: temperature ?? 0.7,
-      stream: true,
-    }),
-    signal: callbacks.signal,
+    body: JSON.stringify(body),
+    signal: mergedSignal,
   });
 
   if (!response.ok) {
@@ -300,12 +355,23 @@ export async function callLLMStream(
 
     callbacks.onFinish?.(fullText);
     return fullText;
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
       callbacks.onFinish?.(fullText);
       return fullText;
     }
-    callbacks.onError?.(err);
+    if (err instanceof Error) {
+      callbacks.onError?.(err);
+    } else {
+      callbacks.onError?.(new Error(String(err)));
+    }
     throw err;
+  } finally {
+    // Always release the ReadableStream lock to prevent memory leaks
+    try {
+      reader.releaseLock();
+    } catch {
+      // releaseLock may throw if stream is already closed; safe to ignore
+    }
   }
 }

@@ -5,6 +5,7 @@ import {
   normalizeGender,
   getTrueSolarTimeCorrection,
   normalizeTimeIndex,
+  calculateEquationOfTime,
   CITY_LONGITUDES,
 } from './astro';
 
@@ -102,11 +103,34 @@ describe('src/lib/astro.ts', () => {
       expect(res.day).toBe(16);
     });
 
-    it('throws error for invalid month or day out of bounds', () => {
+    it('throws error for invalid month or day out of bounds in solar calendar', () => {
       expect(() => parseAndValidateDate('2000-13-01')).toThrowError('月份超出範圍');
       expect(() => parseAndValidateDate('2000-02-30')).toThrowError('該月只有 29 天');
       expect(() => parseAndValidateDate('1899-05-10')).toThrowError('年份超出範圍');
       expect(() => parseAndValidateDate('')).toThrowError('日期不可為空');
+    });
+
+    it('correctly validates lunar dates without false rejection for 30-day lunar months (e.g. 2023 农历二月三十)', () => {
+      // 2023 陽曆 2 月只有 28 天，但農曆二月是大月有 30 天
+      const res = parseAndValidateDate('2023-02-30', true, false);
+      expect(res.year).toBe(2023);
+      expect(res.month).toBe(2);
+      expect(res.day).toBe(30);
+
+      // 驗證 2023 農曆閏二月 29 天為合法日期
+      const resLeap = parseAndValidateDate('2023-02-29', true, true);
+      expect(resLeap.year).toBe(2023);
+      expect(resLeap.month).toBe(2);
+      expect(resLeap.day).toBe(29);
+    });
+
+    it('throws error for invalid lunar days or non-existent leap month', () => {
+      // 2023 農曆二月只有 30 天，31 日無效
+      expect(() => parseAndValidateDate('2023-02-31', true, false)).toThrowError('該月只有 30 天');
+      // 2023 農曆閏二月只有 29 天，30 日無效
+      expect(() => parseAndValidateDate('2023-02-30', true, true)).toThrowError('該月只有 29 天');
+      // 2023 年沒有閏三月
+      expect(() => parseAndValidateDate('2023-03-15', true, true)).toThrowError('無閏3月');
     });
   });
 
@@ -168,14 +192,32 @@ describe('src/lib/astro.ts', () => {
     });
   });
 
-  describe('True Solar Time Correction (getTrueSolarTimeCorrection)', () => {
-    it('looks up city coordinates from CITY_LONGITUDES', () => {
+  describe('Equation of Time & True Solar Time Correction (getTrueSolarTimeCorrection)', () => {
+    it('calculates equation of time (EOT) accurately for specific dates', () => {
+      // 2024-02-11: EOT 約 -14.2 分鐘
+      const eotFeb = calculateEquationOfTime(2024, 2, 11);
+      expect(eotFeb).toBeCloseTo(-14.2, 0);
+
+      // 2024-11-03: EOT 約 +16.3 分鐘
+      const eotNov = calculateEquationOfTime(2024, 11, 3);
+      expect(eotNov).toBeCloseTo(16.3, 0);
+    });
+
+    it('looks up city coordinates and calculates combined longitude offset and EOT', () => {
       expect(CITY_LONGITUDES['台北']).toBe(121.56);
-      const corr = getTrueSolarTimeCorrection('台北', 8);
-      expect(corr).toBeDefined();
-      expect(corr?.longitude).toBe(121.56);
-      // (121.56 - 120) * 4 = 6.24 minutes
-      expect(corr?.offsetMinutes).toBeCloseTo(6.24);
+
+      // 無傳入日期時，僅計算經度時差 (6.24 分鐘)
+      const corrNoDate = getTrueSolarTimeCorrection('台北', 8);
+      expect(corrNoDate).toBeDefined();
+      expect(corrNoDate?.longitude).toBe(121.56);
+      expect(corrNoDate?.offsetMinutes).toBeCloseTo(6.24);
+
+      // 傳入日期時，計算經度時差 + 均時差 (2024-11-03 台北: 6.24 + 16.34 = 22.58 分鐘)
+      const corrWithDate = getTrueSolarTimeCorrection('台北', 8, '2024-11-03');
+      expect(corrWithDate).toBeDefined();
+      expect(corrWithDate?.longitudeOffsetMinutes).toBeCloseTo(6.24);
+      expect(corrWithDate?.equationOfTimeMinutes).toBeCloseTo(16.34, 1);
+      expect(corrWithDate?.offsetMinutes).toBeCloseTo(22.58, 1);
     });
 
     it('handles numeric longitude inputs', () => {
@@ -185,8 +227,9 @@ describe('src/lib/astro.ts', () => {
     });
 
     it('adjusts clock time and date when true solar time crosses midnight', () => {
-      // 香港: 114.17°E. 時區 UTC+8 (標準經線 120°). 時差 = (114.17 - 120) * 4 = -23.32 分鐘
-      // 如果標準時間 00:10，減去 23.32 分鐘 -> 真太陽時 23:46.68 (前一日 晚子時 timeIndex 12)
+      // 香港: 114.17°E. 時區 UTC+8 (標準經線 120°). 經度時差 -23.32 分鐘
+      // 2000-08-16 均時差 -4.48 分鐘 -> 總時差 -27.80 分鐘
+      // 標準時間 00:10 減去 27.80 分鐘 -> 23:42.2 (前一日 晚子時)
       const chartWithTrueSolar = getChart({
         date: '2000-08-16',
         timeIndex: '00:10',
@@ -200,4 +243,55 @@ describe('src/lib/astro.ts', () => {
       expect(chartWithTrueSolar.timeRange).toBe('23:00~00:00');
     });
   });
+
+  describe('Lunar Cross-Day & Leap Month Boundary Adjustment (農曆跨日與閏月邊界)', () => {
+    it('correctly advances lunar date +1 day across lunar month & leap month boundary', () => {
+      // 2023 年農曆二月三十 (非閏) 23:55 經度 125.0 觸發跨日 +1 天 => 2023 閏二月初一
+      const lunarChart2355 = getChart({
+        date: '2023-02-30',
+        timeIndex: '23:55',
+        gender: 'male',
+        isLunar: true,
+        isLeapMonth: false,
+        longitude: 125.0,
+        timeZone: 8,
+      });
+
+      expect(lunarChart2355.lunarDate).toContain('闰二月初一');
+    });
+
+    it('correctly retreats lunar date -1 day back to previous month / 30th day', () => {
+      // 2023 年農曆閏二月初一 00:05 經度 110.0 觸發跨日 -1 天 => 2023 年農曆二月三十 (大月 30 天)
+      const lunarChartRetreat = getChart({
+        date: '2023-02-01',
+        timeIndex: '00:05',
+        gender: 'male',
+        isLunar: true,
+        isLeapMonth: true,
+        longitude: 110.0,
+        timeZone: 8,
+      });
+
+      expect(lunarChartRetreat.lunarDate).toContain('二月三十');
+      expect(lunarChartRetreat.lunarDate).not.toContain('闰');
+    });
+
+    it('correctly advances lunar year boundary (+1 day from 12/30 to 01/01 of next year)', () => {
+      // 2023 年農曆十二月三十 (除夕) 23:55 經度 125.0 觸發跨日 +1 天 => 2024 年農曆正月初一
+      const newYearChart = getChart({
+        date: '2023-12-30',
+        timeIndex: '23:55',
+        gender: 'male',
+        isLunar: true,
+        isLeapMonth: false,
+        longitude: 125.0,
+        timeZone: 8,
+      });
+
+      expect(newYearChart.lunarDate).toContain('正月初一');
+      expect(newYearChart.lunarDate).toContain('二〇二四年');
+    });
+  });
 });
+
+

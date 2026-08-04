@@ -1,4 +1,5 @@
 import { astro } from 'iztro';
+import { Lunar, LunarYear } from 'lunar-typescript';
 
 /**
  * 城市經度對照表（用於真太陽時校正）
@@ -119,15 +120,45 @@ export interface ParsedDate {
 }
 
 export interface TrueSolarTimeResult {
-  offsetMinutes: number;
-  longitude: number;
-  standardMeridian: number;
+  offsetMinutes: number;           // 總校正分鐘數 (經度時差 + 均時差)
+  longitudeOffsetMinutes?: number; // 經度時差 (分鐘)
+  equationOfTimeMinutes?: number;  // 均時差 (分鐘)
+  longitude: number;               // 經度
+  standardMeridian: number;        // 標準經線
+}
+
+/**
+ * 計算均時差 (Equation of Time, EOT) 單位：分鐘
+ * 根據西元陽曆 (solarYear, solarMonth, solarDay) 計算
+ */
+export function calculateEquationOfTime(year: number, month: number, day: number): number {
+  const now = new Date(Date.UTC(year, month - 1, day));
+  const start = new Date(Date.UTC(year, 0, 0));
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  // Spencer (1971) 均時差公式 (單位：分鐘)
+  const gamma = ((2 * Math.PI) / 365) * (dayOfYear - 1);
+  const eotMinutes =
+    229.18 *
+    (0.000075 +
+      0.001868 * Math.cos(gamma) -
+      0.032077 * Math.sin(gamma) -
+      0.014615 * Math.cos(2 * gamma) -
+      0.040849 * Math.sin(2 * gamma));
+
+  return eotMinutes;
 }
 
 /**
  * 解析並驗證日期 (支援西元 / 民國年 / Date 物件 / 各種字串格式)
+ * 當 isLunar 為 true 時，採用農曆天數與閏月驗證，避免陽曆 Date 誤拒農曆合法日期 (例如農曆二月三十或閏月)
  */
-export function parseAndValidateDate(dateInput: string | Date): ParsedDate {
+export function parseAndValidateDate(
+  dateInput: string | Date,
+  isLunar: boolean = false,
+  isLeapMonth: boolean = false
+): ParsedDate {
   if (!dateInput) {
     throw new Error('日期不可為空');
   }
@@ -193,9 +224,25 @@ export function parseAndValidateDate(dateInput: string | Date): ParsedDate {
     throw new Error(`月份超出範圍 (1-12): ${month}`);
   }
 
-  const daysInMonth = new Date(year, month, 0).getDate();
-  if (isNaN(day) || day < 1 || day > daysInMonth) {
-    throw new Error(`日期 ${month}月${day}日 無效，該月只有 ${daysInMonth} 天`);
+  if (isLunar) {
+    const ly = LunarYear.fromYear(year);
+    const lunarMonth = ly.getMonth(isLeapMonth ? -month : month);
+    if (!lunarMonth) {
+      if (isLeapMonth) {
+        throw new Error(`農曆 ${year}年 無閏${month}月`);
+      } else {
+        throw new Error(`農曆 ${year}年 無${month}月`);
+      }
+    }
+    const daysInMonth = lunarMonth.getDayCount();
+    if (isNaN(day) || day < 1 || day > daysInMonth) {
+      throw new Error(`日期 農曆${month}月${isLeapMonth ? '(閏)' : ''}${day}日 無效，該月只有 ${daysInMonth} 天`);
+    }
+  } else {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    if (isNaN(day) || day < 1 || day > daysInMonth) {
+      throw new Error(`日期 ${month}月${day}日 無效，該月只有 ${daysInMonth} 天`);
+    }
   }
 
   return {
@@ -226,10 +273,14 @@ export function normalizeGender(gender: Gender): 'male' | 'female' {
 
 /**
  * 計算真太陽時經度與時差 (分鐘)
+ * 包含經度時差與均時差 (Equation of Time)
  */
 export function getTrueSolarTimeCorrection(
   longitude?: number | string,
-  timeZone: number = 8
+  timeZone: number = 8,
+  dateInput?: string | Date | { year: number; month: number; day: number },
+  isLunar: boolean = false,
+  isLeapMonth: boolean = false
 ): TrueSolarTimeResult | null {
   if (longitude === undefined || longitude === null || longitude === '') {
     return null;
@@ -257,10 +308,49 @@ export function getTrueSolarTimeCorrection(
   }
 
   const standardMeridian = timeZone * 15;
-  const offsetMinutes = (lngNum - standardMeridian) * 4;
+  const longitudeOffsetMinutes = (lngNum - standardMeridian) * 4;
+
+  let equationOfTimeMinutes = 0;
+
+  if (dateInput !== undefined && dateInput !== null) {
+    let sYear: number;
+    let sMonth: number;
+    let sDay: number;
+
+    if (
+      typeof dateInput === 'object' &&
+      !(dateInput instanceof Date) &&
+      'year' in dateInput &&
+      'month' in dateInput &&
+      'day' in dateInput
+    ) {
+      sYear = dateInput.year;
+      sMonth = dateInput.month;
+      sDay = dateInput.day;
+    } else {
+      const parsed = parseAndValidateDate(dateInput as string | Date, isLunar, isLeapMonth);
+      sYear = parsed.year;
+      sMonth = parsed.month;
+      sDay = parsed.day;
+    }
+
+    if (isLunar) {
+      const lunarObj = Lunar.fromYmd(sYear, isLeapMonth ? -sMonth : sMonth, sDay);
+      const solarObj = lunarObj.getSolar();
+      sYear = solarObj.getYear();
+      sMonth = solarObj.getMonth();
+      sDay = solarObj.getDay();
+    }
+
+    equationOfTimeMinutes = calculateEquationOfTime(sYear, sMonth, sDay);
+  }
+
+  const offsetMinutes = longitudeOffsetMinutes + equationOfTimeMinutes;
 
   return {
     offsetMinutes,
+    longitudeOffsetMinutes,
+    equationOfTimeMinutes,
     longitude: lngNum,
     standardMeridian,
   };
@@ -389,40 +479,61 @@ export function getChart(
   // 1. 性別驗證
   const normGender = normalizeGender(opts.gender);
 
-  // 2. 真太陽時校正計算
+  const isLunar = opts.isLunar ?? false;
+  let isLeapMonth = opts.isLeapMonth ?? false;
   const timeZone = opts.timeZone ?? 8;
-  const solarTimeCorrection = getTrueSolarTimeCorrection(opts.longitude, timeZone);
+
+  // 2. 日期解析與驗證 (包含農曆與閏月校驗)
+  const parsedDate = parseAndValidateDate(opts.date, isLunar, isLeapMonth);
+
+  // 3. 真太陽時校正計算 (經度時差 + 均時差)
+  const solarTimeCorrection = getTrueSolarTimeCorrection(
+    opts.longitude,
+    timeZone,
+    parsedDate,
+    isLunar,
+    isLeapMonth
+  );
   const timeOffsetMinutes = solarTimeCorrection ? solarTimeCorrection.offsetMinutes : 0;
 
-  // 3. 時辰解析
+  // 4. 時辰解析
   const { timeIndex, adjustedDateOffsetDays } = normalizeTimeIndex(opts.timeIndex, timeOffsetMinutes);
 
-  // 4. 日期解析與驗證
-  const parsedDate = parseAndValidateDate(opts.date);
-
-  // 如果真太陽時跨日，調整日期
+  // 5. 如果真太陽時跨日，調整日期 (區分農曆與陽曆)
   let finalYear = parsedDate.year;
   let finalMonth = parsedDate.month;
   let finalDay = parsedDate.day;
 
   if (adjustedDateOffsetDays !== 0) {
-    const d = new Date(finalYear, finalMonth - 1, finalDay + adjustedDateOffsetDays);
-    finalYear = d.getFullYear();
-    finalMonth = d.getMonth() + 1;
-    finalDay = d.getDate();
+    if (isLunar) {
+      const lunarObj = Lunar.fromYmd(
+        finalYear,
+        isLeapMonth ? -finalMonth : finalMonth,
+        finalDay
+      );
+      const adjustedLunar = lunarObj.next(adjustedDateOffsetDays);
+      finalYear = adjustedLunar.getYear();
+      const rawMonth = adjustedLunar.getMonth();
+      finalMonth = Math.abs(rawMonth);
+      isLeapMonth = rawMonth < 0;
+      finalDay = adjustedLunar.getDay();
+    } else {
+      const d = new Date(finalYear, finalMonth - 1, finalDay + adjustedDateOffsetDays);
+      finalYear = d.getFullYear();
+      finalMonth = d.getMonth() + 1;
+      finalDay = d.getDate();
+    }
   }
 
-  const finalSolarDateStr = `${finalYear}-${finalMonth}-${finalDay}`;
-  const isLunar = opts.isLunar ?? false;
-  const isLeapMonth = opts.isLeapMonth ?? false;
   const fixLeap = opts.fixLeap ?? true;
 
-  // 5. 調用 iztro
+  // 6. 調用 iztro
   if (isLunar) {
-    // iztro byLunar 格式為 "YYYY-M-D"
     const lunarDateStr = `${finalYear}-${finalMonth}-${finalDay}`;
     return astro.byLunar(lunarDateStr, timeIndex, normGender, isLeapMonth, fixLeap, opts.language);
   } else {
+    const finalSolarDateStr = `${finalYear}-${finalMonth}-${finalDay}`;
     return astro.bySolar(finalSolarDateStr, timeIndex, normGender, fixLeap, opts.language);
   }
 }
+
