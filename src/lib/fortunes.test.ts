@@ -110,4 +110,120 @@ describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
     expect(() => getHoroscopeSummary(null as any)).toThrow('無效的 Astrolabe 物件');
     expect(() => getHoroscopeSummary({} as any)).toThrow('無效的 Astrolabe 物件');
   });
+
+  it('should return monthly/daily/hourly data with correct structure for 2026-08-04', () => {
+    const astrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    const summary = getHoroscopeSummary(astrolabe, '2026-08-04');
+
+    // Monthly (流月) check
+    expect(summary.monthly).toBeDefined();
+    expect(summary.monthly.index).toBeGreaterThanOrEqual(0);
+    expect(summary.monthly.index).toBeLessThan(12);
+    expect(summary.monthly.name).toBe('流月');
+    expect(summary.monthly.stemBranch).toMatch(/^[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]$/);
+    expect(summary.monthly.mutagen).toHaveProperty('lu');
+    expect(summary.monthly.mutagen).toHaveProperty('quan');
+    expect(summary.monthly.mutagen).toHaveProperty('ke');
+    expect(summary.monthly.mutagen).toHaveProperty('ji');
+    expect(summary.monthly.palaceNames).toHaveLength(12);
+
+    // Daily (流日) check
+    expect(summary.daily).toBeDefined();
+    expect(summary.daily.index).toBeGreaterThanOrEqual(0);
+    expect(summary.daily.index).toBeLessThan(12);
+    expect(summary.daily.name).toBe('流日');
+    expect(summary.daily.stemBranch).toMatch(/^[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]$/);
+    expect(summary.daily.mutagen).toHaveProperty('lu');
+    expect(summary.daily.mutagen).toHaveProperty('quan');
+    expect(summary.daily.mutagen).toHaveProperty('ke');
+    expect(summary.daily.mutagen).toHaveProperty('ji');
+    expect(summary.daily.palaceNames).toHaveLength(12);
+
+    // Hourly (流時) check
+    expect(summary.hourly).toBeDefined();
+    expect(summary.hourly.index).toBeGreaterThanOrEqual(0);
+    expect(summary.hourly.index).toBeLessThan(12);
+    expect(summary.hourly.name).toBe('流時');
+    expect(summary.hourly.stemBranch).toMatch(/^[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]$/);
+    expect(summary.hourly.mutagen).toHaveProperty('lu');
+    expect(summary.hourly.mutagen).toHaveProperty('quan');
+    expect(summary.hourly.mutagen).toHaveProperty('ke');
+    expect(summary.hourly.mutagen).toHaveProperty('ji');
+    expect(summary.hourly.palaceNames).toHaveLength(12);
+  });
+
+  it('should include monthly/daily/hourly stars in palaceScopeStars', () => {
+    const astrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    const summary = getHoroscopeSummary(astrolabe, '2026-08-04');
+
+    // Verify palaceScopeStars has monthly/daily/hourly star arrays
+    for (let i = 0; i < 12; i++) {
+      const stars = summary.palaceScopeStars[i];
+      expect(stars).toBeDefined();
+      expect(Array.isArray(stars.monthlyStars)).toBe(true);
+      expect(Array.isArray(stars.dailyStars)).toBe(true);
+      expect(Array.isArray(stars.hourlyStars)).toBe(true);
+    }
+
+    // Verify some monthly stars exist across palaces
+    const allMonthlyStars = Object.values(summary.palaceScopeStars).flatMap((p) => p.monthlyStars || []);
+    const allDailyStars = Object.values(summary.palaceScopeStars).flatMap((p) => p.dailyStars || []);
+    const allHourlyStars = Object.values(summary.palaceScopeStars).flatMap((p) => p.hourlyStars || []);
+
+    expect(allMonthlyStars.length).toBeGreaterThan(0);
+    expect(allDailyStars.length).toBeGreaterThan(0);
+    expect(allHourlyStars.length).toBeGreaterThan(0);
+
+    // Verify flow star naming convention (月/日/時 prefix)
+    expect(allMonthlyStars.some((s) => s.includes('月'))).toBe(true);
+    expect(allDailyStars.some((s) => s.includes('日'))).toBe(true);
+    expect(allHourlyStars.some((s) => s.includes('時'))).toBe(true);
+  });
+
+  it('should produce consistent monthly/daily/hourly mutagen from heavenly stems', () => {
+    const astrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    const summary = getHoroscopeSummary(astrolabe, '2026-08-04');
+
+    // Verify monthly mutagen matches STEM_MUTAGENS lookup
+    const monthlyStem = summary.monthly.stemBranch.charAt(0);
+    const expectedMonthly = STEM_MUTAGENS[monthlyStem];
+    expect(summary.monthly.mutagen.lu).toBe(expectedMonthly.lu);
+    expect(summary.monthly.mutagen.quan).toBe(expectedMonthly.quan);
+    expect(summary.monthly.mutagen.ke).toBe(expectedMonthly.ke);
+    expect(summary.monthly.mutagen.ji).toBe(expectedMonthly.ji);
+
+    // Verify daily mutagen matches STEM_MUTAGENS lookup
+    const dailyStem = summary.daily.stemBranch.charAt(0);
+    const expectedDaily = STEM_MUTAGENS[dailyStem];
+    expect(summary.daily.mutagen.lu).toBe(expectedDaily.lu);
+    expect(summary.daily.mutagen.quan).toBe(expectedDaily.quan);
+    expect(summary.daily.mutagen.ke).toBe(expectedDaily.ke);
+    expect(summary.daily.mutagen.ji).toBe(expectedDaily.ji);
+
+    // Verify hourly mutagen matches STEM_MUTAGENS lookup
+    const hourlyStem = summary.hourly.stemBranch.charAt(0);
+    const expectedHourly = STEM_MUTAGENS[hourlyStem];
+    expect(summary.hourly.mutagen.lu).toBe(expectedHourly.lu);
+    expect(summary.hourly.mutagen.quan).toBe(expectedHourly.quan);
+    expect(summary.hourly.mutagen.ke).toBe(expectedHourly.ke);
+    expect(summary.hourly.mutagen.ji).toBe(expectedHourly.ji);
+  });
 });

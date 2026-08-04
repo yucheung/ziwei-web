@@ -9,6 +9,22 @@ import {
 } from 'lucide-react';
 import { getHoroscopeSummary, HoroscopeSummary, DecadalItem } from '../lib/fortunes';
 
+export type FortuneLevel = 'yearly' | 'monthly' | 'daily' | 'hourly';
+
+const FORTUNE_LEVEL_LABELS: Record<FortuneLevel, { zh: string; sub: string }> = {
+  yearly: { zh: '流年', sub: '年度運勢' },
+  monthly: { zh: '流月', sub: '月份運勢' },
+  daily: { zh: '流日', sub: '日期運勢' },
+  hourly: { zh: '流時', sub: '時辰運勢' },
+};
+
+const FORTUNE_LEVEL_STYLES: Record<FortuneLevel, string> = {
+  yearly: 'amber',
+  monthly: 'emerald',
+  daily: 'sky',
+  hourly: 'rose',
+};
+
 export interface FortunePanelProps {
   astrolabe: any | null;
   initialTargetDate?: string;
@@ -32,6 +48,7 @@ export function FortunePanel({
 
   const [targetDate, setTargetDate] = useState<string>(defaultDateStr);
   const [selectedPalaceIndex, setSelectedPalaceIndex] = useState<number | null>(null);
+  const [fortuneLevel, setFortuneLevel] = useState<FortuneLevel>('yearly');
 
   // 快捷切換年份
   const currentYear = new Date().getFullYear();
@@ -74,6 +91,9 @@ export function FortunePanel({
 
   // 大限列表
   const decadalTable = summary.decadalTable;
+
+  // 當前選取運限層級資料
+  const levelData = summary[fortuneLevel];
 
   return (
     <div className="space-y-6">
@@ -207,51 +227,71 @@ export function FortunePanel({
           </div>
         </div>
 
-        {/* Yearly Card */}
+        {/* Fortune Level Card (流年/流月/流日/流時 切換) */}
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-gradient-to-br from-amber-950/20 to-slate-900/60 space-y-3">
+          {/* Level Tab Buttons */}
+          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-900/80 border border-slate-800">
+            {(['yearly', 'monthly', 'daily', 'hourly'] as FortuneLevel[]).map((level) => (
+              <button
+                key={level}
+                type="button"
+                onClick={() => setFortuneLevel(level)}
+                className={`flex-1 px-2 py-1.5 text-xs rounded-md font-medium transition-all ${
+                  fortuneLevel === level
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                {FORTUNE_LEVEL_LABELS[level].zh}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <h3 className="text-sm font-bold text-amber-300">當前流年 (年度運勢)</h3>
+              <div className={`w-2 h-2 rounded-full animate-pulse bg-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-400`} />
+              <h3 className={`text-sm font-bold text-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-300`}>
+                當前{FORTUNE_LEVEL_LABELS[fortuneLevel].zh} ({FORTUNE_LEVEL_LABELS[fortuneLevel].sub})
+              </h3>
             </div>
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              {summary.yearly.stemBranch} 流年
+            <span className={`text-xs font-mono px-2 py-0.5 rounded bg-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-500/20 text-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-300 border border-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-500/30`}>
+              {levelData.stemBranch} {FORTUNE_LEVEL_LABELS[fortuneLevel].zh}
             </span>
           </div>
 
           <div className="flex items-baseline justify-between pt-1">
             <div className="space-y-0.5">
-              <span className="text-xs text-slate-400">流年命宮重疊本命</span>
+              <span className="text-xs text-slate-400">{FORTUNE_LEVEL_LABELS[fortuneLevel].zh}命宮重疊本命</span>
               <div className="text-lg font-bold text-slate-100 flex items-center gap-1.5">
-                <span>{summary.yearly.name}宮</span>
+                <span>{levelData.name}宮</span>
                 <span className="text-xs font-normal text-slate-400">
-                  (原盤第 {summary.yearly.index + 1} 宮)
+                  (原盤第 {levelData.index + 1} 宮)
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Yearly Mutagens */}
+          {/* Level Mutagens */}
           <div className="pt-2 border-t border-slate-800/80">
             <span className="block text-[11px] font-medium text-slate-400 mb-1.5">
-              流年天干 [{summary.yearly.stemBranch.charAt(0)}] 四化引動：
+              {FORTUNE_LEVEL_LABELS[fortuneLevel].zh}天干 [{levelData.stemBranch.charAt(0)}] 四化引動：
             </span>
             <div className="grid grid-cols-4 gap-1.5 text-center text-xs font-medium">
               <div className="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                 <span className="block text-[10px] text-emerald-500/80">化祿</span>
-                {summary.yearly.mutagen.lu}
+                {levelData.mutagen.lu}
               </div>
               <div className="px-2 py-1 rounded bg-purple-500/10 border border-purple-500/30 text-purple-400">
                 <span className="block text-[10px] text-purple-500/80">化權</span>
-                {summary.yearly.mutagen.quan}
+                {levelData.mutagen.quan}
               </div>
               <div className="px-2 py-1 rounded bg-sky-500/10 border border-sky-500/30 text-sky-400">
                 <span className="block text-[10px] text-sky-500/80">化科</span>
-                {summary.yearly.mutagen.ke}
+                {levelData.mutagen.ke}
               </div>
               <div className="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400">
                 <span className="block text-[10px] text-rose-500/80">化忌</span>
-                {summary.yearly.mutagen.ji}
+                {levelData.mutagen.ji}
               </div>
             </div>
           </div>
@@ -353,7 +393,7 @@ export function FortunePanel({
               十二宮流曜與神煞對照 (西元 {summary.solarDate})
             </h3>
           </div>
-          <span className="text-xs text-slate-400">大限流曜 / 流年流曜 / 歲前將前神</span>
+          <span className="text-xs text-slate-400">大限流曜 / {FORTUNE_LEVEL_LABELS[fortuneLevel].zh}流曜 / 歲前將前神</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -361,17 +401,20 @@ export function FortunePanel({
             const scopeStars = summary.palaceScopeStars[idx] || {
               decadalStars: [],
               yearlyStars: [],
+              monthlyStars: [],
+              dailyStars: [],
+              hourlyStars: [],
             };
             const decadalPalaceName = summary.decadal.palaceNames[idx] || '';
-            const yearlyPalaceName = summary.yearly.palaceNames[idx] || '';
+            const levelPalaceName = levelData.palaceNames[idx] || '';
             const isDecadalLife = summary.decadal.index === idx;
-            const isYearlyLife = summary.yearly.index === idx;
+            const isLevelLife = levelData.index === idx;
 
             return (
               <div
                 key={idx}
                 className={`p-3 rounded-xl border text-xs space-y-2 transition-all ${
-                  isYearlyLife
+                  isLevelLife
                     ? 'bg-amber-950/20 border-amber-500/40 shadow-sm shadow-amber-500/10'
                     : isDecadalLife
                     ? 'bg-indigo-950/20 border-indigo-500/40'
@@ -390,9 +433,9 @@ export function FortunePanel({
                         限命
                       </span>
                     )}
-                    {isYearlyLife && (
+                    {isLevelLife && (
                       <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                        年命
+                        {FORTUNE_LEVEL_LABELS[fortuneLevel].zh}命
                       </span>
                     )}
                   </div>
@@ -401,7 +444,7 @@ export function FortunePanel({
                 {/* Overlap Roles */}
                 <div className="text-[11px] text-slate-400 space-x-2 font-mono">
                   <span>限:{decadalPalaceName}</span>
-                  <span>年:{yearlyPalaceName}</span>
+                  <span>{FORTUNE_LEVEL_LABELS[fortuneLevel].zh}:{levelPalaceName}</span>
                 </div>
 
                 {/* Flow Stars List */}
@@ -409,7 +452,7 @@ export function FortunePanel({
                   {/* Decadal Stars */}
                   {scopeStars.decadalStars.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {scopeStars.decadalStars.map((star, sIdx) => (
+                      {scopeStars.decadalStars.map((star: string, sIdx: number) => (
                         <span
                           key={sIdx}
                           className="px-1.5 py-0.5 text-[10px] rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
@@ -420,13 +463,13 @@ export function FortunePanel({
                     </div>
                   )}
 
-                  {/* Yearly Stars */}
-                  {scopeStars.yearlyStars.length > 0 && (
+                  {/* Level-specific Stars */}
+                  {(scopeStars as any)[`${fortuneLevel}Stars`]?.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {scopeStars.yearlyStars.map((star, sIdx) => (
+                      {(scopeStars as any)[`${fortuneLevel}Stars`].map((star: string, sIdx: number) => (
                         <span
                           key={sIdx}
-                          className="px-1.5 py-0.5 text-[10px] rounded bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                          className={`px-1.5 py-0.5 text-[10px] rounded bg-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-500/10 text-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-300 border border-${FORTUNE_LEVEL_STYLES[fortuneLevel]}-500/20`}
                         >
                           {star}
                         </span>

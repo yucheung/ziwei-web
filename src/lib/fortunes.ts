@@ -49,6 +49,9 @@ export interface DecadalItem {
 export interface ScopeStars {
   decadalStars: string[]; // 大限流曜 (例如 ['運祿', '運馬'])
   yearlyStars: string[]; // 流年流曜 (例如 ['流祿', '流羊'])
+  monthlyStars?: string[]; // 流月流曜 (例如 ['月祿', '月羊'])
+  dailyStars?: string[]; // 流日流曜 (例如 ['日鉞', '日陀'])
+  hourlyStars?: string[]; // 流時流曜 (例如 ['時祿', '時陀'])
   suiqianStar?: string; // 歲前十二神
   jiangqianStar?: string; // 將前十二神
 }
@@ -80,6 +83,42 @@ export interface HoroscopeSummary {
       ji: string;
     };
     palaceNames: string[]; // 流年 12 宮位重新排名的名稱
+  };
+  monthly: {
+    index: number;
+    name: string; // 固定為 "流月"
+    stemBranch: string; // 流月干支 (例如 "乙未")
+    mutagen: {
+      lu: string;
+      quan: string;
+      ke: string;
+      ji: string;
+    };
+    palaceNames: string[];
+  };
+  daily: {
+    index: number;
+    name: string; // 固定為 "流日"
+    stemBranch: string; // 流日干支 (例如 "庚戌")
+    mutagen: {
+      lu: string;
+      quan: string;
+      ke: string;
+      ji: string;
+    };
+    palaceNames: string[];
+  };
+  hourly: {
+    index: number;
+    name: string; // 固定為 "流時"
+    stemBranch: string; // 流時干支 (例如 "丙子")
+    mutagen: {
+      lu: string;
+      quan: string;
+      ke: string;
+      ji: string;
+    };
+    palaceNames: string[];
   };
   palaceScopeStars: Record<number, ScopeStars>; // 0..11 各宮位對應的流曜與十二神
   decadalTable: DecadalItem[]; // 大限 10 年表格 (12 大限)
@@ -174,6 +213,33 @@ export function getHoroscopeSummary(
     ji: yearlyMutagenArr[3] || getMutagensByStem(h.yearly?.heavenlyStem).ji,
   };
 
+  // 流月四化
+  const monthlyMutagenArr: string[] = h.monthly?.mutagen || [];
+  const monthlyMutagenObj = {
+    lu: monthlyMutagenArr[0] || getMutagensByStem(h.monthly?.heavenlyStem).lu,
+    quan: monthlyMutagenArr[1] || getMutagensByStem(h.monthly?.heavenlyStem).quan,
+    ke: monthlyMutagenArr[2] || getMutagensByStem(h.monthly?.heavenlyStem).ke,
+    ji: monthlyMutagenArr[3] || getMutagensByStem(h.monthly?.heavenlyStem).ji,
+  };
+
+  // 流日四化
+  const dailyMutagenArr: string[] = h.daily?.mutagen || [];
+  const dailyMutagenObj = {
+    lu: dailyMutagenArr[0] || getMutagensByStem(h.daily?.heavenlyStem).lu,
+    quan: dailyMutagenArr[1] || getMutagensByStem(h.daily?.heavenlyStem).quan,
+    ke: dailyMutagenArr[2] || getMutagensByStem(h.daily?.heavenlyStem).ke,
+    ji: dailyMutagenArr[3] || getMutagensByStem(h.daily?.heavenlyStem).ji,
+  };
+
+  // 流時四化
+  const hourlyMutagenArr: string[] = h.hourly?.mutagen || [];
+  const hourlyMutagenObj = {
+    lu: hourlyMutagenArr[0] || getMutagensByStem(h.hourly?.heavenlyStem).lu,
+    quan: hourlyMutagenArr[1] || getMutagensByStem(h.hourly?.heavenlyStem).quan,
+    ke: hourlyMutagenArr[2] || getMutagensByStem(h.hourly?.heavenlyStem).ke,
+    ji: hourlyMutagenArr[3] || getMutagensByStem(h.hourly?.heavenlyStem).ji,
+  };
+
   // 大限/流年命宮名稱
   const decadalPalaceName = astrolabe.palaces[h.decadal?.index]?.name || '';
   const yearlyPalaceName = astrolabe.palaces[h.yearly?.index]?.name || '';
@@ -183,12 +249,18 @@ export function getHoroscopeSummary(
   for (let i = 0; i < 12; i++) {
     const decStars: string[] = (h.decadal?.stars[i] || []).map((s: any) => s.name);
     const yrStars: string[] = (h.yearly?.stars[i] || []).map((s: any) => s.name);
+    const moStars: string[] = (h.monthly?.stars?.[i] || []).map((s: any) => s.name);
+    const daStars: string[] = (h.daily?.stars?.[i] || []).map((s: any) => s.name);
+    const hoStars: string[] = (h.hourly?.stars?.[i] || []).map((s: any) => s.name);
     const suiqian = h.yearly?.yearlyDecStar?.suiqian12?.[i];
     const jiangqian = h.yearly?.yearlyDecStar?.jiangqian12?.[i];
 
     palaceScopeStars[i] = {
       decadalStars: decStars,
       yearlyStars: yrStars,
+      monthlyStars: moStars,
+      dailyStars: daStars,
+      hourlyStars: hoStars,
       suiqianStar: suiqian,
       jiangqianStar: jiangqian,
     };
@@ -214,6 +286,27 @@ export function getHoroscopeSummary(
       stemBranch: `${h.yearly?.heavenlyStem || ''}${h.yearly?.earthlyBranch || ''}`,
       mutagen: yearlyMutagenObj,
       palaceNames: h.yearly?.palaceNames || [],
+    },
+    monthly: {
+      index: h.monthly?.index ?? 0,
+      name: h.monthly?.name || '流月',
+      stemBranch: `${h.monthly?.heavenlyStem || ''}${h.monthly?.earthlyBranch || ''}`,
+      mutagen: monthlyMutagenObj,
+      palaceNames: h.monthly?.palaceNames || [],
+    },
+    daily: {
+      index: h.daily?.index ?? 0,
+      name: h.daily?.name || '流日',
+      stemBranch: `${h.daily?.heavenlyStem || ''}${h.daily?.earthlyBranch || ''}`,
+      mutagen: dailyMutagenObj,
+      palaceNames: h.daily?.palaceNames || [],
+    },
+    hourly: {
+      index: h.hourly?.index ?? 0,
+      name: h.hourly?.name || '流時',
+      stemBranch: `${h.hourly?.heavenlyStem || ''}${h.hourly?.earthlyBranch || ''}`,
+      mutagen: hourlyMutagenObj,
+      palaceNames: h.hourly?.palaceNames || [],
     },
     palaceScopeStars,
     decadalTable,
