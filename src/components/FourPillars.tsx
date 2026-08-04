@@ -26,7 +26,7 @@ export const FourPillars: React.FC<FourPillarsProps> = ({ pillars, className = '
         return (
           <div key={item.label} className="flex flex-col items-center gap-0.5">
             {/* 柱標籤 */}
-            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium tracking-wider">
+            <span className="text-[9px] text-slate-500 font-medium tracking-wider">
               {item.label}
             </span>
             {/* 天干 */}
@@ -38,11 +38,11 @@ export const FourPillars: React.FC<FourPillarsProps> = ({ pillars, className = '
               {item.zhi}
             </span>
             {/* 五行標籤 */}
-            <span className="text-[8px] text-slate-400 dark:text-slate-500 font-mono">
+            <span className="text-[8px] text-slate-500 font-mono">
               {item.ganWuXing}{item.zhiWuXing}
             </span>
             {/* 納音 */}
-            <span className="text-[8px] text-slate-400 dark:text-slate-600 font-mono truncate w-full">
+            <span className="text-[8px] text-slate-600 font-mono truncate w-full">
               {item.nayin}
             </span>
           </div>
