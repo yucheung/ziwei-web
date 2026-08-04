@@ -77,21 +77,22 @@ describe('llm.ts - OpenAI Compatible LLM Client & Settings', () => {
   });
 
   it('should process SSE streaming response in callLLMStream', async () => {
+    const encoder = new TextEncoder();
     let callCount = 0;
     const mockReader = {
       read: vi.fn().mockImplementation(async () => {
         callCount++;
         if (callCount === 1) {
-          return { done: false, value: 'data: {"choices":[{"delta":{"content":"星"}]}}\n\n' };
+          return { done: false, value: encoder.encode('data: {"choices":[{"delta":{"content":"星"}}]}\n\n') };
         }
         if (callCount === 2) {
-          return { done: false, value: 'data: {"choices":[{"delta":{"content":"盤"}]}}\n\n' };
+          return { done: false, value: encoder.encode('data: {"choices":[{"delta":{"content":"盤"}}]}\n\n') };
         }
         if (callCount === 3) {
-          return { done: false, value: 'data: {"choices":[{"delta":{"content":"解析"}]}}\n\n' };
+          return { done: false, value: encoder.encode('data: {"choices":[{"delta":{"content":"解析"}}]}\n\n') };
         }
         if (callCount === 4) {
-          return { done: false, value: 'data: [DONE]\n\n' };
+          return { done: false, value: encoder.encode('data: [DONE]\n\n') };
         }
         return { done: true, value: undefined };
       }),
