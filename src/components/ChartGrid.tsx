@@ -3,13 +3,13 @@ import { Compass, Sparkles, Target, Layers, Shield, Zap } from 'lucide-react';
 import { PalaceCell, PalaceData, FlyingMutagenBadge } from './PalaceCell';
 import { StarTag } from './StarTag';
 import {
+  getSanfangSizhengIndices,
   getAnheIndex,
   getGridPosition,
 } from '../data/palace-layout';
 import {
-  type FlyingPalace,
-  type FlyingStarsResult,
-} from '../lib/flying';
+  calculateFlyingStars,
+  getPalaceMutagenLabels,
   type FlyingPalace,
   type FlyingStarsResult,
 } from '../lib/flying';
