@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   EARTHLY_BRANCHES,
-  getSanfangSizhengIndices,
   getAnheIndex,
   getGridPosition,
 } from './palace-layout';
@@ -57,29 +56,7 @@ describe('palace-layout logic', () => {
     expect(getGridPosition(2)).toEqual({ row: 1, col: 0 });
   });
 
-  it('correctly computes Sanfang Sizheng (三方四正)', () => {
-    // For 寅 (0):
-    // Opposite: 申 (6)
-    // Career: 午 (4)
-    // Wealth: 戌 (8)
-    const yinSanfang = getSanfangSizhengIndices(0);
-    expect(yinSanfang.target).toBe(0);
-    expect(yinSanfang.opposite).toBe(6);
-    expect(yinSanfang.career).toBe(4);
-    expect(yinSanfang.wealth).toBe(8);
-    expect(yinSanfang.sizheng).toEqual([0, 4, 6, 8]);
 
-    // For 午 (4):
-    // Opposite: 子 (10)
-    // Career: 戌 (8)
-    // Wealth: 寅 (0)
-    const wuSanfang = getSanfangSizhengIndices(4);
-    expect(wuSanfang.target).toBe(4);
-    expect(wuSanfang.opposite).toBe(10);
-    expect(wuSanfang.career).toBe(8);
-    expect(wuSanfang.wealth).toBe(0);
-    expect(wuSanfang.sizheng).toEqual([4, 8, 10, 0]);
-  });
 
   it('correctly computes Anhe (六合/暗合)', () => {
     expect(getAnheIndex(0)).toBe(9);   // 寅 <-> 亥

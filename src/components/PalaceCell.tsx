@@ -91,29 +91,29 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
   const getFlyingBadgeStyle = (type: string, source: string) => {
     const base = source === 'flying' ? 'border-dashed ' : '';
     switch (type) {
-      case '祿': return `${base}bg-emerald-500/20 text-emerald-300 border-emerald-500/40`;
-      case '權': return `${base}bg-rose-500/20 text-rose-300 border-rose-500/40`;
-      case '科': return `${base}bg-sky-500/20 text-sky-300 border-sky-500/40`;
-      case '忌': return `${base}bg-purple-600/25 text-purple-200 border-purple-500/40`;
-      default: return `${base}bg-slate-700/50 text-slate-200 border-slate-600`;
+      case '祿': return `${base}bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-500/40`;
+      case '權': return `${base}bg-rose-500/20 text-rose-600 dark:text-rose-300 border-rose-500/40`;
+      case '科': return `${base}bg-sky-500/20 text-sky-600 dark:text-sky-300 border-sky-500/40`;
+      case '忌': return `${base}bg-purple-600/25 text-purple-700 dark:text-purple-200 border-purple-500/40`;
+      default: return `${base}bg-slate-700/50 text-slate-800 dark:text-slate-200 border-slate-600`;
     }
   };
 
   // 外框亮顯樣式
   const getBorderAndBgStyle = () => {
     if (isSelected || role === 'target') {
-      return 'border-amber-400 ring-2 ring-amber-400/80 bg-amber-950/20 shadow-lg shadow-amber-500/10 z-20';
+      return 'border-amber-400 ring-2 ring-amber-400/80 bg-amber-100/50 dark:bg-amber-950/20 shadow-lg shadow-amber-500/10 z-20';
     }
     switch (role) {
       case 'opposite':
-        return 'border-rose-500/80 ring-2 ring-rose-500/60 bg-rose-950/25 shadow-md shadow-rose-500/10 z-10';
+        return 'border-rose-500/80 ring-2 ring-rose-500/60 bg-rose-100/50 dark:bg-rose-950/25 shadow-md shadow-rose-500/10 z-10';
       case 'career':
       case 'wealth':
-        return 'border-sky-500/80 ring-2 ring-sky-500/60 bg-sky-950/25 shadow-md shadow-sky-500/10 z-10';
+        return 'border-sky-500/80 ring-2 ring-sky-500/60 bg-sky-100/50 dark:bg-sky-950/25 shadow-md shadow-sky-500/10 z-10';
       case 'anhe':
-        return 'border-emerald-500/80 ring-2 ring-emerald-500/60 bg-emerald-950/25 shadow-md shadow-emerald-500/10 z-10';
+        return 'border-emerald-500/80 ring-2 ring-emerald-500/60 bg-emerald-100/50 dark:bg-emerald-950/25 shadow-md shadow-emerald-500/10 z-10';
       default:
-        return 'border-slate-800/80 bg-slate-900/60 hover:border-amber-500/40 hover:bg-slate-900/90 hover:shadow-md';
+        return 'border-slate-200/ dark:border-slate-800/80 bg-slate-100/ dark:bg-slate-900/60 hover:border-amber-400 dark:hover:border-amber-500/40 hover:bg-slate-100/ dark:bg-slate-900/90 hover:shadow-md';
     }
   };
 
@@ -128,12 +128,12 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
         <div>{getRoleBadge()}</div>
         <div className="flex items-center gap-1">
           {isBodyPalace && (
-            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-purple-500/30 text-purple-300 border border-purple-500/50" title="身宮">
+            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-purple-500/30 text-purple-600 dark:text-purple-300 border border-purple-500/50" title="身宮">
               身
             </span>
           )}
           {isOriginalPalace && (
-            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-amber-500/30 text-amber-300 border border-amber-500/50" title="來因宮">
+            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-amber-500/30 text-amber-600 dark:text-amber-300 border border-amber-500/50" title="來因宮">
               來
             </span>
           )}
@@ -158,7 +158,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
           </div>
         ) : (
           <div className="flex items-start">
-            <span className="text-[10px] text-slate-500 font-medium px-1 py-0.5 rounded bg-slate-800/40 border border-slate-700/30">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium px-1 py-0.5 rounded bg-slate-200/ dark:bg-slate-800/40 border border-slate-300/ dark:border-slate-700/30">
               空宮
             </span>
           </div>
@@ -166,7 +166,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
 
         {/* 輔星/吉煞星區 (直排) */}
         {minorStars.length > 0 && (
-          <div className="flex gap-1 items-start border-l border-slate-800/60 pl-1">
+          <div className="flex gap-1 items-start border-l border-slate-200/ dark:border-slate-800/60 pl-1">
             {minorStars.map((star, i) => (
               <StarTag
                 key={`minor-${i}-${star.name}`}
@@ -182,7 +182,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
 
         {/* 雜曜 (若空間許可，取前幾顆) */}
         {adjectiveStars.length > 0 && (
-          <div className="hidden sm:flex flex-col gap-0.5 justify-start text-[10px] text-slate-400/80 border-l border-slate-800/40 pl-1">
+          <div className="hidden sm:flex flex-col gap-0.5 justify-start text-[10px] text-slate-400/80 border-l border-slate-200/ dark:border-slate-800/40 pl-1">
             {adjectiveStars.slice(0, 3).map((star, i) => (
               <span key={`adj-${i}`} className="truncate max-w-[28px]" title={star.name}>
                 {star.name}
@@ -193,7 +193,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
       </div>
 
       {/* 底部宮位資訊資訊列 */}
-      <div className="border-t border-slate-800/80 pt-1 mt-1 flex flex-col gap-1">
+      <div className="border-t border-slate-200/ dark:border-slate-800/80 pt-1 mt-1 flex flex-col gap-1">
         {/* 飛星四化標記列 */}
         {flyingBadges.length > 0 && (
           <div className="flex flex-wrap gap-0.5" title="飛星四化標記">
@@ -211,22 +211,22 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
 
         <div className="flex items-end justify-between">
           {/* 12 神 & 大限歲數 */}
-          <div className="flex flex-col text-[10px] text-slate-400 font-mono leading-tight">
+          <div className="flex flex-col text-[10px] text-slate-400 dark:text-slate-500 dark:text-slate-400 font-mono leading-tight">
             {decadal?.range && (
               <span className="text-amber-400/90 font-medium">
                 {decadal.range[0]}-{decadal.range[1]}
               </span>
             )}
-            {changsheng12 && <span className="text-slate-400">{changsheng12}</span>}
+            {changsheng12 && <span className="text-slate-400 dark:text-slate-500 dark:text-slate-400">{changsheng12}</span>}
           </div>
 
           {/* 天干地支 + 宮位名稱 */}
           <div className="flex items-baseline gap-1">
-            <span className="text-xs font-mono font-bold text-amber-300">
+            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-300">
               {heavenlyStem}
               {earthlyBranch}
             </span>
-            <span className="text-sm font-bold text-slate-100">{name}</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{name}</span>
           </div>
         </div>
       </div>

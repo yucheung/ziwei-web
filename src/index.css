@@ -1,24 +1,83 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
-  body {
+  :root {
+    /* Light theme */
+    --bg-base: #f8fafc;
+    --bg-elevated: #ffffff;
+    --bg-sunken: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --border-subtle: rgba(15, 23, 42, 0.1);
+    --border-strong: rgba(15, 23, 42, 0.18);
+    --accent: #d97706;
+    --accent-soft: rgba(217, 119, 6, 0.15);
+  }
+
+  .dark {
+    --bg-base: #030712;
+    --bg-elevated: #0f172a;
+    --bg-sunken: #020617;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.15);
+    --accent: #f59e0b;
+    --accent-soft: rgba(245, 158, 11, 0.2);
+  }
+
+  html, body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
     font-family: 'Outfit', 'Noto Serif TC', system-ui, sans-serif;
-    background-color: #030712;
-    color: #f8fafc;
+    transition: background-color 200ms ease, color 200ms ease;
   }
 }
 
-/* Glassmorphism custom utilities */
+/* Glassmorphism */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--glass-panel-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--glass-card-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+}
+
+:root {
+  --glass-panel-bg: rgba(255, 255, 255, 0.75);
+  --glass-card-bg: rgba(241, 245, 249, 0.7);
+}
+
+.dark {
+  --glass-panel-bg: rgba(15, 23, 42, 0.75);
+  --glass-card-bg: rgba(30, 41, 59, 0.6);
+}
+
+/* Form elements — light/dark aware */
+.form-input {
+  background-color: var(--bg-sunken);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+}
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+}
+
+/* Theme transition helper */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease !important;
 }

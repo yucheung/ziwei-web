@@ -138,20 +138,20 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
     PROVIDER_PRESETS.find((p) => p.id === llmConfig.provider)?.name || llmConfig.provider;
 
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col gap-5 shadow-2xl relative">
+    <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-5 shadow-2xl relative">
       {/* 區塊標題與模型設定開關 */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/ dark:border-slate-800/80 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
+          <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               AI 多模型命盤結構化解讀
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-slate-500 dark:text-slate-400">
               當前模型：
-              <span className="text-amber-400 font-mono font-medium ml-1">
+              <span className="text-amber-500 dark:text-amber-400 font-mono font-medium ml-1">
                 {currentProviderName} ({llmConfig.model || '未設定'})
               </span>
             </p>
@@ -161,18 +161,18 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         <button
           type="button"
           onClick={() => setIsConfigOpen(true)}
-          className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-medium text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300/ dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:text-amber-300 hover:border-amber-400 dark:hover:border-amber-500/40 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
         >
-          <Settings className="w-3.5 h-3.5 text-amber-400" />
+          <Settings className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
           API 與模型設定
         </button>
       </div>
 
       {/* 尚未輸入 API Key 提示條 */}
       {!llmConfig.apiKey && llmConfig.provider !== 'custom' && (
-        <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-200">
+        <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-700 dark:text-amber-200">
           <div className="flex items-center gap-2.5">
-            <Zap className="w-4 h-4 text-amber-400 shrink-0 animate-bounce" />
+            <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0 animate-bounce" />
             <span>
               尚未設定 API Key！點擊「API 與模型設定」即可開啓 Gemini / DeepSeek / Claude / OpenAI AI 深度解讀。
             </span>
@@ -188,7 +188,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
       {/* 解讀模式切換 Pills */}
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-slate-400">選擇解讀主題</label>
+        <label className="block text-xs font-medium text-slate-400 dark:text-slate-500 dark:text-slate-400">選擇解讀主題</label>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {[
             { id: 'overall', label: '🌟 命格總覽' },
@@ -203,8 +203,8 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
               onClick={() => setReadingType(type.id as ReadingType)}
               className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center ${
                 readingType === type.id
-                  ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-500/60 text-amber-300 shadow-md shadow-amber-500/10'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                  ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-500/60 text-amber-600 dark:text-amber-300 shadow-md shadow-amber-500/10'
+                  : 'bg-slate-100/ dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 hover:border-slate-700'
               }`}
             >
               {type.label}
@@ -217,11 +217,11 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {readingType === 'palaces' && (
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">特定宮位焦點 (選填)</label>
+            <label className="block text-xs font-medium text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1">特定宮位焦點 (選填)</label>
             <select
               value={focusPalace}
               onChange={(e) => setFocusPalace(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
               <option value="">預設 (三大核心宮位)</option>
               {['命宮', '兄弟宮', '夫妻宮', '子女宮', '財帛宮', '疾厄宮', '遷移宮', '僕役宮', '官祿宮', '田宅宮', '福德宮', '父母宮'].map(
@@ -235,13 +235,13 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           </div>
         )}
         <div className={readingType === 'palaces' ? 'sm:col-span-2' : 'sm:col-span-3'}>
-          <label className="block text-xs font-medium text-slate-400 mb-1">補充提問 / 關注事項 (選填)</label>
+          <label className="block text-xs font-medium text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1">補充提問 / 關注事項 (選填)</label>
           <input
             type="text"
             placeholder="例如：想了解近兩年事業轉職與創業機會..."
             value={customInstructions}
             onChange={(e) => setCustomInstructions(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder:text-slate-400 dark:text-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
           />
         </div>
       </div>
@@ -261,7 +261,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           <button
             type="button"
             onClick={handleStopReading}
-            className="flex-1 py-3 px-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold text-xs sm:text-sm hover:bg-rose-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+            className="flex-1 py-3 px-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-600 dark:text-rose-300 font-bold text-xs sm:text-sm hover:bg-rose-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer animate-pulse"
           >
             <Square className="w-4 h-4 fill-rose-300" />
             停止生成
@@ -272,15 +272,15 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           <button
             type="button"
             onClick={handleCopy}
-            className="px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-slate-100 hover:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-slate-100 hover:border-slate-300 dark:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" /> 已複製
+                <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> 已複製
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-slate-400" /> 複製解讀
+                <Copy className="w-4 h-4 text-slate-400 dark:text-slate-500 dark:text-slate-400" /> 複製解讀
               </>
             )}
           </button>
@@ -289,25 +289,25 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
       {/* 錯誤訊息提示 */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {/* 解讀輸出區域 */}
-      <div className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-950/80 border border-slate-800/80 p-4 sm:p-5 text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30">
+      <div className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-50/ dark:bg-slate-950/80 border border-slate-200/ dark:border-slate-800/80 p-4 sm:p-5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30">
         {readingText ? (
-          <div className="whitespace-pre-wrap font-sans text-slate-200 leading-relaxed">
+          <div className="whitespace-pre-wrap font-sans text-slate-800 dark:text-slate-200 leading-relaxed">
             {readingText}
           </div>
         ) : isLoading ? (
-          <div className="h-40 flex flex-col items-center justify-center text-slate-400 space-y-3">
-            <RefreshCw className="w-6 h-6 text-amber-400 animate-spin" />
+          <div className="h-40 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 dark:text-slate-400 space-y-3">
+            <RefreshCw className="w-6 h-6 text-amber-500 dark:text-amber-400 animate-spin" />
             <p className="text-xs">AI 大師正在運算紫微星盤與四化能量...</p>
           </div>
         ) : (
-          <div className="h-40 flex flex-col items-center justify-center text-slate-500 space-y-2 text-center">
+          <div className="h-40 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-2 text-center">
             <BookOpen className="w-8 h-8 text-slate-700" />
             <p className="text-xs">點擊「生成 AI 命盤解讀」，即刻獲得多模型結構化命理剖析</p>
           </div>
@@ -371,16 +371,16 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
   const currentPreset = PROVIDER_PRESETS.find((p) => p.id === formData.provider);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-5 text-slate-100 animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="text-base font-bold text-amber-300 flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-amber-400" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-50/ dark:bg-slate-950/80 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5 text-slate-900 dark:text-slate-100 animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-base font-bold text-amber-600 dark:text-amber-300 flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-amber-500 dark:text-amber-400" />
             OpenAI-Compatible LLM 多模型設定
           </h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 text-sm font-bold px-2 py-1 rounded"
+            className="text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 text-sm font-bold px-2 py-1 rounded"
           >
             ✕
           </button>
@@ -395,11 +395,11 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
         >
           {/* Provider Preset Dropdown */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">模型服務商預設</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">模型服務商預設</label>
             <select
               value={formData.provider}
               onChange={(e) => handleProviderChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
               {PROVIDER_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>
@@ -411,7 +411,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* Base URL */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               Base URL (OpenAI-compatible 端點)
             </label>
             <input
@@ -419,14 +419,14 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
               value={formData.baseUrl}
               onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
               placeholder="https://api.openai.com/v1"
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
           </div>
 
           {/* API Key */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
-              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+              <KeyRound className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
               API Key (暫存於此分頁，關閉即清除)
             </label>
             <div className="relative">
@@ -435,12 +435,12 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                 placeholder="sk-..."
-                className="w-full px-3 py-2 pr-10 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-2 pr-10 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200"
               >
                 {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -449,25 +449,25 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* Model Name */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">模型名稱 (Model Name)</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">模型名稱 (Model Name)</label>
             <input
               type="text"
               value={formData.model}
               onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               placeholder="e.g. gemini-2.5-flash, deepseek-chat, gpt-4o"
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
 
             {/* Model Suggestions */}
             {currentPreset && currentPreset.modelSuggestions.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                <span className="text-[10px] text-slate-400">快速選擇:</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 dark:text-slate-400">快速選擇:</span>
                 {currentPreset.modelSuggestions.map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setFormData({ ...formData, model: m })}
-                    className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 hover:text-amber-300 hover:bg-slate-700 transition-colors font-mono"
+                    className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-mono"
                   >
                     {m}
                   </button>
@@ -478,9 +478,9 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* Temperature Slider */}
           <div>
-            <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
+            <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 mb-1">
               <span>溫度 (Temperature): {formData.temperature}</span>
-              <span className="text-[10px] text-slate-400">0.1 (精準) ~ 1.0 (富文采)</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 dark:text-slate-400">0.1 (精準) ~ 1.0 (富文采)</span>
             </div>
             <input
               type="range"
@@ -503,21 +503,21 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
               }`}
             >
               {testStatus.success ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
               )}
               <span>{testStatus.message}</span>
             </div>
           )}
 
           {/* 按鈕組合 */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={handleTest}
               disabled={testStatus.loading}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {testStatus.loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
               測試 API 連線

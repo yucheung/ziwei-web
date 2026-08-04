@@ -36,20 +36,22 @@ describe('App Integration Test Suite', () => {
     expect(screen.getByRole('button', { name: /十二宮星盤總覽/i })).toHaveClass('text-amber-300');
   });
 
-  it('navigates between single mode tabs (ChartGrid -> FortunePanel -> ReadingPanel)', () => {
+  it('navigates between single mode tabs (ChartGrid -> FortunePanel -> ReadingPanel)', async () => {
     render(<App />);
 
     // Click '大限流年運限' Tab
     const fortunesTab = screen.getByRole('button', { name: /大限流年運限/i });
     fireEvent.click(fortunesTab);
 
-    expect(screen.getByText(/運限大盤分析/i)).toBeInTheDocument();
+    // Wait for lazy-loaded FortunePanel
+    expect(await screen.findByText(/運限大盤分析/i)).toBeInTheDocument();
 
     // Click 'AI 智能命盤解讀' Tab
     const readingTab = screen.getByRole('button', { name: /AI 智能命盤解讀/i });
     fireEvent.click(readingTab);
 
-    expect(screen.getByText('AI 多模型命盤結構化解讀')).toBeInTheDocument();
+    // Wait for lazy-loaded ReadingPanel
+    expect(await screen.findByText('AI 多模型命盤結構化解讀')).toBeInTheDocument();
 
     // Switch back to '十二宮星盤總覽' Tab
     const chartTab = screen.getByRole('button', { name: /十二宮星盤總覽/i });
@@ -58,14 +60,15 @@ describe('App Integration Test Suite', () => {
     expect(screen.getByRole('button', { name: /十二宮星盤總覽/i })).toHaveClass('text-amber-300');
   });
 
-  it('switches view mode between 個人命盤 and 雙人合盤', () => {
+  it('switches view mode between 個人命盤 and 雙人合盤', async () => {
     render(<App />);
 
     // Click '雙人合盤'
     const matchModeBtn = screen.getByRole('button', { name: '雙人合盤' });
     fireEvent.click(matchModeBtn);
 
-    expect(screen.getByText(/雙人紫微命盤合盤/i)).toBeInTheDocument();
+    // Wait for lazy-loaded MatchPanel
+    expect(await screen.findByText(/雙人紫微命盤合盤/i)).toBeInTheDocument();
 
     // Click '個人命盤' to return
     const singleModeBtn = screen.getByRole('button', { name: '個人命盤' });

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#020617"/>
+  <circle cx="256" cy="256" r="192" fill="none" stroke="#fbbf24" stroke-width="8" opacity="0.6"/>
+  <circle cx="256" cy="256" r="149" fill="none" stroke="#c084fc" stroke-width="5" opacity="0.4"/>
+  <path d="M256 106 L277 213 L256 192 L235 213 Z" fill="#fbbf24"/>
+  <path d="M256 406 L235 299 L256 320 L277 299 Z" fill="#c084fc"/>
+  <path d="M106 256 L213 235 L192 256 L213 277 Z" fill="#fbbf24" opacity="0.7"/>
+  <path d="M406 256 L299 277 L320 256 L299 235 Z" fill="#c084fc" opacity="0.7"/>
+  <circle cx="256" cy="256" r="21" fill="#fbbf24"/>
+  <text x="256" y="480" text-anchor="middle" fill="#fbbf24" font-family="serif" font-size="42" font-weight="bold">紫微</text>
+</svg>

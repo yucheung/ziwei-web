@@ -143,4 +143,35 @@ describe('ChartGrid Component', () => {
       expect(screen.getByText(/飛星四化/)).toBeInTheDocument();
     });
   });
+
+  describe('三方四正 via iztro surroundedPalaces API', () => {
+    it('uses iztro surroundedPalaces to resolve target/opposite/career/wealth', () => {
+      const astrolabe = getChart('2000-08-16', 2, 'male');
+      // iztro 原生 API 必須存在
+      expect(typeof astrolabe.surroundedPalaces).toBe('function');
+
+      // 選擇命宮 (soulIndex) 驗證 iztro 路徑
+      const soulIndex = astrolabe.palaces.findIndex((p) => p.name === '命宫' || p.name === '命宮');
+      const iztroResult = astrolabe.surroundedPalaces(soulIndex)!;
+      expect(iztroResult.target.index).toBe(soulIndex);
+      // 四正索引應互異
+      const indices = new Set([
+        iztroResult.target.index,
+        iztroResult.opposite.index,
+        iztroResult.career.index,
+        iztroResult.wealth.index,
+      ]);
+      expect(indices.size).toBe(4);
+
+      render(<ChartGrid astrolabe={astrolabe} />);
+
+      // 點擊命宮後，中樞面板應顯示 iztro 給出的對宮/事業/財帛宮位名稱
+      fireEvent.click(screen.getByTestId(`palace-cell-${astrolabe.palaces[soulIndex].earthlyBranch}`));
+      expect(screen.getByText(/三方四正與暗合宮位/)).toBeInTheDocument();
+      // 對宮名稱應與 iztro 回傳的 opposite.name 一致
+      expect(screen.getByText(iztroResult.opposite.name)).toBeInTheDocument();
+      expect(screen.getByText(iztroResult.career.name)).toBeInTheDocument();
+      expect(screen.getByText(iztroResult.wealth.name)).toBeInTheDocument();
+    });
+  });
 });

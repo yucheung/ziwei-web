@@ -59,38 +59,7 @@ export const ANHE_INDEX_MAP: Record<number, number> = {
   11: 10, // 丑 <-> 子
 };
 
-/**
- * 三方四正宮位關係傳回結構
- */
-export interface SanfangSizhengResult {
-  target: number;
-  opposite: number;
-  career: number;
-  wealth: number;
-  sizheng: number[];
-}
 
-/**
- * 計算指定地支索引 (0..11) 的三方四正宮位索引
- * - 本宮 (target): target
- * - 對宮 (opposite): (target + 6) % 12
- * - 官祿/事業位 (career): (target + 4) % 12
- * - 財帛/資金位 (wealth): (target + 8) % 12
- */
-export function getSanfangSizhengIndices(targetIndex: number): SanfangSizhengResult {
-  const normIndex = ((targetIndex % 12) + 12) % 12;
-  const opposite = (normIndex + 6) % 12;
-  const career = (normIndex + 4) % 12;
-  const wealth = (normIndex + 8) % 12;
-
-  return {
-    target: normIndex,
-    opposite,
-    career,
-    wealth,
-    sizheng: [normIndex, career, opposite, wealth],
-  };
-}
 
 /**
  * 取得暗合宮位索引
