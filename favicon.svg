@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="compass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+  </defs>
+  <circle cx="96" cy="96" r="96" fill="url(#bg)"/>
+  <circle cx="96" cy="96" r="72" fill="none" stroke="url(#compass)" stroke-width="3" opacity="0.6"/>
+  <circle cx="96" cy="96" r="56" fill="none" stroke="url(#compass)" stroke-width="2" opacity="0.4"/>
+  <!-- Compass star -->
+  <path d="M96 40 L104 80 L96 72 L88 80 Z" fill="#fbbf24"/>
+  <path d="M96 152 L88 112 L96 120 L104 112 Z" fill="#c084fc"/>
+  <path d="M40 96 L80 88 L72 96 L80 104 Z" fill="#fbbf24" opacity="0.7"/>
+  <path d="M152 96 L112 104 L120 96 L112 88 Z" fill="#c084fc" opacity="0.7"/>
+  <!-- Center -->
+  <circle cx="96" cy="96" r="8" fill="url(#compass)"/>
+  <!-- Text -->
+  <text x="96" y="180" text-anchor="middle" fill="#fbbf24" font-family="serif" font-size="16" font-weight="bold">紫微</text>
+</svg>
