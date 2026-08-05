@@ -110,19 +110,19 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
   };
 
   return (
-    <div className="space-y-8 text-slate-100">
+    <div className="space-y-8 text-slate-900 dark:text-slate-100">
       {/* Header Banner */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900/90 via-purple-950/40 to-slate-900/90 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-slate-900/90 dark:via-purple-950/40 dark:to-slate-900/90 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="p-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400">
+            <span className="p-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400">
               <Heart className="w-5 h-5 fill-rose-500/30 animate-pulse" />
             </span>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-rose-200 via-amber-200 to-purple-300 bg-clip-text text-transparent">
+            <h2 className="text-xl font-bold bg-gradient-to-r from-rose-600 via-amber-600 to-purple-700 dark:from-rose-200 dark:via-amber-200 dark:to-purple-300 bg-clip-text text-transparent">
               {t('match.title')}
             </h2>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             {t('match.subtitle')}
           </p>
         </div>
@@ -132,17 +132,17 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           <button
             type="button"
             onClick={() => loadPresetPair(1)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
             {t('match.preset1')}
           </button>
           <button
             type="button"
             onClick={() => loadPresetPair(2)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             {t('match.preset2')}
           </button>
         </div>
@@ -151,38 +151,38 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       {/* Dual Birth Input Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Person A Input Card */}
-        <div className="glass-panel p-5 rounded-2xl border border-amber-500/30 bg-slate-900/60 shadow-lg space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <span className="font-semibold text-amber-300 text-sm flex items-center gap-2">
-              <User className="w-4 h-4 text-amber-400" />
+        <div className="glass-panel p-5 rounded-2xl border border-amber-500/30 bg-white/80 dark:bg-slate-900/60 shadow-lg space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <span className="font-semibold text-amber-700 dark:text-amber-300 text-sm flex items-center gap-2">
+              <User className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               {t('match.personA')}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
               {t('match.labelA')}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">{t('match.nameLabel')}</label>
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('match.nameLabel')}</label>
               <input
                 type="text"
                 value={nameA}
                 onChange={(e) => setNameA(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1">{t('form.gender')}</label>
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('form.gender')}</label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setGenderA('male')}
                   className={`py-1.5 text-xs rounded-lg border transition-all ${
                     genderA === 'male'
-                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 font-semibold'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-700 dark:text-blue-300 font-semibold'
+                      : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {t('form.male')}
@@ -192,8 +192,8 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   onClick={() => setGenderA('female')}
                   className={`py-1.5 text-xs rounded-lg border transition-all ${
                     genderA === 'female'
-                      ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 font-semibold'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-rose-500/20 border-rose-500/50 text-rose-700 dark:text-rose-300 font-semibold'
+                      : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {t('form.female')}
@@ -204,25 +204,25 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-amber-400" /> {t('match.birthSolarDate')}
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> {t('match.birthSolarDate')}
               </label>
               <input
                 type="date"
                 value={dateA}
                 onChange={(e) => setDateA(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-amber-400" /> {t('form.birthTime')}
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> {t('form.birthTime')}
               </label>
               <select
                 value={timeA}
                 onChange={(e) => setTimeA(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
               >
                 <option value="0">{t('time.0')}</option>
                 <option value="1">{t('time.1')}</option>
@@ -243,38 +243,38 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
         </div>
 
         {/* Person B Input Card */}
-        <div className="glass-panel p-5 rounded-2xl border border-purple-500/30 bg-slate-900/60 shadow-lg space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <span className="font-semibold text-purple-300 text-sm flex items-center gap-2">
-              <User className="w-4 h-4 text-purple-400" />
+        <div className="glass-panel p-5 rounded-2xl border border-purple-500/30 bg-white/80 dark:bg-slate-900/60 shadow-lg space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <span className="font-semibold text-purple-700 dark:text-purple-300 text-sm flex items-center gap-2">
+              <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               {t('match.personB')}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
               {t('match.labelB')}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">{t('match.nameLabel')}</label>
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('match.nameLabel')}</label>
               <input
                 type="text"
                 value={nameB}
                 onChange={(e) => setNameB(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1">{t('form.gender')}</label>
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('form.gender')}</label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setGenderB('male')}
                   className={`py-1.5 text-xs rounded-lg border transition-all ${
                     genderB === 'male'
-                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 font-semibold'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-700 dark:text-blue-300 font-semibold'
+                      : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {t('form.male')}
@@ -284,8 +284,8 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   onClick={() => setGenderB('female')}
                   className={`py-1.5 text-xs rounded-lg border transition-all ${
                     genderB === 'female'
-                      ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 font-semibold'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-rose-500/20 border-rose-500/50 text-rose-700 dark:text-rose-300 font-semibold'
+                      : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {t('form.female')}
@@ -296,25 +296,25 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-purple-400" /> {t('match.birthSolarDate')}
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> {t('match.birthSolarDate')}
               </label>
               <input
                 type="date"
                 value={dateB}
                 onChange={(e) => setDateB(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-purple-400" /> {t('form.birthTime')}
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> {t('form.birthTime')}
               </label>
               <select
                 value={timeB}
                 onChange={(e) => setTimeB(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               >
                 <option value="0">{t('time.0')}</option>
                 <option value="1">{t('time.1')}</option>
@@ -336,48 +336,48 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       </div>
 
       {!matchResult ? (
-        <div className="glass-panel p-8 text-center text-rose-400 border border-rose-500/30 rounded-2xl">
+        <div className="glass-panel p-8 text-center text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-2xl">
           {t('match.error')}
         </div>
       ) : (
         <>
           {/* Section 1: Compatibility Score & Breakdown Gauge */}
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             {/* Left Score Gauge Badge */}
-            <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-gradient-to-b from-slate-950/80 to-slate-900/90 rounded-xl border border-slate-800 text-center space-y-2 relative overflow-hidden">
+            <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-gradient-to-b from-slate-50 to-slate-100/90 dark:from-slate-950/80 dark:to-slate-900/90 rounded-xl border border-slate-200 dark:border-slate-800 text-center space-y-2 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
               <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-500/20 via-rose-500/20 to-purple-500/20 border-2 border-amber-400/40 flex flex-col items-center justify-center shadow-lg shadow-amber-500/10">
-                <span className="text-3xl font-extrabold bg-gradient-to-r from-amber-200 to-rose-300 bg-clip-text text-transparent">
+                <span className="text-3xl font-extrabold bg-gradient-to-r from-amber-600 to-rose-600 dark:from-amber-200 dark:to-rose-300 bg-clip-text text-transparent">
                   {matchResult.compatibility.overallScore}
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono uppercase">Match Score</span>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono uppercase">Match Score</span>
               </div>
-              <h3 className="text-base font-bold text-amber-300 mt-2">
+              <h3 className="text-base font-bold text-amber-700 dark:text-amber-300 mt-2">
                 {matchResult.compatibility.ratingLabel}
               </h3>
-              <p className="text-xs text-slate-400 flex items-center gap-1 justify-center">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 justify-center">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 {t('match.branchRelation')}：{matchResult.compatibility.branchRelation}
               </p>
             </div>
 
             {/* Right Progress Bars */}
             <div className="lg:col-span-8 space-y-4">
-              <h4 className="text-sm font-semibold text-slate-300 border-b border-slate-800 pb-2 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" />
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 {t('match.multiDimScore')}
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Emotional Harmony */}
-                <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
+                <div className="space-y-1 bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-300 flex items-center gap-1">
-                      <Heart className="w-3.5 h-3.5 text-rose-400" /> {t('match.emotional')}
+                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      <Heart className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" /> {t('match.emotional')}
                     </span>
-                    <span className="text-rose-400 font-bold">{matchResult.compatibility.emotionalHarmony}%</span>
+                    <span className="text-rose-600 dark:text-rose-400 font-bold">{matchResult.compatibility.emotionalHarmony}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-rose-500 to-pink-400 transition-all duration-500"
                       style={{ width: `${matchResult.compatibility.emotionalHarmony}%` }}
@@ -386,14 +386,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 </div>
 
                 {/* Personality Match */}
-                <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
+                <div className="space-y-1 bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-300 flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-amber-400" /> {t('match.personality')}
+                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> {t('match.personality')}
                     </span>
-                    <span className="text-amber-400 font-bold">{matchResult.compatibility.personalityMatch}%</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">{matchResult.compatibility.personalityMatch}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-500"
                       style={{ width: `${matchResult.compatibility.personalityMatch}%` }}
@@ -402,14 +402,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 </div>
 
                 {/* Career & Wealth */}
-                <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
+                <div className="space-y-1 bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-300 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> {t('match.careerWealth')}
+                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> {t('match.careerWealth')}
                     </span>
-                    <span className="text-emerald-400 font-bold">{matchResult.compatibility.careerWealthSynergy}%</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">{matchResult.compatibility.careerWealthSynergy}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
                       style={{ width: `${matchResult.compatibility.careerWealthSynergy}%` }}
@@ -418,14 +418,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 </div>
 
                 {/* Longterm Stability */}
-                <div className="space-y-1 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
+                <div className="space-y-1 bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-300 flex items-center gap-1">
-                      <Compass className="w-3.5 h-3.5 text-purple-400" /> {t('match.longtermStability')}
+                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      <Compass className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> {t('match.longtermStability')}
                     </span>
-                    <span className="text-purple-400 font-bold">{matchResult.compatibility.longtermStability}%</span>
+                    <span className="text-purple-600 dark:text-purple-400 font-bold">{matchResult.compatibility.longtermStability}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 transition-all duration-500"
                       style={{ width: `${matchResult.compatibility.longtermStability}%` }}
@@ -437,42 +437,42 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           </div>
 
           {/* Section 2: Side-by-Side Dual Astrolabe Comparison */}
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl space-y-4">
-            <h3 className="text-base font-semibold text-amber-300 flex items-center gap-2 border-b border-slate-800 pb-3">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 shadow-xl space-y-4">
+            <h3 className="text-base font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
               <ArrowRightLeft className="w-4 h-4" />
               {t('match.sideBySideTitle')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
               {/* Center Connector Badge for Large Screens */}
-              <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 items-center justify-center text-xs font-bold shadow-lg z-10">
+              <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-700 dark:text-amber-400 items-center justify-center text-xs font-bold shadow-lg z-10">
                 VS
               </div>
 
               {/* Person A Info Box */}
-              <div className="bg-slate-950/60 p-5 rounded-xl border border-amber-500/30 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h4 className="font-bold text-amber-400 text-sm">{matchResult.personA.name}</h4>
-                  <span className="text-xs text-slate-400">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-5 rounded-xl border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <h4 className="font-bold text-amber-700 dark:text-amber-400 text-sm">{matchResult.personA.name}</h4>
+                  <span className="text-xs text-slate-600 dark:text-slate-400">
                     {matchResult.personA.gender === 'female' ? t('form.female') : t('form.male')}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-400">{t('match.lunarBirth')}：</span>
-                    <p className="text-slate-200 font-mono">{matchResult.personA.lunarDate}</p>
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.lunarBirth')}：</span>
+                    <p className="text-slate-800 dark:text-slate-200 font-mono">{matchResult.personA.lunarDate}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">{t('match.stemBranch')}：</span>
-                    <p className="text-slate-200 font-semibold">{matchResult.personA.chineseDate}</p>
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.stemBranch')}：</span>
+                    <p className="text-slate-800 dark:text-slate-200 font-semibold">{matchResult.personA.chineseDate}</p>
                   </div>
                 </div>
-                <div className="border-t border-slate-800/80 pt-2 space-y-1 text-xs">
+                <div className="border-t border-slate-200 dark:border-slate-800/80 pt-2 space-y-1 text-xs">
                   <p>
-                    <span className="text-slate-400">
+                    <span className="text-slate-600 dark:text-slate-400">
                       {t('match.mingStars', { branch: matchResult.personA.soulPalaceBranch })}：
                     </span>
-                    <span className="text-amber-300 font-bold ml-1">
+                    <span className="text-amber-700 dark:text-amber-300 font-bold ml-1">
                       {matchResult.personA.mingMajorStars.join('\u3001')}
                     </span>
                   </p>
