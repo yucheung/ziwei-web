@@ -128,6 +128,7 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
   return (
     <button
       type="button"
+      role="gridcell"
       ref={ref}
       onClick={onClick}
       onKeyDown={onKeyDown}

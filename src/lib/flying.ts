@@ -10,7 +10,7 @@
  * 根因 C1 注意事項：MUTAGEN_TABLE 與所有查表函式皆以繁體中文字串為 key。
  * 本檔案的所有輸入 (FlyingPalace.name / heavenlyStem / majorStars[].name ...)
  * 必須是 zh-TW canonical key，而非依使用者顯示語言變動的字串。
- * 請透過 chartModel.ts 的 getChartModel()/chartModelToFlyingPalaces()
+ * 請透過 chartModel.ts 的 chartModelToFlyingPalaces()
  * (或 canonicalizeFlyingPalaces() 轉換既有的顯示語言資料) 取得正確輸入，
  * 才能確保英文模式下飛星/四化計算依然正確。
  */

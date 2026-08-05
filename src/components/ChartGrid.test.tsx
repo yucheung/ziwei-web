@@ -122,6 +122,94 @@ describe('ChartGrid Component', () => {
     });
   });
 
+  describe('keyboard navigation (roving tabindex, 4x4 palace ring)', () => {
+    // Fixture chart: soul palace defaults to 午 (earthly-branch index 4).
+    const astrolabe = getChart('2000-08-16', 2, 'male');
+
+    function renderGrid() {
+      const onSelectPalace = vi.fn();
+      render(<ChartGrid astrolabe={astrolabe} onSelectPalace={onSelectPalace} />);
+      return { onSelectPalace };
+    }
+
+    it('exposes exactly one tab stop, on the default-selected (soul) palace', () => {
+      renderGrid();
+      const cells = screen.getAllByRole('gridcell');
+      expect(cells).toHaveLength(12);
+
+      const tabbable = cells.filter((c) => c.getAttribute('tabindex') === '0');
+      expect(tabbable).toEqual([screen.getByTestId('palace-cell-午')]);
+
+      cells
+        .filter((c) => c !== tabbable[0])
+        .forEach((c) => expect(c).toHaveAttribute('tabindex', '-1'));
+    });
+
+    // [fromBranch, key, toBranch]
+    const ARROW_CASES: Array<[string, string, string]> = [
+      // Left column (col 0, rows 0..3 all populated): vertical nav incl. edge wrap
+      ['巳', 'ArrowDown', '辰'],
+      ['辰', 'ArrowDown', '卯'],
+      ['卯', 'ArrowDown', '寅'],
+      ['寅', 'ArrowDown', '巳'], // wraps row 3 -> row 0
+      ['巳', 'ArrowUp', '寅'], // wraps row 0 -> row 3
+      // Top row (row 0, cols 0..3 all populated): horizontal nav incl. edge wrap
+      ['巳', 'ArrowRight', '午'],
+      ['午', 'ArrowRight', '未'],
+      ['未', 'ArrowRight', '申'],
+      ['申', 'ArrowRight', '巳'], // wraps col 3 -> col 0
+      ['巳', 'ArrowLeft', '申'], // wraps col 0 -> col 3
+      // Column 1: rows 1-2 are the empty center 2x2 header, only row 0 (午)
+      // and row 3 (丑) are real palaces — Up/Down must skip the hole entirely
+      ['午', 'ArrowDown', '丑'],
+      ['丑', 'ArrowUp', '午'],
+    ];
+
+    it.each(ARROW_CASES)('%s + %s moves the roving tab stop to %s', (fromBranch, key, toBranch) => {
+      renderGrid();
+      const fromCell = screen.getByTestId(`palace-cell-${fromBranch}`);
+      const toCell = screen.getByTestId(`palace-cell-${toBranch}`);
+
+      fireEvent.keyDown(fromCell, { key });
+
+      expect(document.activeElement).toBe(toCell);
+      expect(toCell).toHaveAttribute('tabindex', '0');
+      screen
+        .getAllByRole('gridcell')
+        .filter((c) => c !== toCell)
+        .forEach((c) => expect(c).toHaveAttribute('tabindex', '-1'));
+    });
+
+    it('Home moves the roving tab stop to the first palace (寅)', () => {
+      renderGrid();
+      fireEvent.keyDown(screen.getByTestId('palace-cell-戌'), { key: 'Home' });
+
+      const firstCell = screen.getByTestId('palace-cell-寅');
+      expect(document.activeElement).toBe(firstCell);
+      expect(firstCell).toHaveAttribute('tabindex', '0');
+    });
+
+    it('End moves the roving tab stop to the last palace (丑)', () => {
+      renderGrid();
+      fireEvent.keyDown(screen.getByTestId('palace-cell-辰'), { key: 'End' });
+
+      const lastCell = screen.getByTestId('palace-cell-丑');
+      expect(document.activeElement).toBe(lastCell);
+      expect(lastCell).toHaveAttribute('tabindex', '0');
+    });
+
+    it.each(['Enter', ' '])('%s is not intercepted by the roving-tabindex handler', (key) => {
+      const { onSelectPalace } = renderGrid();
+      const cell = screen.getByTestId('palace-cell-午');
+
+      const notPrevented = fireEvent.keyDown(cell, { key });
+
+      expect(notPrevented).toBe(true); // event.preventDefault() was NOT called
+      expect(onSelectPalace).not.toHaveBeenCalled();
+      expect(cell).toHaveAttribute('tabindex', '0'); // selection/focus unchanged
+    });
+  });
+
   describe('flying stars display', () => {
     it('renders flying star badges on palace cells', () => {
       const astrolabe = getChart('2000-08-16', 2, 'male');

@@ -9,7 +9,7 @@
  * 這些函式收到的是英文顯示字串，導致查表全部失敗 (四化/飛星/命宮定位錯誤)。
  *
  * 解法：
- * 1. 排盤永遠以 zh-TW 為準 (getCanonicalAstrolabe / getChartModel)，
+ * 1. 排盤永遠以 zh-TW 為準 (getCanonicalAstrolabe)，
  *    產出「以繁體中文字串為 key」的純 Domain Model (ChartModel)。
  *    這與現有查表 (MUTAGEN_TABLE 等) 的 key 完全一致，因此下游計算永遠正確，
  *    無論使用者實際選擇的顯示語言為何。
@@ -194,7 +194,9 @@ function toCanonicalChineseDate(display: string, locale: AppLocale): string {
   return display
     .split(' - ')
     .map((pillar) => {
-      const [stem, branch] = pillar.trim().split(/\s+/);
+      const parts = pillar.trim().split(/\s+/);
+      if (parts.length !== 2) return display;
+      const [stem, branch] = parts;
       return `${toCanonicalKey(stem, 'stem', locale)}${toCanonicalKey(branch, 'branch', locale)}`;
     })
     .join(' ');
@@ -256,79 +258,12 @@ export interface ChartModel {
   astrolabe: IFunctionalAstrolabe;
 }
 
-function toStarModel(star: { name: string; brightness?: string; mutagen?: string }): StarModel {
-  return {
-    starKey: star.name,
-    brightnessKey: star.brightness || undefined,
-    mutagenKey: (star.mutagen as MutagenKey) || undefined,
-  };
-}
-
-function toPalaceModel(palace: IFunctionalPalace): PalaceModel {
-  return {
-    index: palace.index,
-    palaceKey: palace.name,
-    stemKey: palace.heavenlyStem,
-    branchKey: palace.earthlyBranch,
-    isBodyPalace: !!palace.isBodyPalace,
-    isOriginalPalace: !!palace.isOriginalPalace,
-    majorStars: (palace.majorStars || []).map(toStarModel),
-    minorStars: (palace.minorStars || []).map(toStarModel),
-    adjectiveStars: (palace.adjectiveStars || []).map(toStarModel),
-    decadeKey: palace.decadal
-      ? {
-          range: palace.decadal.range,
-          stemKey: palace.decadal.heavenlyStem,
-          branchKey: palace.decadal.earthlyBranch,
-        }
-      : undefined,
-  };
-}
-
 /**
  * 取得「計算用」canonical astrolabe：無論呼叫端傳入的 language 為何，
  * 一律強制以 zh-TW 排盤，確保下游 Chinese-keyed 查表 (MUTAGEN_TABLE 等) 永遠正確對應。
  */
 export function getCanonicalAstrolabe(options: GetChartOptions): IFunctionalAstrolabe {
   return getChart({ ...options, language: 'zh-TW' });
-}
-
-/**
- * 將一個 (已確定為 zh-TW canonical 的) astrolabe 轉換成純 key 的 ChartModel。
- */
-export function astrolabeToChartModel(astrolabe: IFunctionalAstrolabe): ChartModel {
-  const palaces = astrolabe.palaces.map(toPalaceModel);
-  const soulPalace =
-    astrolabe.palaces.find((p) => p.earthlyBranch === (astrolabe as any).earthlyBranchOfSoulPalace) ||
-    astrolabe.palaces.find((p) => p.name === '命宮') ||
-    astrolabe.palaces[0];
-
-  const chineseDate = (astrolabe as any).chineseDate || '';
-  const yearly = (astrolabe as any).rawDates?.chineseDate?.yearly;
-  const yearStemKey = yearly?.[0] || chineseDate.charAt(0) || '甲';
-  const yearBranchKey = yearly?.[1] || chineseDate.charAt(1) || '子';
-
-  return {
-    palaces,
-    soulKey: (astrolabe as any).soul || '',
-    bodyKey: (astrolabe as any).body || '',
-    fiveElementsKey: String((astrolabe as any).fiveElementsClass || ''),
-    yearStemKey,
-    yearBranchKey,
-    solarDate: astrolabe.solarDate,
-    lunarDate: astrolabe.lunarDate,
-    chineseDate,
-    gender: (astrolabe as any).gender === 'female' || (astrolabe as any).gender === '女' ? 'female' : 'male',
-    soulPalaceBranchKey: soulPalace ? soulPalace.earthlyBranch : '子',
-    astrolabe,
-  };
-}
-
-/**
- * 語系無關的排盤入口：無論 options.language 為何，一律以 zh-TW 排盤並回傳純 key 的 ChartModel。
- */
-export function getChartModel(options: GetChartOptions): ChartModel {
-  return astrolabeToChartModel(getCanonicalAstrolabe(options));
 }
 
 // ─────────────────────────────────────────────────────────────

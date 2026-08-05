@@ -204,7 +204,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* 4x4 Palace Grid */}
-      <div role="region" aria-label={t('a11y.chartGrid')} className="grid grid-cols-4 grid-rows-4 gap-2 aspect-square w-full max-w-[800px] mx-auto p-3 bg-slate-100/90 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl relative">
+      <div role="grid" aria-label={t('a11y.chartGrid')} className="grid grid-cols-4 grid-rows-4 gap-2 aspect-square w-full max-w-[800px] mx-auto p-3 bg-slate-100/90 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl relative">
         {/* Outer 12 Palaces */}
         {palaces.map((palace, index) => {
           const { row, col } = getGridPosition(index);
