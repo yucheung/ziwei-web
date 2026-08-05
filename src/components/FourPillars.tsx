@@ -1,20 +1,21 @@
 import React from 'react';
 import type { FourPillars as FourPillarsData } from '../lib/bazi';
 import { WUXING_COLORS } from '../lib/bazi';
+import { useTranslation } from '../i18n';
 
 interface FourPillarsProps {
   pillars: FourPillarsData;
   className?: string;
 }
 
-const PILLAR_LABELS = ['年柱', '月柱', '日柱', '時柱'] as const;
-
 export const FourPillars: React.FC<FourPillarsProps> = ({ pillars, className = '' }) => {
+  const { t } = useTranslation();
+
   const items = [
-    { label: PILLAR_LABELS[0], ...pillars.year, nayin: pillars.yearNaYin },
-    { label: PILLAR_LABELS[1], ...pillars.month, nayin: pillars.monthNaYin },
-    { label: PILLAR_LABELS[2], ...pillars.day, nayin: pillars.dayNaYin },
-    { label: PILLAR_LABELS[3], ...pillars.time, nayin: pillars.timeNaYin },
+    { label: t('chart.pillarYear'), ...pillars.year, nayin: pillars.yearNaYin },
+    { label: t('chart.pillarMonth'), ...pillars.month, nayin: pillars.monthNaYin },
+    { label: t('chart.pillarDay'), ...pillars.day, nayin: pillars.dayNaYin },
+    { label: t('chart.pillarTime'), ...pillars.time, nayin: pillars.timeNaYin },
   ];
 
   return (

@@ -235,6 +235,18 @@ export const en: Record<TranslationKey, string> = {
 
   // ─── Chart Grid Additional ───
   'chart.fiveElementsDefault': 'Five Elements',
+  'chart.fourPillars': 'Four Pillars (BaZi)',
+  'chart.pillarYear': 'Year',
+  'chart.pillarMonth': 'Month',
+  'chart.pillarDay': 'Day',
+  'chart.pillarTime': 'Hour',
+  'chart.boshi12Title': 'Twelve Officials (Boshi)',
+  'chart.changsheng12Title': 'Twelve Growth Stages (Changsheng)',
+  'chart.exportSection': 'Export & Share',
+  'chart.exportCsv': 'Export CSV',
+  'chart.exportSummary': 'Download Summary',
+  'chart.exportImage': 'Download Share Card',
+  'chart.exportImageError': 'Failed to export image, please try again later',
 
   // ─── Palaces ───
   'palace.ming': 'Life Palace',

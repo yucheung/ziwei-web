@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { calculateFourPillars, calculateFourPillarsFromTimeIndex, GAN_WUXING, ZHI_WUXING, WUXING_COLORS } from './bazi';
+import {
+  calculateFourPillars,
+  calculateFourPillarsFromTimeIndex,
+  buildFourPillarsFromGanZhi,
+  getNaYin,
+  GAN_WUXING,
+  ZHI_WUXING,
+  WUXING_COLORS,
+} from './bazi';
 
 describe('src/lib/bazi.ts', () => {
   describe('calculateFourPillars', () => {
@@ -78,6 +86,57 @@ describe('src/lib/bazi.ts', () => {
 
       expect(fp.time.gan).toBe(fpDirect.time.gan);
       expect(fp.time.zhi).toBe(fpDirect.time.zhi);
+    });
+  });
+
+  describe('buildFourPillarsFromGanZhi', () => {
+    it('builds the same gan/zhi/wuxing pillars as calculateFourPillars for equivalent input', () => {
+      // 2000-8-16 03:00 (寅時, timeIndex=2) -> iztro rawDates.chineseDate: 庚辰 甲申 丙午 庚寅
+      const fpDirect = calculateFourPillars(2000, 8, 16, 3);
+      const fpFromGanZhi = buildFourPillarsFromGanZhi(['庚', '辰'], ['甲', '申'], ['丙', '午'], ['庚', '寅']);
+
+      expect(fpFromGanZhi.year).toEqual(fpDirect.year);
+      expect(fpFromGanZhi.month).toEqual(fpDirect.month);
+      expect(fpFromGanZhi.day).toEqual(fpDirect.day);
+      expect(fpFromGanZhi.time).toEqual(fpDirect.time);
+
+      // 納音採正體中文（calculateFourPillars 底層 lunar-typescript 對「白蠟金」一詞誤植簡體「蜡」）
+      expect(fpFromGanZhi.yearNaYin).toBe('白蠟金');
+      expect(fpFromGanZhi.monthNaYin).toBe('泉中水');
+      expect(fpFromGanZhi.dayNaYin).toBe('天河水');
+      expect(fpFromGanZhi.timeNaYin).toBe('松柏木');
+    });
+
+    it('handles all four pillar positions independently', () => {
+      const fp = buildFourPillarsFromGanZhi(['癸', '卯'], ['戊', '午'], ['癸', '亥'], ['甲', '寅']);
+
+      expect(fp.year).toEqual({ gan: '癸', zhi: '卯', ganWuXing: '水', zhiWuXing: '木' });
+      expect(fp.month).toEqual({ gan: '戊', zhi: '午', ganWuXing: '土', zhiWuXing: '火' });
+      expect(fp.day).toEqual({ gan: '癸', zhi: '亥', ganWuXing: '水', zhiWuXing: '水' });
+      expect(fp.time).toEqual({ gan: '甲', zhi: '寅', ganWuXing: '木', zhiWuXing: '木' });
+      expect(fp.yearNaYin).toBeTruthy();
+      expect(fp.monthNaYin).toBeTruthy();
+      expect(fp.dayNaYin).toBeTruthy();
+      expect(fp.timeNaYin).toBeTruthy();
+    });
+  });
+
+  describe('getNaYin', () => {
+    it('covers all 60 jiazi combinations', () => {
+      const gans = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+      const zhis = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+      let count = 0;
+      for (let i = 0; i < 60; i++) {
+        const gan = gans[i % 10];
+        const zhi = zhis[i % 12];
+        if (getNaYin(gan, zhi)) count++;
+      }
+      expect(count).toBe(60);
+    });
+
+    it('returns empty string for an invalid (non-cyclical) gan-zhi pair', () => {
+      // 甲丑 is not a valid jiazi combination (甲 only pairs with even-indexed zhi)
+      expect(getNaYin('甲', '丑')).toBe('');
     });
   });
 

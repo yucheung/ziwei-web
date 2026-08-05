@@ -233,6 +233,18 @@ export const zhTW = {
 
   // ─── Chart Grid Additional ───
   'chart.fiveElementsDefault': '五行局',
+  'chart.fourPillars': '四柱八字',
+  'chart.pillarYear': '年柱',
+  'chart.pillarMonth': '月柱',
+  'chart.pillarDay': '日柱',
+  'chart.pillarTime': '時柱',
+  'chart.boshi12Title': '博士十二神',
+  'chart.changsheng12Title': '長生十二神',
+  'chart.exportSection': '匯出與分享',
+  'chart.exportCsv': '匯出 CSV',
+  'chart.exportSummary': '下載命盤摘要',
+  'chart.exportImage': '下載分享卡',
+  'chart.exportImageError': '圖片匯出失敗，請稍後再試',
 
   // ─── Palaces ───
   'palace.ming': '命宮',

@@ -1,8 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Suspense } from 'react';
 import App from './App';
 import { I18nProvider } from './i18n';
+import * as exportLib from './lib/export';
 
 // Mock locale to always return zh-TW
 vi.mock('./i18n/locale', () => ({
@@ -172,5 +173,38 @@ describe('App Integration Test Suite', () => {
     // Default birth date (2000-08-16) is unaffected by the (unused) solar time correction fields
     expect(await screen.findByText('2000-8-16')).toBeInTheDocument();
     expect(screen.queryByText('已套用真太陽時修正')).not.toBeInTheDocument();
+  });
+
+  it('renders 四柱八字 (Four Pillars) on the chart tab', async () => {
+    const { container } = renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    expect(await screen.findByText('四柱八字')).toBeInTheDocument();
+    const fourPillars = container.querySelector('[data-testid="four-pillars"]');
+    expect(fourPillars).toBeInTheDocument();
+    expect(fourPillars?.textContent).toContain('年柱');
+    expect(fourPillars?.textContent).toContain('時柱');
+  });
+
+  it('wires up export buttons (CSV / summary / image) to lib/export (H7)', async () => {
+    const csvSpy = vi.spyOn(exportLib, 'downloadChartCsv').mockImplementation(() => {});
+    const summarySpy = vi.spyOn(exportLib, 'downloadChartSummaryText').mockImplementation(() => {});
+    const imageSpy = vi.spyOn(exportLib, 'downloadShareCardImage').mockResolvedValue(undefined);
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    fireEvent.click(await screen.findByRole('button', { name: '匯出 CSV' }));
+    expect(csvSpy).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(await screen.findByRole('button', { name: '下載命盤摘要' }));
+    expect(summarySpy).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(await screen.findByRole('button', { name: '下載分享卡' }));
+    await waitFor(() => expect(imageSpy).toHaveBeenCalledTimes(1));
+
+    csvSpy.mockRestore();
+    summarySpy.mockRestore();
+    imageSpy.mockRestore();
   });
 });

@@ -1,13 +1,17 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { Layers, Bot, TrendingUp } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { Layers, Bot, TrendingUp, Download } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { useTheme } from './hooks/useTheme';
 import { Header } from './components/Header';
 import { InputForm } from './components/InputForm';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { FourPillars } from './components/FourPillars';
 import { getChart } from './lib/astro';
 import type { Config, AstroType } from './lib/astro';
 import { DEFAULT_CONFIG } from './lib/astro';
+import { buildFourPillarsFromGanZhi } from './lib/bazi';
+import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage } from './lib/export';
+import type { ExportAstrolabe } from './lib/export';
 
 const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ default: m.ChartGrid })));
 const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => ({ default: m.FortunePanel })));
@@ -83,6 +87,42 @@ export default function App() {
       // 保留原有星盤
     }
   }, [locale]);
+
+  // 四柱八字 (由已排好的命盤干支直接組出，避免與命盤日期產生分歧)
+  const fourPillars = useMemo(() => {
+    const chineseDate = astrolabe?.rawDates?.chineseDate;
+    if (!chineseDate) return null;
+    return buildFourPillarsFromGanZhi(
+      chineseDate.yearly,
+      chineseDate.monthly,
+      chineseDate.daily,
+      chineseDate.hourly,
+    );
+  }, [astrolabe]);
+
+  // 匯出 / 分享
+  const chartCaptureRef = useRef<HTMLDivElement>(null);
+  const [imageExportError, setImageExportError] = useState(false);
+
+  const handleExportCsv = () => {
+    if (!astrolabe) return;
+    downloadChartCsv(astrolabe as unknown as ExportAstrolabe);
+  };
+
+  const handleExportSummary = () => {
+    if (!astrolabe) return;
+    downloadChartSummaryText(astrolabe as unknown as ExportAstrolabe);
+  };
+
+  const handleExportImage = async () => {
+    if (!chartCaptureRef.current) return;
+    setImageExportError(false);
+    try {
+      await downloadShareCardImage(chartCaptureRef.current);
+    } catch {
+      setImageExportError(true);
+    }
+  };
 
   const handleGenerateChart = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -195,7 +235,56 @@ export default function App() {
                   </div>
 
                   {/* Tab Content */}
-                  {activeTab === 'chart' && <ChartGrid astrolabe={astrolabe} />}
+                  {activeTab === 'chart' && (
+                    <div className="space-y-6">
+                      <div ref={chartCaptureRef} className="space-y-6">
+                        {fourPillars && (
+                          <div className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                              {t('chart.fourPillars')}
+                            </h3>
+                            <FourPillars pillars={fourPillars} />
+                          </div>
+                        )}
+                        <ChartGrid astrolabe={astrolabe} />
+                      </div>
+
+                      {astrolabe && (
+                        <div className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                          <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Download className="w-3.5 h-3.5" />
+                            {t('chart.exportSection')}
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={handleExportCsv}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                              {t('chart.exportCsv')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleExportSummary}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                              {t('chart.exportSummary')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleExportImage}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                              {t('chart.exportImage')}
+                            </button>
+                          </div>
+                          {imageExportError && (
+                            <p className="text-xs text-rose-500 dark:text-rose-400">{t('chart.exportImageError')}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {activeTab === 'fortunes' && <FortunePanel astrolabe={astrolabe} />}
                   {activeTab === 'reading' && <ReadingPanel chart={astrolabe} />}
                 </section>

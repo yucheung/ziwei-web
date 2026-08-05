@@ -1,5 +1,6 @@
 import React from 'react';
 import { StarTag } from './StarTag';
+import { useTranslation } from '../i18n';
 
 export interface PalaceStar {
   name: string;
@@ -56,6 +57,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
   onClick,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const {
     name,
     isBodyPalace,
@@ -66,6 +68,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
     minorStars = [],
     adjectiveStars = [],
     changsheng12,
+    boshi12,
     decadal,
   } = palace;
 
@@ -217,7 +220,16 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
                 {decadal.range[0]}-{decadal.range[1]}
               </span>
             )}
-            {changsheng12 && <span className="text-slate-500 dark:text-slate-400">{changsheng12}</span>}
+            {changsheng12 && (
+              <span className="text-slate-500 dark:text-slate-400" title={t('chart.changsheng12Title')}>
+                {changsheng12}
+              </span>
+            )}
+            {boshi12 && (
+              <span className="text-slate-400 dark:text-slate-500" title={t('chart.boshi12Title')}>
+                {boshi12}
+              </span>
+            )}
           </div>
 
           {/* 天干地支 + 宮位名稱 */}
