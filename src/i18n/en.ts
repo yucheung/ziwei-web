@@ -153,7 +153,7 @@ export const en: Record<TranslationKey, string> = {
 
   // ─── Hourly Fortune Time Selector ───
   'fortune.hourlySelector': 'Query Hour',
-  'fortune.hourlyBranch.0': 'Zi (23:00 - 01:00)',
+  'fortune.hourlyBranch.0': 'Early Zi (00:00 - 01:00)',
   'fortune.hourlyBranch.1': 'Chou (01:00 - 03:00)',
   'fortune.hourlyBranch.2': 'Yin (03:00 - 05:00)',
   'fortune.hourlyBranch.3': 'Mao (05:00 - 07:00)',
@@ -165,6 +165,7 @@ export const en: Record<TranslationKey, string> = {
   'fortune.hourlyBranch.9': 'You (17:00 - 19:00)',
   'fortune.hourlyBranch.10': 'Xu (19:00 - 21:00)',
   'fortune.hourlyBranch.11': 'Hai (21:00 - 23:00)',
+  'fortune.hourlyBranch.12': 'Late Zi (23:00 - 24:00)',
 
   // ─── Reading Panel ───
   'reading.title': 'AI Multi-Model Chart Reading',

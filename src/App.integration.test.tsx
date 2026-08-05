@@ -57,7 +57,7 @@ describe('App Integration Test Suite', () => {
     expect(await screen.findByText('生辰資料輸入')).toBeInTheDocument();
 
     // Default active tab is Twelve Palaces Chart Grid (lazy ChartGrid)
-    expect(await screen.findByRole('button', { name: /十二宮星盤總覽/i })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: /十二宮星盤總覽/i })).toBeInTheDocument();
   });
 
   it('navigates between single mode tabs (ChartGrid -> FortunePanel -> ReadingPanel)', async () => {
@@ -67,23 +67,23 @@ describe('App Integration Test Suite', () => {
     await screen.findByText('生辰資料輸入');
 
     // Click '大限流年運限' Tab
-    const fortunesTab = await screen.findByRole('button', { name: /大限流年運限/i });
+    const fortunesTab = await screen.findByRole('tab', { name: /大限流年運限/i });
     fireEvent.click(fortunesTab);
 
     expect(await screen.findByText(/運限大盤分析/i)).toBeInTheDocument();
 
     // Click 'AI 智能命盤解讀' Tab
-    const readingTab = await screen.findByRole('button', { name: /AI 智能命盤解讀/i });
+    const readingTab = await screen.findByRole('tab', { name: /AI 智能命盤解讀/i });
     fireEvent.click(readingTab);
 
     expect(await screen.findByText('AI 多模型命盤結構化解讀')).toBeInTheDocument();
 
     // Switch back to '十二宮星盤總覽' Tab
-    const chartTab = await screen.findByRole('button', { name: /十二宮星盤總覽/i });
+    const chartTab = await screen.findByRole('tab', { name: /十二宮星盤總覽/i });
     fireEvent.click(chartTab);
 
     // ChartGrid should be visible again
-    expect(await screen.findByRole('button', { name: /十二宮星盤總覽/i })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: /十二宮星盤總覽/i })).toBeInTheDocument();
   });
 
   it('switches view mode between 個人命盤 and 雙人合盤', async () => {
@@ -93,14 +93,14 @@ describe('App Integration Test Suite', () => {
     await screen.findByText('生辰資料輸入');
 
     // Click '雙人合盤'
-    const matchModeBtn = await screen.findByRole('button', { name: '雙人合盤' });
+    const matchModeBtn = await screen.findByRole('tab', { name: '雙人合盤' });
     fireEvent.click(matchModeBtn);
 
     // Wait for lazy-loaded MatchPanel
     expect(await screen.findByText(/雙人紫微命盤合盤/i, {}, { timeout: 4000 })).toBeInTheDocument();
 
     // Click '個人命盤' to return
-    const singleModeBtn = await screen.findByRole('button', { name: '個人命盤' });
+    const singleModeBtn = await screen.findByRole('tab', { name: '個人命盤' });
     fireEvent.click(singleModeBtn);
 
     expect(await screen.findByText('生辰資料輸入')).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('App Integration Test Suite', () => {
     await screen.findByText('生辰資料輸入');
 
     // Switch to Lunar Calendar
-    const lunarBtn = await screen.findByRole('button', { name: /陰曆 \(農曆\)/i });
+    const lunarBtn = await screen.findByRole('radio', { name: /陰曆 \(農曆\)/i });
     fireEvent.click(lunarBtn);
 
     // Change date
@@ -127,7 +127,7 @@ describe('App Integration Test Suite', () => {
     fireEvent.change(timeSelect, { target: { value: '6' } });
 
     // Change gender to female
-    const femaleBtn = await screen.findByRole('button', { name: /坤造 \(女\)/i });
+    const femaleBtn = await screen.findByRole('radio', { name: /坤造 \(女\)/i });
     fireEvent.click(femaleBtn);
 
     // Submit form

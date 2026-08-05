@@ -179,6 +179,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               <div role="radiogroup" aria-label={`${t('match.personA')} ${t('form.gender')}`} className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
+                  role="radio"
                   aria-checked={genderA === 'male'}
                   onClick={() => setGenderA('male')}
                   className={`py-1.5 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -191,6 +192,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 </button>
                 <button
                   type="button"
+                  role="radio"
                   aria-checked={genderA === 'female'}
                   onClick={() => setGenderA('female')}
                   className={`py-1.5 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -276,6 +278,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               <div role="radiogroup" aria-label={`${t('match.personB')} ${t('form.gender')}`} className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
+                  role="radio"
                   aria-checked={genderB === 'male'}
                   onClick={() => setGenderB('male')}
                   className={`py-1.5 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
@@ -288,6 +291,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 </button>
                 <button
                   type="button"
+                  role="radio"
                   aria-checked={genderB === 'female'}
                   onClick={() => setGenderB('female')}
                   className={`py-1.5 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
@@ -487,14 +491,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">{t('match.fuqiStars')}：</span>
-                    <span className="text-rose-300 font-semibold ml-1">
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.fuqiStars')}：</span>
+                    <span className="text-rose-600 dark:text-rose-300 font-semibold ml-1">
                       {matchResult.personA.fuqiMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">{t('match.wealthStars')}：</span>
-                    <span className="text-emerald-300 ml-1">
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.wealthStars')}：</span>
+                    <span className="text-emerald-600 dark:text-emerald-300 ml-1">
                       {matchResult.personA.wealthMajorStars.join('\u3001')}
                     </span>
                   </p>
@@ -502,41 +506,41 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               </div>
 
               {/* Person B Info Box */}
-              <div className="bg-slate-950/60 p-5 rounded-xl border border-purple-500/30 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h4 className="font-bold text-purple-400 text-sm">{matchResult.personB.name}</h4>
-                  <span className="text-xs text-slate-400">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-5 rounded-xl border border-purple-500/30 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <h4 className="font-bold text-purple-700 dark:text-purple-400 text-sm">{matchResult.personB.name}</h4>
+                  <span className="text-xs text-slate-600 dark:text-slate-400">
                     {matchResult.personB.gender === 'female' ? t('form.female') : t('form.male')}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-400">{t('match.lunarBirth')}：</span>
-                    <p className="text-slate-200 font-mono">{matchResult.personB.lunarDate}</p>
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.lunarBirth')}：</span>
+                    <p className="text-slate-800 dark:text-slate-200 font-mono">{matchResult.personB.lunarDate}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">{t('match.stemBranch')}：</span>
-                    <p className="text-slate-200 font-semibold">{matchResult.personB.chineseDate}</p>
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.stemBranch')}：</span>
+                    <p className="text-slate-800 dark:text-slate-200 font-semibold">{matchResult.personB.chineseDate}</p>
                   </div>
                 </div>
-                <div className="border-t border-slate-800/80 pt-2 space-y-1 text-xs">
+                <div className="border-t border-slate-200 dark:border-slate-800/80 pt-2 space-y-1 text-xs">
                   <p>
-                    <span className="text-slate-400">
+                    <span className="text-slate-600 dark:text-slate-400">
                       {t('match.mingStars', { branch: matchResult.personB.soulPalaceBranch })}：
                     </span>
-                    <span className="text-purple-300 font-bold ml-1">
+                    <span className="text-purple-700 dark:text-purple-300 font-bold ml-1">
                       {matchResult.personB.mingMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">{t('match.fuqiStars')}：</span>
-                    <span className="text-rose-300 font-semibold ml-1">
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.fuqiStars')}：</span>
+                    <span className="text-rose-600 dark:text-rose-300 font-semibold ml-1">
                       {matchResult.personB.fuqiMajorStars.join('\u3001')}
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">{t('match.wealthStars')}：</span>
-                    <span className="text-emerald-300 ml-1">
+                    <span className="text-slate-600 dark:text-slate-400">{t('match.wealthStars')}：</span>
+                    <span className="text-emerald-600 dark:text-emerald-300 ml-1">
                       {matchResult.personB.wealthMajorStars.join('\u3001')}
                     </span>
                   </p>
@@ -546,30 +550,31 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           </div>
 
           {/* Section 3: Four Transformations Flying Cross Matching */}
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="text-base font-semibold text-amber-300 flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-400" aria-hidden="true" />
+                <h3 className="text-base font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
                   {t('match.crossFlyingTitle')}
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   {t('match.crossFlyingSubtitle')}
                 </p>
               </div>
 
               {/* Group Tabs */}
-              <div role="tablist" aria-label={t('match.crossFlyingTitle')} className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-wrap">
+              <div role="tablist" aria-label={t('match.crossFlyingTitle')} className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 flex-wrap">
                 {matchResult.crossMutagens.map((group, idx) => (
                   <button
                     key={idx}
                     type="button"
+                    role="tab"
                     aria-selected={activeGroupIndex === idx}
                     onClick={() => setActiveGroupIndex(idx)}
                     className={`px-2.5 py-1 text-xs rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                       activeGroupIndex === idx
                         ? 'bg-amber-500 text-slate-950 font-bold shadow-md'
-                        : 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                   >
                     {group.sourcePerson} [{group.stemType}]
@@ -581,8 +586,8 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             {/* Selected Mutagen Details */}
             {matchResult.crossMutagens[activeGroupIndex] && (
               <div className="space-y-4">
-                <div className="text-xs text-slate-300 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
+                <div className="text-xs text-slate-700 dark:text-slate-300 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" aria-hidden="true" />
                   <span>
                     {t('match.crossSourceText', {
                       source: matchResult.crossMutagens[activeGroupIndex].sourcePerson,
@@ -597,7 +602,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   {matchResult.crossMutagens[activeGroupIndex].details.map((detail, dIdx) => (
                     <div
                       key={dIdx}
-                      className="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-2 hover:border-slate-700 transition-colors"
+                      className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <span
@@ -607,11 +612,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                         >
                           {t('chart.hua')}{detail.mutagen}
                         </span>
-                        <span className="text-xs font-semibold text-slate-300">
-                          {t('match.targetPalaceLabel')}：<strong className="text-amber-300">{detail.targetPalaceName}</strong>（{detail.starName}）
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          {t('match.targetPalaceLabel')}：<strong className="text-amber-700 dark:text-amber-300">{detail.targetPalaceName}</strong>（{detail.starName}）
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 leading-relaxed">{detail.description}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{detail.description}</p>
                     </div>
                   ))}
                 </div>
@@ -620,40 +625,40 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           </div>
 
           {/* Section 4: Relationship Key Points & Guidance */}
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl space-y-6">
-            <h3 className="text-base font-semibold text-amber-300 flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Heart className="w-4 h-4 text-rose-400" aria-hidden="true" />
+          <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 shadow-xl space-y-6">
+            <h3 className="text-base font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <Heart className="w-4 h-4 text-rose-600 dark:text-rose-400" aria-hidden="true" />
               {t('match.relPointsTitle')}
             </h3>
 
             {/* Analysis Paragraphs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 space-y-1.5">
-                <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
+              <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1.5">
+                <h4 className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                   <Users className="w-4 h-4" aria-hidden="true" /> {t('match.mingVsMingTitle')}
                 </h4>
-                <p className="text-slate-300 leading-relaxed">{matchResult.relationshipPoints.mingVsMingText}</p>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{matchResult.relationshipPoints.mingVsMingText}</p>
               </div>
 
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 space-y-1.5">
-                <h4 className="font-bold text-rose-400 flex items-center gap-1.5">
+              <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1.5">
+                <h4 className="font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
                   <Heart className="w-4 h-4" aria-hidden="true" /> {t('match.mingVsFuqiTitle')}
                 </h4>
-                <p className="text-slate-300 leading-relaxed">{matchResult.relationshipPoints.mingVsFuQiText}</p>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{matchResult.relationshipPoints.mingVsFuQiText}</p>
               </div>
             </div>
 
             {/* Strengths & Risks Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Strengths */}
-              <div className="bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/30 space-y-3">
-                <h4 className="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/30 space-y-3">
+                <h4 className="font-bold text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> {t('match.strengthsTitle')}
                 </h4>
-                <ul className="space-y-2 text-xs text-slate-300">
+                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                   {matchResult.relationshipPoints.strengths.map((item, i) => (
                     <li key={i} className="flex items-start gap-1.5">
-                      <span className="text-emerald-400 font-bold">•</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">•</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -661,14 +666,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               </div>
 
               {/* Risks */}
-              <div className="bg-rose-950/20 p-4 rounded-xl border border-rose-500/30 space-y-3">
-                <h4 className="font-bold text-rose-400 text-xs flex items-center gap-1.5">
+              <div className="bg-rose-50 dark:bg-rose-950/20 p-4 rounded-xl border border-rose-500/30 space-y-3">
+                <h4 className="font-bold text-rose-600 dark:text-rose-400 text-xs flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4" aria-hidden="true" /> {t('match.risksTitle')}
                 </h4>
-                <ul className="space-y-2 text-xs text-slate-300">
+                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                   {matchResult.relationshipPoints.risks.map((item, i) => (
                     <li key={i} className="flex items-start gap-1.5">
-                      <span className="text-rose-400 font-bold">•</span>
+                      <span className="text-rose-600 dark:text-rose-400 font-bold">•</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -676,14 +681,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
               </div>
 
               {/* Advice */}
-              <div className="bg-amber-950/20 p-4 rounded-xl border border-amber-500/30 space-y-3">
-                <h4 className="font-bold text-amber-400 text-xs flex items-center gap-1.5">
+              <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-500/30 space-y-3">
+                <h4 className="font-bold text-amber-600 dark:text-amber-400 text-xs flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" aria-hidden="true" /> {t('match.adviceTitle')}
                 </h4>
-                <ul className="space-y-2 text-xs text-slate-300">
+                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                   {matchResult.relationshipPoints.advice.map((item, i) => (
                     <li key={i} className="flex items-start gap-1.5">
-                      <span className="text-amber-400 font-bold">•</span>
+                      <span className="text-amber-600 dark:text-amber-400 font-bold">•</span>
                       <span>{item}</span>
                     </li>
                   ))}

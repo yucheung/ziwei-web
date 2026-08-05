@@ -200,6 +200,7 @@ export default function App() {
                   <div role="tablist" aria-label={t('a11y.mainNav')} className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-2">
                     <button
                       type="button"
+                      role="tab"
                       id="tab-chart"
                       aria-selected={activeTab === 'chart'}
                       aria-controls="tabpanel-chart"
@@ -215,6 +216,7 @@ export default function App() {
                     </button>
                     <button
                       type="button"
+                      role="tab"
                       id="tab-fortunes"
                       aria-selected={activeTab === 'fortunes'}
                       aria-controls="tabpanel-fortunes"
@@ -230,6 +232,7 @@ export default function App() {
                     </button>
                     <button
                       type="button"
+                      role="tab"
                       id="tab-reading"
                       aria-selected={activeTab === 'reading'}
                       aria-controls="tabpanel-reading"

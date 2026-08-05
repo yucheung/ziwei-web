@@ -33,6 +33,7 @@ export function Header({ viewMode, setViewMode, theme, onToggleTheme }: HeaderPr
           <div role="tablist" aria-label={t('a11y.viewMode')} className="flex items-center p-1 bg-slate-100 dark:bg-slate-900/90 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
             <button
               type="button"
+              role="tab"
               aria-selected={viewMode === 'single'}
               onClick={() => setViewMode('single')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -46,6 +47,7 @@ export function Header({ viewMode, setViewMode, theme, onToggleTheme }: HeaderPr
             </button>
             <button
               type="button"
+              role="tab"
               aria-selected={viewMode === 'match'}
               onClick={() => setViewMode('match')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${

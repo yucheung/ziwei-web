@@ -109,21 +109,21 @@ describe('FortunePanel Component', () => {
     expect(screen.getByText('丙午 流年')).toBeInTheDocument();
 
     // Verify all four level tabs exist
-    expect(screen.getByRole('button', { name: '流年' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '流月' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '流日' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '流時' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '流年' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '流月' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '流日' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '流時' })).toBeInTheDocument();
 
     // Click monthly tab
-    fireEvent.click(screen.getByRole('button', { name: '流月' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流月' }));
     expect(screen.getByText('當前流月 (月份運勢)')).toBeInTheDocument();
 
     // Click daily tab
-    fireEvent.click(screen.getByRole('button', { name: '流日' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流日' }));
     expect(screen.getByText('當前流日 (日期運勢)')).toBeInTheDocument();
 
     // Click hourly tab
-    fireEvent.click(screen.getByRole('button', { name: '流時' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流時' }));
     expect(screen.getByText('當前流時 (時辰運勢)')).toBeInTheDocument();
   });
 
@@ -141,15 +141,15 @@ describe('FortunePanel Component', () => {
     expect(screen.getByText(/流年天干.*四化引動/)).toBeInTheDocument();
 
     // Switch to monthly - verify mutagen label updates
-    fireEvent.click(screen.getByRole('button', { name: '流月' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流月' }));
     expect(screen.getByText(/流月天干.*四化引動/)).toBeInTheDocument();
 
     // Switch to daily
-    fireEvent.click(screen.getByRole('button', { name: '流日' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流日' }));
     expect(screen.getByText(/流日天干.*四化引動/)).toBeInTheDocument();
 
     // Switch to hourly
-    fireEvent.click(screen.getByRole('button', { name: '流時' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流時' }));
     expect(screen.getByText(/流時天干.*四化引動/)).toBeInTheDocument();
   });
 
@@ -165,7 +165,7 @@ describe('FortunePanel Component', () => {
 
     // Selector only appears on the hourly tab
     expect(screen.queryByLabelText(/查詢時辰/)).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '流時' }));
+    fireEvent.click(screen.getByRole('tab', { name: '流時' }));
 
     const hourSelect = screen.getByLabelText(/查詢時辰/) as HTMLSelectElement;
     // Defaults to 0 (子時), matching the prior implicit midnight-derived behavior

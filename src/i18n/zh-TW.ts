@@ -151,7 +151,7 @@ export const zhTW = {
 
   // ─── Hourly Fortune Time Selector (流時時辰選擇) ───
   'fortune.hourlySelector': '查詢時辰',
-  'fortune.hourlyBranch.0': '子時 (23:00 - 01:00)',
+  'fortune.hourlyBranch.0': '早子時 (00:00 - 01:00)',
   'fortune.hourlyBranch.1': '丑時 (01:00 - 03:00)',
   'fortune.hourlyBranch.2': '寅時 (03:00 - 05:00)',
   'fortune.hourlyBranch.3': '卯時 (05:00 - 07:00)',
@@ -163,6 +163,7 @@ export const zhTW = {
   'fortune.hourlyBranch.9': '酉時 (17:00 - 19:00)',
   'fortune.hourlyBranch.10': '戌時 (19:00 - 21:00)',
   'fortune.hourlyBranch.11': '亥時 (21:00 - 23:00)',
+  'fortune.hourlyBranch.12': '夜子時 (23:00 - 24:00)',
 
   // ─── Reading Panel ───
   'reading.title': 'AI 多模型命盤結構化解讀',

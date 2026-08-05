@@ -89,7 +89,7 @@ describe('ReadingPanel Component Test Suite', () => {
     expect(screen.queryByText('特定宮位焦點 (選填)')).not.toBeInTheDocument();
 
     // Click "十二宮剖析"
-    const palaceBtn = screen.getByRole('button', { name: /十二宮剖析/i });
+    const palaceBtn = screen.getByRole('radio', { name: /十二宮剖析/i });
     fireEvent.click(palaceBtn);
 
     expect(screen.getByText('特定宮位焦點 (選填)')).toBeInTheDocument();

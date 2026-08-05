@@ -26,6 +26,7 @@ export function Settings({ config, setConfig, astroType, setAstroType }: Setting
         <div role="radiogroup" aria-label={t('settings.school')} className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
           <button
             type="button"
+            role="radio"
             aria-checked={config.algorithm === 'default'}
             onClick={() => setConfig((c) => ({ ...c, algorithm: 'default' }))}
             className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -38,6 +39,7 @@ export function Settings({ config, setConfig, astroType, setAstroType }: Setting
           </button>
           <button
             type="button"
+            role="radio"
             aria-checked={config.algorithm === 'zhongzhou'}
             onClick={() => setConfig((c) => ({ ...c, algorithm: 'zhongzhou' }))}
             className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -59,6 +61,7 @@ export function Settings({ config, setConfig, astroType, setAstroType }: Setting
             <button
               key={tType}
               type="button"
+              role="radio"
               aria-checked={astroType === tType}
               onClick={() => setAstroType(tType)}
               className={`py-1 px-1 text-xs font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${

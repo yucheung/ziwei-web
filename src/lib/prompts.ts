@@ -57,7 +57,7 @@ export function summarizeAstrolabe(chart: any): string {
   lines.push(`- 農曆生日: ${chart.lunarDate || '未知'}`);
   lines.push(`- 八字/干支: ${chart.chineseDate || '未知'}`);
   lines.push(`- 性別: ${chart.gender || '未知'} | 生肖: ${chart.zodiac || '未知'}`);
-  lines.push(`- 局數: ${chart.fiveElements || '未知'}`);
+  lines.push(`- 局數: ${chart.fiveElementsClass || '未知'}`);
   lines.push(`- 命主: ${chart.soul || '未知'} | 身主: ${chart.body || '未知'}`);
   if (chart.earthlyBranchOfSoulPalace) {
     lines.push(`- 命宮地支: ${chart.earthlyBranchOfSoulPalace} | 身宮地支: ${chart.earthlyBranchOfBodyPalace || '未知'}`);

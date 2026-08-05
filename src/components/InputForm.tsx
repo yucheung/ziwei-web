@@ -61,6 +61,7 @@ export function InputForm({
           <div role="radiogroup" aria-label={t('form.calendarType')} className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
             <button
               type="button"
+              role="radio"
               aria-checked={calendarType === 'solar'}
               onClick={() => setCalendarType('solar')}
               className={`py-1.5 px-3 text-xs font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -73,6 +74,7 @@ export function InputForm({
             </button>
             <button
               type="button"
+              role="radio"
               aria-checked={calendarType === 'lunar'}
               onClick={() => setCalendarType('lunar')}
               className={`py-1.5 px-3 text-xs font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -177,6 +179,7 @@ export function InputForm({
           <div role="radiogroup" aria-label={t('form.gender')} className="grid grid-cols-2 gap-2">
             <button
               type="button"
+              role="radio"
               aria-checked={gender === 'male'}
               onClick={() => setGender('male')}
               className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -189,6 +192,7 @@ export function InputForm({
             </button>
             <button
               type="button"
+              role="radio"
               aria-checked={gender === 'female'}
               onClick={() => setGender('female')}
               className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${

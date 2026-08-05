@@ -269,6 +269,7 @@ export function FortunePanel({
               <button
                 key={level}
                 type="button"
+                role="tab"
                 aria-selected={fortuneLevel === level}
                 onClick={() => setFortuneLevel(level)}
                 className={`flex-1 px-2 py-1.5 text-xs rounded-md font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
@@ -294,7 +295,7 @@ export function FortunePanel({
                 onChange={(e) => setHourlyTimeIndex(Number(e.target.value))}
                 className="flex-1 bg-transparent text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded cursor-pointer"
               >
-                {Array.from({ length: 12 }, (_, i) => i).map((idx) => (
+                {Array.from({ length: 13 }, (_, i) => i).map((idx) => (
                   <option key={idx} value={idx}>
                     {t(`fortune.hourlyBranch.${idx}` as TranslationKey)}
                   </option>

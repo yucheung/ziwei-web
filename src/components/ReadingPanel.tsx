@@ -249,6 +249,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
             <button
               key={type.id}
               type="button"
+              role="radio"
               aria-checked={readingType === type.id}
               onClick={() => setReadingType(type.id)}
               className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${

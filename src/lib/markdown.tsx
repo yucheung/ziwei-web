@@ -21,19 +21,19 @@ function renderInline(text: string): React.ReactNode[] {
     const token = match[0];
     if (token.startsWith('**')) {
       nodes.push(
-        <strong key={key++} className="font-bold text-amber-200">
+        <strong key={key++} className="font-bold text-amber-800 dark:text-amber-200">
           {token.slice(2, -2)}
         </strong>
       );
     } else if (token.startsWith('`')) {
       nodes.push(
-        <code key={key++} className="px-1 py-0.5 rounded bg-slate-800 text-amber-300 text-[0.85em] font-mono">
+        <code key={key++} className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-amber-700 dark:text-amber-300 text-[0.85em] font-mono">
           {token.slice(1, -1)}
         </code>
       );
     } else {
       nodes.push(
-        <em key={key++} className="italic text-slate-300">
+        <em key={key++} className="italic text-slate-600 dark:text-slate-300">
           {token.slice(1, -1)}
         </em>
       );
@@ -98,11 +98,11 @@ export function renderMarkdown(markdown: string): React.ReactNode {
       const level = headingMatch[1].length;
       const content = renderInline(headingMatch[2]);
       if (level === 1) {
-        blocks.push(<h1 key={key++} className="text-lg font-bold text-amber-300 mt-4 mb-2 first:mt-0">{content}</h1>);
+        blocks.push(<h1 key={key++} className="text-lg font-bold text-amber-700 dark:text-amber-300 mt-4 mb-2 first:mt-0">{content}</h1>);
       } else if (level === 2) {
-        blocks.push(<h2 key={key++} className="text-base font-bold text-amber-300 mt-3 mb-1.5 first:mt-0">{content}</h2>);
+        blocks.push(<h2 key={key++} className="text-base font-bold text-amber-700 dark:text-amber-300 mt-3 mb-1.5 first:mt-0">{content}</h2>);
       } else {
-        blocks.push(<h3 key={key++} className="text-sm font-bold text-amber-200 mt-2 mb-1 first:mt-0">{content}</h3>);
+        blocks.push(<h3 key={key++} className="text-sm font-bold text-amber-800 dark:text-amber-200 mt-2 mb-1 first:mt-0">{content}</h3>);
       }
       continue;
     }
