@@ -27,7 +27,7 @@ function renderInline(text: string): React.ReactNode[] {
       );
     } else if (token.startsWith('`')) {
       nodes.push(
-        <code key={key++} className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-amber-700 dark:text-amber-300 text-[0.85em] font-mono">
+        <code key={key++} className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-amber-800 dark:text-amber-300 text-[0.85em] font-mono">
           {token.slice(1, -1)}
         </code>
       );
