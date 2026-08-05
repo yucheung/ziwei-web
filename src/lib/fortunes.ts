@@ -1,3 +1,6 @@
+import type { AppLocale, IFunctionalAstrolabe } from './chartModel';
+import { toCanonicalKey, translateKey } from './chartModel';
+
 /**
  * 十干四化對照表 (祿, 權, 科, 忌)
  */
@@ -26,6 +29,27 @@ export function getMutagensByStem(stem: string): { lu: string; quan: string; ke:
       ji: '-',
     }
   );
+}
+
+/**
+ * 語系無關版本：`stem` 可能是任何顯示語言 (例如英文模式下的 'jia')。
+ * 先轉回 zh-TW canonical key 查表，查表結果 (星曜名稱) 再轉回同一顯示語言，
+ * 確保回傳值與呼叫端其餘欄位 (皆來自同一顯示語言的 astrolabe) 一致。
+ * 修復根因 C1：STEM_MUTAGENS 為繁體中文 key，英文模式下若直接以英文天干查表會全部失敗。
+ */
+function getMutagensByStemForLocale(
+  stem: string,
+  locale: AppLocale,
+): { lu: string; quan: string; ke: string; ji: string } {
+  const canonicalStem = toCanonicalKey(stem, 'stem', locale);
+  const zhResult = getMutagensByStem(canonicalStem);
+  if (locale === 'zh-TW') return zhResult;
+  return {
+    lu: translateKey(zhResult.lu, 'star', locale),
+    quan: translateKey(zhResult.quan, 'star', locale),
+    ke: translateKey(zhResult.ke, 'star', locale),
+    ji: translateKey(zhResult.ji, 'star', locale),
+  };
 }
 
 export interface DecadalItem {
@@ -127,8 +151,17 @@ export interface HoroscopeSummary {
 
 /**
  * 取得大限表格 (12 個大限，依起始歲數從小到大排序)
+ *
+ * 根因 C1 修復：本函式以宮位天干 (heavenlyStem) 查表 STEM_MUTAGENS，
+ * 該表以繁體中文為 key。傳入的 astrolabe 可以是任何顯示語言排盤 (例如英文模式下
+ * heavenlyStem 為 'jia')，本函式會透過 `locale` 參數將天干轉回 zh-TW canonical key
+ * 查表，並將查表結果轉回 `locale` 對應的顯示字串，確保英文模式下大限表格四化計算正確。
  */
-export function getDecadalTable(astrolabe: any, currentAge?: number): DecadalItem[] {
+export function getDecadalTable(
+  astrolabe: IFunctionalAstrolabe | any,
+  currentAge?: number,
+  locale: AppLocale = 'zh-TW',
+): DecadalItem[] {
   if (!astrolabe || !Array.isArray(astrolabe.palaces)) {
     return [];
   }
@@ -143,7 +176,7 @@ export function getDecadalTable(astrolabe: any, currentAge?: number): DecadalIte
       ? palace.majorStars.map((star: any) => star.name || String(star))
       : [];
 
-    const mutagen = getMutagensByStem(heavenlyStem);
+    const mutagen = getMutagensByStemForLocale(heavenlyStem, locale);
 
     const isCurrent =
       typeof currentAge === 'number' && currentAge >= range[0] && currentAge <= range[1];
@@ -168,10 +201,16 @@ export function getDecadalTable(astrolabe: any, currentAge?: number): DecadalIte
 
 /**
  * 解析並封裝指定日期 (targetDate) 的 iztro 運限資料 (大限/流年/流曜)
+ *
+ * 根因 C1 修復：內部以 STEM_MUTAGENS (繁體中文 key) 查表大限/流年/流月/
+ * 流日/流時的四化 fallback (當 iztro 原生 horoscope() 未附帶 mutagen 陣列時)。
+ * 傳入的 astrolabe 可以是任何顯示語言排盤，透過 `locale` 參數確保 fallback 查表
+ * 與最終回傳值皆與該 astrolabe 的顯示語言一致。
  */
 export function getHoroscopeSummary(
-  astrolabe: any,
-  targetDateInput?: string | Date
+  astrolabe: IFunctionalAstrolabe | any,
+  targetDateInput?: string | Date,
+  locale: AppLocale = 'zh-TW',
 ): HoroscopeSummary {
   if (!astrolabe || typeof astrolabe.horoscope !== 'function') {
     throw new Error('無效的 Astrolabe 物件');
@@ -198,46 +237,46 @@ export function getHoroscopeSummary(
   // 大限四化
   const decadalMutagenArr: string[] = h.decadal?.mutagen || [];
   const decadalMutagenObj = {
-    lu: decadalMutagenArr[0] || getMutagensByStem(h.decadal?.heavenlyStem).lu,
-    quan: decadalMutagenArr[1] || getMutagensByStem(h.decadal?.heavenlyStem).quan,
-    ke: decadalMutagenArr[2] || getMutagensByStem(h.decadal?.heavenlyStem).ke,
-    ji: decadalMutagenArr[3] || getMutagensByStem(h.decadal?.heavenlyStem).ji,
+    lu: decadalMutagenArr[0] || getMutagensByStemForLocale(h.decadal?.heavenlyStem, locale).lu,
+    quan: decadalMutagenArr[1] || getMutagensByStemForLocale(h.decadal?.heavenlyStem, locale).quan,
+    ke: decadalMutagenArr[2] || getMutagensByStemForLocale(h.decadal?.heavenlyStem, locale).ke,
+    ji: decadalMutagenArr[3] || getMutagensByStemForLocale(h.decadal?.heavenlyStem, locale).ji,
   };
 
   // 流年四化
   const yearlyMutagenArr: string[] = h.yearly?.mutagen || [];
   const yearlyMutagenObj = {
-    lu: yearlyMutagenArr[0] || getMutagensByStem(h.yearly?.heavenlyStem).lu,
-    quan: yearlyMutagenArr[1] || getMutagensByStem(h.yearly?.heavenlyStem).quan,
-    ke: yearlyMutagenArr[2] || getMutagensByStem(h.yearly?.heavenlyStem).ke,
-    ji: yearlyMutagenArr[3] || getMutagensByStem(h.yearly?.heavenlyStem).ji,
+    lu: yearlyMutagenArr[0] || getMutagensByStemForLocale(h.yearly?.heavenlyStem, locale).lu,
+    quan: yearlyMutagenArr[1] || getMutagensByStemForLocale(h.yearly?.heavenlyStem, locale).quan,
+    ke: yearlyMutagenArr[2] || getMutagensByStemForLocale(h.yearly?.heavenlyStem, locale).ke,
+    ji: yearlyMutagenArr[3] || getMutagensByStemForLocale(h.yearly?.heavenlyStem, locale).ji,
   };
 
   // 流月四化
   const monthlyMutagenArr: string[] = h.monthly?.mutagen || [];
   const monthlyMutagenObj = {
-    lu: monthlyMutagenArr[0] || getMutagensByStem(h.monthly?.heavenlyStem).lu,
-    quan: monthlyMutagenArr[1] || getMutagensByStem(h.monthly?.heavenlyStem).quan,
-    ke: monthlyMutagenArr[2] || getMutagensByStem(h.monthly?.heavenlyStem).ke,
-    ji: monthlyMutagenArr[3] || getMutagensByStem(h.monthly?.heavenlyStem).ji,
+    lu: monthlyMutagenArr[0] || getMutagensByStemForLocale(h.monthly?.heavenlyStem, locale).lu,
+    quan: monthlyMutagenArr[1] || getMutagensByStemForLocale(h.monthly?.heavenlyStem, locale).quan,
+    ke: monthlyMutagenArr[2] || getMutagensByStemForLocale(h.monthly?.heavenlyStem, locale).ke,
+    ji: monthlyMutagenArr[3] || getMutagensByStemForLocale(h.monthly?.heavenlyStem, locale).ji,
   };
 
   // 流日四化
   const dailyMutagenArr: string[] = h.daily?.mutagen || [];
   const dailyMutagenObj = {
-    lu: dailyMutagenArr[0] || getMutagensByStem(h.daily?.heavenlyStem).lu,
-    quan: dailyMutagenArr[1] || getMutagensByStem(h.daily?.heavenlyStem).quan,
-    ke: dailyMutagenArr[2] || getMutagensByStem(h.daily?.heavenlyStem).ke,
-    ji: dailyMutagenArr[3] || getMutagensByStem(h.daily?.heavenlyStem).ji,
+    lu: dailyMutagenArr[0] || getMutagensByStemForLocale(h.daily?.heavenlyStem, locale).lu,
+    quan: dailyMutagenArr[1] || getMutagensByStemForLocale(h.daily?.heavenlyStem, locale).quan,
+    ke: dailyMutagenArr[2] || getMutagensByStemForLocale(h.daily?.heavenlyStem, locale).ke,
+    ji: dailyMutagenArr[3] || getMutagensByStemForLocale(h.daily?.heavenlyStem, locale).ji,
   };
 
   // 流時四化
   const hourlyMutagenArr: string[] = h.hourly?.mutagen || [];
   const hourlyMutagenObj = {
-    lu: hourlyMutagenArr[0] || getMutagensByStem(h.hourly?.heavenlyStem).lu,
-    quan: hourlyMutagenArr[1] || getMutagensByStem(h.hourly?.heavenlyStem).quan,
-    ke: hourlyMutagenArr[2] || getMutagensByStem(h.hourly?.heavenlyStem).ke,
-    ji: hourlyMutagenArr[3] || getMutagensByStem(h.hourly?.heavenlyStem).ji,
+    lu: hourlyMutagenArr[0] || getMutagensByStemForLocale(h.hourly?.heavenlyStem, locale).lu,
+    quan: hourlyMutagenArr[1] || getMutagensByStemForLocale(h.hourly?.heavenlyStem, locale).quan,
+    ke: hourlyMutagenArr[2] || getMutagensByStemForLocale(h.hourly?.heavenlyStem, locale).ke,
+    ji: hourlyMutagenArr[3] || getMutagensByStemForLocale(h.hourly?.heavenlyStem, locale).ji,
   };
 
   // 大限/流年命宮名稱
@@ -267,7 +306,7 @@ export function getHoroscopeSummary(
   }
 
   // 大限表格
-  const decadalTable = getDecadalTable(astrolabe, nominalAge);
+  const decadalTable = getDecadalTable(astrolabe, nominalAge, locale);
 
   return {
     solarDate: h.solarDate || dateStr,

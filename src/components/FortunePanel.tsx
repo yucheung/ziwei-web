@@ -8,6 +8,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { getHoroscopeSummary, HoroscopeSummary, DecadalItem } from '../lib/fortunes';
+import type { AppLocale } from '../lib/chartModel';
 import { useTranslation, type TranslationKey } from '../i18n';
 
 export type FortuneLevel = 'yearly' | 'monthly' | 'daily' | 'hourly';
@@ -64,7 +65,8 @@ export function FortunePanel({
   initialTargetDate,
   onSelectDecadal,
 }: FortunePanelProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
 
   // 預設查詢日期 (預設為今天 "YYYY-MM-DD")
   const defaultDateStr = useMemo(() => {
@@ -87,12 +89,12 @@ export function FortunePanel({
   const summary: HoroscopeSummary | null = useMemo(() => {
     if (!astrolabe) return null;
     try {
-      return getHoroscopeSummary(astrolabe, targetDate);
+      return getHoroscopeSummary(astrolabe, targetDate, appLocale);
     } catch (e) {
       console.error('Horoscope calculation failed:', e);
       return null;
     }
-  }, [astrolabe, targetDate]);
+  }, [astrolabe, targetDate, appLocale]);
 
   if (!astrolabe) {
     return (

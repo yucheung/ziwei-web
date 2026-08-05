@@ -12,6 +12,7 @@ import {
   type FlyingPalace,
   type FlyingStarsResult,
 } from '../lib/flying';
+import { canonicalizeFlyingPalaces, findSoulPalaceIndex, translateKey, type AppLocale } from '../lib/chartModel';
 import { useTranslation } from '../i18n';
 
 export interface ChartGridProps {
@@ -26,6 +27,8 @@ export interface ChartGridProps {
     zodiac?: string;
     sign?: string;
     gender?: string;
+    /** 命宮所在地支 (locale 無關，用於正確定位命宮預設選取) */
+    earthlyBranchOfSoulPalace?: string;
     palaces: PalaceData[];
     surroundedPalaces: (targetIndex: number) => {
       target: PalaceData;
@@ -47,13 +50,15 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   onSelectPalace,
   className = '',
 }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
 
   // Find Life Palace default index (default to 0 if not found)
+  // Root-cause C1 fix: match via locale-independent earthlyBranchOfSoulPalace,
+  // not the Life Palace display string (fails outright when displaying in English).
   const defaultIndex = React.useMemo(() => {
     if (!astrolabe || !astrolabe.palaces || astrolabe.palaces.length === 0) return 0;
-    const idx = astrolabe.palaces.findIndex((p) => p.name === '\u547d\u5bab' || p.name === '\u547d\u5bae');
-    return idx >= 0 ? idx : 0;
+    return findSoulPalaceIndex(astrolabe as { palaces: Array<{ earthlyBranch: string }>; earthlyBranchOfSoulPalace?: string });
   }, [astrolabe]);
 
   const [internalSelectedIndex, setInternalSelectedIndex] = useState<number>(defaultIndex);
@@ -67,9 +72,12 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   const selectedIndex = propSelectedIndex !== undefined ? propSelectedIndex : internalSelectedIndex;
 
   // Calculate flying stars
+  // 根因 C1 修復：無論 astrolabe 是以哪種顯示語言排盤，先轉換回 zh-TW canonical
+  // key 再交給 calculateFlyingStars (其內部 MUTAGEN_TABLE 以繁體中文為 key)，
+  // 確保英文模式下飛星四化計算依然正確。
   const flyingResult: FlyingStarsResult | null = useMemo(() => {
     if (!astrolabe || !astrolabe.palaces || astrolabe.palaces.length !== 12) return null;
-    const flyingPalaces: FlyingPalace[] = astrolabe.palaces.map((p) => ({
+    const rawFlyingPalaces: FlyingPalace[] = astrolabe.palaces.map((p) => ({
       index: p.index,
       name: p.name,
       heavenlyStem: p.heavenlyStem,
@@ -77,8 +85,9 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
       majorStars: p.majorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
       minorStars: p.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
     }));
-    return calculateFlyingStars(flyingPalaces);
-  }, [astrolabe]);
+    const canonicalFlyingPalaces = canonicalizeFlyingPalaces(rawFlyingPalaces, appLocale) as FlyingPalace[];
+    return calculateFlyingStars(canonicalFlyingPalaces);
+  }, [astrolabe, appLocale]);
 
   const handleCellClick = (index: number) => {
     setInternalSelectedIndex(index);
@@ -125,14 +134,15 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   };
 
   // Get flying star badges for a palace cell
+  // flyingResult 內部一律是 zh-TW canonical key，這裡轉回目前顯示語言供渲染
   const getFlyingBadges = (index: number): FlyingMutagenBadge[] => {
     if (!flyingResult) return [];
     const labels = getPalaceMutagenLabels(index, flyingResult);
     return labels.map((l) => ({
-      star: l.star,
+      star: translateKey(l.star, 'star', appLocale),
       type: l.type,
       source: l.source,
-      fromPalace: l.fromPalace,
+      fromPalace: l.fromPalace ? translateKey(l.fromPalace, 'palace', appLocale) : l.fromPalace,
     }));
   };
 
@@ -384,7 +394,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
             <div className="bg-white/80 dark:bg-slate-900/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
               <h4 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5" />
-                {t('chart.flying')} ({t('chart.stemLabel')}：{selectedFlyingDetail.heavenlyStem})
+                {t('chart.flying')} ({t('chart.stemLabel')}：{translateKey(selectedFlyingDetail.heavenlyStem, 'stem', appLocale)})
               </h4>
 
               {/* Fly Out */}
@@ -400,15 +410,15 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
                           : 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-700 dark:text-slate-300'
                       }`}
                     >
-                      <span className="font-bold">{fly.star}</span>
+                      <span className="font-bold">{translateKey(fly.star, 'star', appLocale)}</span>
                       <span className="text-slate-400"> {t('chart.hua')}</span>
                       <span className={`font-bold ${
                         fly.type === '\u797f' ? 'text-emerald-600 dark:text-emerald-400' :
                         fly.type === '\u6b0a' ? 'text-rose-600 dark:text-rose-400' :
                         fly.type === '\u79d1' ? 'text-sky-600 dark:text-sky-400' :
                         'text-purple-600 dark:text-purple-400'
-                      }`}>{fly.type}</span>
-                      <span className="text-slate-400 dark:text-slate-500 text-[10px]"> → {fly.targetPalaceName}</span>
+                      }`}>{translateKey(fly.type, 'mutagen', appLocale)}</span>
+                      <span className="text-slate-400 dark:text-slate-500 text-[10px]"> → {translateKey(fly.targetPalaceName, 'palace', appLocale)}</span>
                     </div>
                   ))}
                 </div>
@@ -424,15 +434,15 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
                         key={`in-${i}`}
                         className="px-2 py-1 rounded text-[11px] border border-dashed bg-slate-100/50 dark:bg-slate-800/30 border-slate-300 dark:border-slate-600/50 text-slate-700 dark:text-slate-300"
                       >
-                        <span className="font-bold">{fly.star}</span>
+                        <span className="font-bold">{translateKey(fly.star, 'star', appLocale)}</span>
                         <span className="text-slate-400"> {t('chart.hua')}</span>
                         <span className={`font-bold ${
                           fly.type === '\u797f' ? 'text-emerald-600 dark:text-emerald-400' :
                           fly.type === '\u6b0a' ? 'text-rose-600 dark:text-rose-400' :
                           fly.type === '\u79d1' ? 'text-sky-600 dark:text-sky-400' :
                           'text-purple-600 dark:text-purple-400'
-                        }`}>{fly.type}</span>
-                        <span className="text-slate-400 dark:text-slate-500 text-[10px]"> ← {fly.sourcePalaceName}({fly.sourceStem})</span>
+                        }`}>{translateKey(fly.type, 'mutagen', appLocale)}</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[10px]"> ← {translateKey(fly.sourcePalaceName, 'palace', appLocale)}({translateKey(fly.sourceStem, 'stem', appLocale)})</span>
                       </div>
                     ))}
                   </div>

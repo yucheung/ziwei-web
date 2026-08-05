@@ -1,5 +1,6 @@
 import { astro } from 'iztro';
-import { getChart, GetChartOptions } from './astro';
+import { GetChartOptions } from './astro';
+import { getCanonicalAstrolabe } from './chartModel';
 
 export type IFunctionalAstrolabe = ReturnType<typeof astro.bySolar>;
 export type IFunctionalPalace = IFunctionalAstrolabe['palaces'][number];
@@ -424,8 +425,11 @@ export function analyzeMatch(options: AnalyzeMatchOptions): MatchResult {
   const personAName = options.personA.name || '甲方';
   const personBName = options.personB.name || '乙方';
 
-  const chartA = getChart(options.personA as GetChartOptions);
-  const chartB = getChart(options.personB as GetChartOptions);
+  // 根因 C1 修復：無論呼叫端 (或 iztro 全域 i18next 狀態) 目前的顯示語言為何，
+  // 合盤計算 (四化互飛、星曜比對) 一律以 zh-TW 排盤，
+  // 與 MUTAGEN_STARS_MAP / STAR_NAME_NORMALIZE 等 Chinese-keyed 查表保持一致。
+  const chartA = getCanonicalAstrolabe(options.personA as GetChartOptions);
+  const chartB = getCanonicalAstrolabe(options.personB as GetChartOptions);
 
   const infoA = extractPersonInfo(chartA, personAName);
   const infoB = extractPersonInfo(chartB, personBName);

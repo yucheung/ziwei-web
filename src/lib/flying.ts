@@ -6,7 +6,16 @@
  * 再找出該星所在宮位，完成「飛入」標記。
  * 遞迴飛行：從某宮位天干出發 → 四化星飛入其所在宮位 →
  *          再以該宮位天干繼續飛，形成飛星鏈。
+ *
+ * 根因 C1 注意事項：MUTAGEN_TABLE 與所有查表函式皆以繁體中文字串為 key。
+ * 本檔案的所有輸入 (FlyingPalace.name / heavenlyStem / majorStars[].name ...)
+ * 必須是 zh-TW canonical key，而非依使用者顯示語言變動的字串。
+ * 請透過 chartModel.ts 的 getChartModel()/chartModelToFlyingPalaces()
+ * (或 canonicalizeFlyingPalaces() 轉換既有的顯示語言資料) 取得正確輸入，
+ * 才能確保英文模式下飛星/四化計算依然正確。
  */
+import type { ChartModel } from './chartModel';
+import { chartModelToFlyingPalaces } from './chartModel';
 
 // ── 十天干四化表 ──────────────────────────────────────────────
 
@@ -242,6 +251,14 @@ export function calculateFlyingStars(
   }));
 
   return { palaces: results };
+}
+
+/**
+ * 語系無關入口：直接吃 chartModel.ts 產出的 ChartModel (zh-TW canonical key)，
+ * 無論使用者顯示語言為何，計算結果永遠正確。建議取代直接手動組裝 FlyingPalace[]。
+ */
+export function calculateFlyingStarsFromModel(model: ChartModel): FlyingStarsResult {
+  return calculateFlyingStars(chartModelToFlyingPalaces(model) as FlyingPalace[]);
 }
 
 /**
