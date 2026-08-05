@@ -11,6 +11,7 @@ vi.mock('../lib/llm', async () => {
     ...actual,
     loadLLMConfig: vi.fn(),
     saveLLMConfig: vi.fn(),
+    clearLLMConfig: vi.fn(),
     callLLMStream: vi.fn(),
     testLLMConnection: vi.fn(),
   };
@@ -144,12 +145,87 @@ describe('ReadingPanel Component Test Suite', () => {
     );
   });
 
+  it('shows https warning when base URL is not https (non-localhost)', async () => {
+    render(<ReadingPanel chart={mockChart} />);
+
+    const configBtn = screen.getByRole('button', { name: /API 與模型設定/i });
+    fireEvent.click(configBtn);
+
+    const baseUrlLabel = screen.getByText('Base URL (OpenAI-compatible 端點)');
+    const baseUrlInput = baseUrlLabel.nextElementSibling as HTMLInputElement;
+    fireEvent.change(baseUrlInput, { target: { value: 'http://example.com/v1' } });
+
+    expect(await screen.findByText(/並非 https/)).toBeInTheDocument();
+  });
+
+  it('does not show https warning for localhost base URL', async () => {
+    render(<ReadingPanel chart={mockChart} />);
+
+    const configBtn = screen.getByRole('button', { name: /API 與模型設定/i });
+    fireEvent.click(configBtn);
+
+    const baseUrlLabel = screen.getByText('Base URL (OpenAI-compatible 端點)');
+    const baseUrlInput = baseUrlLabel.nextElementSibling as HTMLInputElement;
+    fireEvent.change(baseUrlInput, { target: { value: 'http://localhost:8080/v1' } });
+
+    expect(screen.queryByText(/並非 https/)).not.toBeInTheDocument();
+  });
+
+  it('displays the API key security warning in the settings modal', () => {
+    render(<ReadingPanel chart={mockChart} />);
+
+    const configBtn = screen.getByRole('button', { name: /API 與模型設定/i });
+    fireEvent.click(configBtn);
+
+    expect(screen.getByText(/前端儲存 API Key 仍有 XSS 風險/)).toBeInTheDocument();
+  });
+
+  it('clears the API key after user confirms the clear-key dialog', () => {
+    const confirmSpy = vi.fn().mockReturnValue(true);
+    window.confirm = confirmSpy;
+
+    render(<ReadingPanel chart={mockChart} />);
+
+    const configBtn = screen.getByRole('button', { name: /API 與模型設定/i });
+    fireEvent.click(configBtn);
+
+    const clearBtn = screen.getByRole('button', { name: /清除 API Key/i });
+    fireEvent.click(clearBtn);
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(llmModule.clearLLMConfig).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('API Key 已清除')).toBeInTheDocument();
+
+    const apiKeyInput = screen.getByPlaceholderText('sk-...') as HTMLInputElement;
+    expect(apiKeyInput).toHaveValue('');
+  });
+
+  it('does not clear the API key when user cancels the confirm dialog', () => {
+    const confirmSpy = vi.fn().mockReturnValue(false);
+    window.confirm = confirmSpy;
+
+    render(<ReadingPanel chart={mockChart} />);
+
+    const configBtn = screen.getByRole('button', { name: /API 與模型設定/i });
+    fireEvent.click(configBtn);
+
+    const clearBtn = screen.getByRole('button', { name: /清除 API Key/i });
+    fireEvent.click(clearBtn);
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(llmModule.clearLLMConfig).not.toHaveBeenCalled();
+
+    const apiKeyInput = screen.getByPlaceholderText('sk-...') as HTMLInputElement;
+    expect(apiKeyInput).toHaveValue('test-api-key-123');
+  });
+
   it('calls callLLMStream and streams content to display area', async () => {
     vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
       callbacks.onChunk('紫微', '紫微');
       callbacks.onChunk('斗數解讀內容...', '紫微斗數解讀內容...');
-      callbacks.onFinish?.('紫微斗數解讀內容...');
-      return '紫微斗數解讀內容...';
+      const result = { status: 'completed' as const, text: '紫微斗數解讀內容...' };
+      callbacks.onFinish?.(result);
+      return result;
     });
 
     render(<ReadingPanel chart={mockChart} />);
@@ -220,8 +296,9 @@ describe('ReadingPanel Component Test Suite', () => {
 
   it('allows copying reading text to clipboard', async () => {
     vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
-      callbacks.onFinish?.('命格分析結果');
-      return '命格分析結果';
+      const result = { status: 'completed' as const, text: '命格分析結果' };
+      callbacks.onFinish?.(result);
+      return result;
     });
 
     const writeTextMock = vi.fn().mockResolvedValue(undefined);

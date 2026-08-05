@@ -4,7 +4,10 @@
  * 安全設計：
  * - API Key 存於 sessionStorage（分頁關閉即清除），降低 XSS 竊取風險
  * - 非機密設定 (provider/baseUrl/model/temperature) 仍用 localStorage 持久化
- * - SSE 串流加入 AbortSignal.timeout 與 finally reader.releaseLock()
+ * - SSE 串流採用「閒置逾時」(idle timeout)：每收到一個 chunk 就重置計時器，
+ *   總輸出長度不設上限，避免長輸出在總逾時內寫不完就被誤判為正常結束
+ * - Base URL 強制驗證為 https（localhost 例外），避免 API Key 被送往不安全端點
+ * - finally 內固定呼叫 reader.releaseLock() 避免 ReadableStream 記憶體洩漏
  */
 
 export interface LLMProviderPreset {
@@ -79,8 +82,12 @@ export const STORAGE_KEY = 'ziwei_llm_config';
 /** sessionStorage key for API Key (cleared when tab/browser closes) */
 export const API_KEY_SESSION_KEY = 'ziwei_llm_apikey';
 
-/** Default timeout (ms) for SSE streaming fetch */
-export const DEFAULT_STREAM_TIMEOUT_MS = 60_000;
+/**
+ * Idle timeout (ms) for SSE streaming fetch：計時器在每次收到 chunk 時重置，
+ * 而非整個請求的總逾時。因此輸出再長也不會被截斷，只有「閒置超過此秒數沒有新資料」
+ * 才會中斷連線。
+ */
+export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 30_000;
 
 /** 安全警告：提醒使用者前端存儲 API Key 的風險 */
 export const API_KEY_SECURITY_WARNING =
@@ -153,10 +160,24 @@ export interface ChatMessage {
   content: string;
 }
 
+/**
+ * 串流終止狀態：
+ * - completed: 正常收到 [DONE] 或伺服器自然關閉連線
+ * - aborted_by_user: 使用者主動點擊「停止生成」或元件卸載
+ * - timeout: 閒置逾時（長時間沒有新 chunk）被迫中斷，內容可能不完整
+ * - error: 網路或 API 錯誤（透過 onError + throw 傳遞，不會經由此狀態解析）
+ */
+export type StreamFinishStatus = 'completed' | 'aborted_by_user' | 'timeout' | 'error';
+
+export interface StreamResult {
+  status: StreamFinishStatus;
+  text: string;
+}
+
 export interface StreamCallbacks {
   onChunk: (chunk: string, fullText: string) => void;
   onError?: (err: Error) => void;
-  onFinish?: (fullText: string) => void;
+  onFinish?: (result: StreamResult) => void;
   signal?: AbortSignal;
 }
 
@@ -166,6 +187,50 @@ export function cleanBaseUrl(url: string): string {
     cleaned = cleaned.slice(0, -1);
   }
   return cleaned;
+}
+
+export interface BaseUrlCheck {
+  valid: boolean;
+  secure: boolean;
+  message?: string;
+}
+
+/**
+ * 驗證 Base URL 是否為合法且安全（https）的網址。
+ * 為保護 API Key，僅允許 https 端點，本機開發用的 localhost/127.0.0.1 例外放行。
+ */
+export function validateBaseUrl(url: string): BaseUrlCheck {
+  const cleaned = cleanBaseUrl(url);
+  if (!cleaned) {
+    return { valid: false, secure: false, message: '請輸入 Base URL' };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(cleaned);
+  } catch {
+    return {
+      valid: false,
+      secure: false,
+      message: 'Base URL 格式不正確，請輸入完整網址（需包含 https://）',
+    };
+  }
+
+  const isLocalhost =
+    parsed.hostname === 'localhost' ||
+    parsed.hostname === '127.0.0.1' ||
+    parsed.hostname === '::1';
+  const secure = parsed.protocol === 'https:' || isLocalhost;
+
+  if (!secure) {
+    return {
+      valid: true,
+      secure: false,
+      message: '⚠️ 此 Base URL 並非 https，您的 API Key 傳輸時可能遭中間人攔截，強烈建議改用 https 端點',
+    };
+  }
+
+  return { valid: true, secure: true };
 }
 
 /**
@@ -180,6 +245,17 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
   }
   if (!config.model) {
     return { success: false, message: '請輸入模型名稱' };
+  }
+
+  const urlCheck = validateBaseUrl(config.baseUrl);
+  if (!urlCheck.valid) {
+    return { success: false, message: urlCheck.message! };
+  }
+  if (!urlCheck.secure) {
+    return {
+      success: false,
+      message: '為保護 API Key 安全，暫不允許透過非 https 端點測試連線（localhost 除外）',
+    };
   }
 
   const endpoint = `${cleanBaseUrl(config.baseUrl)}/chat/completions`;
@@ -223,14 +299,19 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
 }
 
 /**
- * 呼叫 OpenAI-compatible SSE Streaming 介面
+ * 呼叫 OpenAI-compatible SSE Streaming 介面。
+ *
+ * 逾時策略為「閒置逾時」：每收到一個 chunk（或串流自然結束）即重置計時器，
+ * 只有連續 idleTimeoutMs 毫秒沒有任何新資料時才會中斷連線，因此輸出長度
+ * 不受總時長限制。回傳值以 StreamResult 明確標示是正常結束、使用者中止、
+ * 逾時中斷還是錯誤，呼叫端不應把「逾時」誤當成「完成」處理。
  */
 export async function callLLMStream(
   messages: ChatMessage[],
   config: LLMConfig,
   callbacks: StreamCallbacks,
-  timeoutMs: number = DEFAULT_STREAM_TIMEOUT_MS
-): Promise<string> {
+  idleTimeoutMs: number = DEFAULT_STREAM_IDLE_TIMEOUT_MS
+): Promise<StreamResult> {
   const { apiKey, baseUrl, model, temperature, maxTokens } = config;
   if (!apiKey && config.provider !== 'custom') {
     throw new Error('未設定 API Key，請點擊「API 設定」設定您的 API Key');
@@ -242,6 +323,14 @@ export async function callLLMStream(
     throw new Error('未設定 Model 名稱');
   }
 
+  const urlCheck = validateBaseUrl(baseUrl);
+  if (!urlCheck.valid) {
+    throw new Error(urlCheck.message);
+  }
+  if (!urlCheck.secure) {
+    throw new Error('為保護 API Key 安全，暫不允許透過非 https 端點傳送請求（localhost 除外）');
+  }
+
   const endpoint = `${cleanBaseUrl(baseUrl)}/chat/completions`;
 
   const headers: Record<string, string> = {
@@ -250,13 +339,6 @@ export async function callLLMStream(
   if (apiKey.trim()) {
     headers['Authorization'] = `Bearer ${apiKey.trim()}`;
   }
-
-  // Merge user-provided AbortSignal with a timeout signal to prevent
-  // the request from hanging indefinitely if the upstream API stalls.
-  const timeoutSignal = AbortSignal.timeout(timeoutMs);
-  const mergedSignal = callbacks.signal
-    ? AbortSignal.any([callbacks.signal, timeoutSignal])
-    : timeoutSignal;
 
   const body: Record<string, unknown> = {
     model: model.trim(),
@@ -268,39 +350,62 @@ export async function callLLMStream(
     body.max_tokens = maxTokens;
   }
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-    signal: mergedSignal,
-  });
+  // Idle-timeout controller: reset on every chunk so long outputs are never
+  // truncated by a total-request deadline; only silence triggers an abort.
+  const idleController = new AbortController();
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  const resetIdleTimer = () => {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      timedOut = true;
+      idleController.abort();
+    }, idleTimeoutMs);
+  };
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    let errorMessage = `API 請求失敗 (HTTP ${response.status})`;
-    try {
-      const json = JSON.parse(errorText);
-      if (json.error?.message) {
-        errorMessage = json.error.message;
-      }
-    } catch {
-      if (errorText) errorMessage = errorText.slice(0, 150);
-    }
-    throw new Error(errorMessage);
-  }
+  const userSignal = callbacks.signal;
+  const mergedSignal = userSignal
+    ? AbortSignal.any([userSignal, idleController.signal])
+    : idleController.signal;
 
-  if (!response.body) {
-    throw new Error('伺服器未回傳響應串流 (Response Body is empty)');
-  }
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder('utf-8');
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   let fullText = '';
-  let buffer = '';
+
+  resetIdleTimer();
 
   try {
-    while (true) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: mergedSignal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `API 請求失敗 (HTTP ${response.status})`;
+      try {
+        const json = JSON.parse(errorText);
+        if (json.error?.message) {
+          errorMessage = json.error.message;
+        }
+      } catch {
+        if (errorText) errorMessage = errorText.slice(0, 150);
+      }
+      throw new Error(errorMessage);
+    }
+
+    if (!response.body) {
+      throw new Error('伺服器未回傳響應串流 (Response Body is empty)');
+    }
+
+    reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    streamLoop: while (true) {
       const { done, value } = await reader.read();
+      resetIdleTimer();
       if (done) break;
 
       let chunkStr = '';
@@ -322,8 +427,7 @@ export async function callLLMStream(
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith(':')) continue;
         if (trimmed === 'data: [DONE]') {
-          callbacks.onFinish?.(fullText);
-          return fullText;
+          break streamLoop;
         }
 
         if (trimmed.startsWith('data: ')) {
@@ -353,12 +457,15 @@ export async function callLLMStream(
       } catch (e) {}
     }
 
-    callbacks.onFinish?.(fullText);
-    return fullText;
+    const result: StreamResult = { status: 'completed', text: fullText };
+    callbacks.onFinish?.(result);
+    return result;
   } catch (err: unknown) {
     if (err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
-      callbacks.onFinish?.(fullText);
-      return fullText;
+      const status: StreamFinishStatus = timedOut || err.name === 'TimeoutError' ? 'timeout' : 'aborted_by_user';
+      const result: StreamResult = { status, text: fullText };
+      callbacks.onFinish?.(result);
+      return result;
     }
     if (err instanceof Error) {
       callbacks.onError?.(err);
@@ -367,9 +474,10 @@ export async function callLLMStream(
     }
     throw err;
   } finally {
+    if (idleTimer) clearTimeout(idleTimer);
     // Always release the ReadableStream lock to prevent memory leaks
     try {
-      reader.releaseLock();
+      reader?.releaseLock();
     } catch {
       // releaseLock may throw if stream is already closed; safe to ignore
     }

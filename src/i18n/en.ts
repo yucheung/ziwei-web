@@ -170,6 +170,8 @@ export const en: Record<TranslationKey, string> = {
   'reading.error.noKey': 'Please enter your API Key in settings.',
   'reading.loading': 'AI Master is computing the astrolabe and mutagen energies...',
   'reading.hint': 'Click "Generate AI Reading" for a structured multi-model astrological analysis',
+  'reading.timeoutBanner': '⚠️ Response interrupted — content may be incomplete',
+  'reading.continueGenerating': 'Continue Generating',
 
   // LLM Config Modal
   'llm.title': 'OpenAI-Compatible LLM Multi-Model Settings',
@@ -184,6 +186,9 @@ export const en: Record<TranslationKey, string> = {
   'llm.testing': 'Testing...',
   'llm.save': 'Save Settings',
   'llm.cancel': 'Cancel',
+  'llm.clearKey': 'Clear API Key',
+  'llm.clearKeyConfirm': 'Are you sure you want to clear the saved API Key and LLM settings? This cannot be undone.',
+  'llm.clearKeyDone': 'API Key cleared',
 
   // ─── Match Panel ───
   'match.title': 'Dual Astrolabe Match',

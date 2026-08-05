@@ -168,6 +168,8 @@ export const zhTW = {
   'reading.error.noKey': '請先在設定中輸入您的 API Key。',
   'reading.loading': 'AI 大師正在運算紫微星盤與四化能量...',
   'reading.hint': '點擊「生成 AI 命盤解讀」，即刻獲得多模型結構化命理剖析',
+  'reading.timeoutBanner': '⚠️ 回應中斷，內容可能不完整',
+  'reading.continueGenerating': '繼續生成',
 
   // LLM Config Modal
   'llm.title': 'OpenAI-Compatible LLM 多模型設定',
@@ -182,6 +184,9 @@ export const zhTW = {
   'llm.testing': '連線測試中...',
   'llm.save': '儲存設定',
   'llm.cancel': '取消',
+  'llm.clearKey': '清除 API Key',
+  'llm.clearKeyConfirm': '確定要清除已儲存的 API Key 與 LLM 設定嗎？此操作無法復原。',
+  'llm.clearKeyDone': 'API Key 已清除',
 
   // ─── Match Panel ───
   'match.title': '雙人紫微命盤合盤 (Astrolabe Match)',

@@ -6,6 +6,7 @@ import {
   Check,
   RefreshCw,
   AlertCircle,
+  AlertTriangle,
   Square,
   Eye,
   EyeOff,
@@ -14,16 +15,24 @@ import {
   KeyRound,
   Sliders,
   CheckCircle2,
+  Trash2,
+  PlayCircle,
 } from 'lucide-react';
 import {
   LLMConfig,
+  ChatMessage,
+  StreamFinishStatus,
   PROVIDER_PRESETS,
   loadLLMConfig,
   saveLLMConfig,
+  clearLLMConfig,
   callLLMStream,
   testLLMConnection,
+  validateBaseUrl,
+  API_KEY_SECURITY_WARNING,
 } from '../lib/llm';
 import { buildReadingPrompt, ReadingType } from '../lib/prompts';
+import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
 
 interface ReadingPanelProps {
@@ -64,9 +73,11 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [finishStatus, setFinishStatus] = useState<StreamFinishStatus | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
+  const lastMessagesRef = useRef<ChatMessage[] | null>(null);
 
   // Abort active SSE connection on unmount
   useEffect(() => {
@@ -90,6 +101,40 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
     }
   }, [readingText, isLoading]);
 
+  const runStream = async (messages: ChatMessage[], baseText: string) => {
+    lastMessagesRef.current = messages;
+    setErrorMsg(null);
+    setIsLoading(true);
+    setFinishStatus(null);
+    setCopied(false);
+
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+
+    try {
+      await callLLMStream(messages, llmConfig, {
+        signal: abortControllerRef.current.signal,
+        onChunk: (_chunk, fullText) => {
+          setReadingText(baseText + fullText);
+        },
+        onError: (err) => {
+          setErrorMsg(`${t('reading.error.prefix')}: ${err.message || String(err)}`);
+          setIsLoading(false);
+        },
+        onFinish: (result) => {
+          setReadingText(baseText + result.text);
+          setIsLoading(false);
+          setFinishStatus(result.status);
+        },
+      });
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        setErrorMsg(`${t('reading.error.apiError')}: ${err.message || String(err)}`);
+      }
+      setIsLoading(false);
+    }
+  };
+
   const handleStartReading = async () => {
     if (!chart) {
       setErrorMsg(t('reading.error.noChart'));
@@ -102,10 +147,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       return;
     }
 
-    setErrorMsg(null);
-    setIsLoading(true);
     setReadingText('');
-    setCopied(false);
 
     const { systemPrompt, userPrompt } = buildReadingPrompt(chart, {
       type: readingType,
@@ -113,35 +155,25 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       focusPalace: focusPalace || undefined,
     });
 
-    const messages = [
-      { role: 'system' as const, content: systemPrompt },
-      { role: 'user' as const, content: userPrompt },
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
     ];
 
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
+    await runStream(messages, '');
+  };
 
-    try {
-      await callLLMStream(messages, llmConfig, {
-        signal: abortControllerRef.current.signal,
-        onChunk: (_chunk, fullText) => {
-          setReadingText(fullText);
-        },
-        onError: (err) => {
-          setErrorMsg(`${t('reading.error.prefix')}: ${err.message || String(err)}`);
-          setIsLoading(false);
-        },
-        onFinish: (fullText) => {
-          setReadingText(fullText);
-          setIsLoading(false);
-        },
-      });
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        setErrorMsg(`${t('reading.error.apiError')}: ${err.message || String(err)}`);
-      }
-      setIsLoading(false);
-    }
+  const handleContinueReading = async () => {
+    if (!lastMessagesRef.current) return;
+
+    const baseText = readingText;
+    const continuationMessages: ChatMessage[] = [
+      ...lastMessagesRef.current,
+      { role: 'assistant', content: baseText },
+      { role: 'user', content: '請從上方中斷處直接接續輸出，不要重複已經輸出過的內容，也不要加上任何開場白。' },
+    ];
+
+    await runStream(continuationMessages, baseText);
   };
 
   const handleStopReading = () => {
@@ -310,11 +342,29 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         </div>
       )}
 
+      {/* Timeout Banner: idle-timeout interrupted the stream, content may be incomplete */}
+      {!isLoading && finishStatus === 'timeout' && (
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>{t('reading.timeoutBanner')}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleContinueReading}
+            className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
+            <PlayCircle className="w-3.5 h-3.5" />
+            {t('reading.continueGenerating')}
+          </button>
+        </div>
+      )}
+
       {/* Reading Output Area */}
       <div className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-950/80 border border-slate-800/80 p-4 sm:p-5 text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30">
         {readingText ? (
-          <div className="whitespace-pre-wrap font-sans text-slate-200 leading-relaxed">
-            {readingText}
+          <div className="font-sans text-slate-200 leading-relaxed space-y-2">
+            {renderMarkdown(readingText)}
           </div>
         ) : isLoading ? (
           <div className="h-40 flex flex-col items-center justify-center text-slate-400 space-y-3">
@@ -356,6 +406,19 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
     loading: false,
     message: '',
   });
+  const [clearedMsg, setClearedMsg] = useState<string | null>(null);
+
+  const urlCheck = validateBaseUrl(formData.baseUrl);
+  const showHttpsWarning = urlCheck.valid && !urlCheck.secure;
+
+  const handleClearKey = () => {
+    if (!window.confirm(t('llm.clearKeyConfirm'))) {
+      return;
+    }
+    clearLLMConfig();
+    setFormData((prev) => ({ ...prev, apiKey: '' }));
+    setClearedMsg(t('llm.clearKeyDone'));
+  };
 
   const handleProviderChange = (providerId: string) => {
     const preset = PROVIDER_PRESETS.find((p) => p.id === providerId);
@@ -437,6 +500,12 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
               placeholder="https://api.openai.com/v1"
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
+            {showHttpsWarning && (
+              <p className="mt-1.5 text-[11px] text-rose-400 flex items-start gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>{urlCheck.message}</span>
+              </p>
+            )}
           </div>
 
           {/* API Key */}
@@ -461,6 +530,12 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
                 {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            <p className="mt-1.5 text-[11px] text-amber-400/90 leading-relaxed">
+              {API_KEY_SECURITY_WARNING}
+            </p>
+            {clearedMsg && (
+              <p className="mt-1 text-[11px] text-emerald-400">{clearedMsg}</p>
+            )}
           </div>
 
           {/* Model Name */}
@@ -528,22 +603,32 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-800">
             <button
               type="button"
-              onClick={handleTest}
-              disabled={testStatus.loading}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              onClick={handleClearKey}
+              className="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              {testStatus.loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-              {t('llm.test')}
+              <Trash2 className="w-3.5 h-3.5" />
+              {t('llm.clearKey')}
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer"
-            >
-              {t('llm.save')}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleTest}
+                disabled={testStatus.loading}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {testStatus.loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                {t('llm.test')}
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer"
+              >
+                {t('llm.save')}
+              </button>
+            </div>
           </div>
         </form>
       </div>
