@@ -7,8 +7,8 @@ import {
   Zap,
   ShieldAlert,
 } from 'lucide-react';
-import { getHoroscopeSummary, HoroscopeSummary, DecadalItem } from '../lib/fortunes';
-import type { AppLocale } from '../lib/chartModel';
+import { getHoroscopeSummary, HoroscopeSummary, DecadalItem, ScopeStars } from '../lib/fortunes';
+import type { AppLocale, IFunctionalAstrolabe, IFunctionalPalace } from '../lib/chartModel';
 import { useTranslation, type TranslationKey } from '../i18n';
 
 export type FortuneLevel = 'yearly' | 'monthly' | 'daily' | 'hourly';
@@ -55,7 +55,7 @@ const FORTUNE_LEVEL_CLASSES: Record<FortuneLevel, FortuneLevelClasses> = {
 };
 
 export interface FortunePanelProps {
-  astrolabe: any | null;
+  astrolabe: IFunctionalAstrolabe | null;
   initialTargetDate?: string;
   onSelectDecadal?: (decadalItem: DecadalItem) => void;
 }
@@ -469,7 +469,7 @@ export function FortunePanel({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {astrolabe.palaces.map((palace: any, idx: number) => {
+          {astrolabe.palaces.map((palace: IFunctionalPalace, idx: number) => {
             const scopeStars = summary.palaceScopeStars[idx] || {
               decadalStars: [],
               yearlyStars: [],
@@ -536,18 +536,23 @@ export function FortunePanel({
                   )}
 
                   {/* Level-specific Stars */}
-                  {(scopeStars as any)[`${fortuneLevel}Stars`]?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {(scopeStars as any)[`${fortuneLevel}Stars`].map((star: string, sIdx: number) => (
-                        <span
-                          key={sIdx}
-                          className={`px-1.5 py-0.5 text-[10px] rounded ${FORTUNE_LEVEL_CLASSES[fortuneLevel].starBadge}`}
-                        >
-                          {star}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+                    const levelStarKey = `${fortuneLevel}Stars` as keyof ScopeStars;
+                    const levelStars = scopeStars[levelStarKey];
+                    if (!levelStars || !Array.isArray(levelStars) || levelStars.length === 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-1">
+                        {levelStars.map((star: string, sIdx: number) => (
+                          <span
+                            key={sIdx}
+                            className={`px-1.5 py-0.5 text-[10px] rounded ${FORTUNE_LEVEL_CLASSES[fortuneLevel].starBadge}`}
+                          >
+                            {star}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
 
                   {/* Suiqian / Jiangqian Stars */}
                   {(scopeStars.suiqianStar || scopeStars.jiangqianStar) && (

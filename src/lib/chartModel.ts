@@ -416,7 +416,7 @@ export function canonicalizeAstrolabeForReading(
  * 修復英文模式下命宮定位錯誤 (根因 C1)。
  */
 export function findSoulPalaceIndex(astrolabe: {
-  palaces: Array<{ earthlyBranch: string }>;
+  palaces: Array<{ earthlyBranch: string; name?: string }>;
   earthlyBranchOfSoulPalace?: string;
 }): number {
   if (!astrolabe || !Array.isArray(astrolabe.palaces)) return 0;
@@ -425,7 +425,7 @@ export function findSoulPalaceIndex(astrolabe: {
     if (idx >= 0) return idx;
   }
   // Fallback：舊行為 (比對顯示字串)，僅在缺少 earthlyBranchOfSoulPalace 時使用
-  const fallbackIdx = (astrolabe.palaces as any[]).findIndex(
+  const fallbackIdx = astrolabe.palaces.findIndex(
     (p) => p.name === '命宮' || p.name === '命宫',
   );
   return fallbackIdx >= 0 ? fallbackIdx : 0;

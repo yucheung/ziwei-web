@@ -45,7 +45,6 @@ export interface ExportAstrolabe {
   earthlyBranchOfSoulPalace?: string;
   earthlyBranchOfBodyPalace?: string;
   palaces: ExportPalaceInfo[];
-  [key: string]: any;
 }
 
 /**

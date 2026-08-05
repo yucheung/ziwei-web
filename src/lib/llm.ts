@@ -304,14 +304,15 @@ export async function testLLMConnection(config: LLMConfig, locale: Locale = 'zh-
     }
 
     return { success: true, message: translate(locale, 'llm.successConnected') };
-  } catch (err: any) {
-    if (err?.name === 'TimeoutError') {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'TimeoutError') {
       return {
         success: false,
         message: translate(locale, 'llm.errTimeout', { seconds: String(DEFAULT_TEST_CONNECTION_TIMEOUT_MS / 1000) }),
       };
     }
-    return { success: false, message: translate(locale, 'llm.errNetwork', { msg: err.message || String(err) }) };
+    const msg = err instanceof Error ? err.message || String(err) : String(err);
+    return { success: false, message: translate(locale, 'llm.errNetwork', { msg }) };
   }
 }
 
@@ -431,7 +432,7 @@ export async function callLLMStream(
         chunkStr = value;
       } else if (value) {
         try {
-          chunkStr = decoder.decode(value as any, { stream: true });
+          chunkStr = decoder.decode(value, { stream: true });
         } catch {
           chunkStr = String(value);
         }

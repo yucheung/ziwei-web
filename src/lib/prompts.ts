@@ -15,7 +15,7 @@
  * LLM 收到的星曜名稱都是同一組已知詞彙，不會混入 iztro 英文 UI 的四化字母碼
  * (A/B/C/D) 或亮度括號碼 (例如 [+3]) 這類對 LLM 毫無語意的縮寫。
  */
-import { translateKey } from './chartModel';
+import { translateKey, type ReadingAstrolabeLike, type ReadingStarLike } from './chartModel';
 
 export type ReadingType = 'overall' | 'palaces' | 'mutagens' | 'patterns' | 'comprehensive';
 
@@ -24,6 +24,17 @@ export interface PromptOptions {
   customInstructions?: string;
   focusPalace?: string;
 }
+
+/**
+ * summarizeAstrolabe/buildReadingPrompt 接受的命盤形狀：
+ * 涵蓋測試直接傳入的 iztro IFunctionalAstrolabe，以及 ReadingPanel 經
+ * canonicalizeAstrolabeForReading() 轉換過的 ReadingAstrolabeLike（缺少
+ * solarDate/lunarDate，此處補上為可選欄位）。
+ */
+export type AstrolabeSummaryLike = ReadingAstrolabeLike & {
+  solarDate?: string;
+  lunarDate?: string;
+};
 
 export const DEFAULT_SYSTEM_PROMPT = `你是一位精通紫微斗數（兼通三合派與飛星派）的資深命理宗師與心靈導師。
 你的任務是根據使用者提供的【紫微斗數命盤結構化資料】，進行專業、精準、結構化且具建設性的命理深度解讀。
@@ -42,7 +53,7 @@ export const DEFAULT_SYSTEM_PROMPT = `你是一位精通紫微斗數（兼通三
  * 處理過的 zh-TW canonical key），亮度／四化則維持繁體中文，確保 LLM 讀到的是
  * 具語意的原始命理詞彙，而非 iztro 英文 UI 的縮寫代碼。
  */
-function formatStarName(star: any): string {
+function formatStarName(star: ReadingStarLike): string {
   if (!star || !star.name) return '';
   const enName = translateKey(star.name, 'star', 'en');
   const parts: string[] = [];
@@ -58,7 +69,7 @@ function formatStarName(star: any): string {
 /**
  * 將 iztro 命盤物件整理成乾淨、無雜訊的 Markdown 命盤摘要
  */
-export function summarizeAstrolabe(chart: any): string {
+export function summarizeAstrolabe(chart: AstrolabeSummaryLike | null): string {
   if (!chart) {
     return '【無命盤資料】';
   }
@@ -81,7 +92,7 @@ export function summarizeAstrolabe(chart: any): string {
   lines.push('\n# 十二宮位星曜配置');
 
   const palaces = chart.palaces || [];
-  palaces.forEach((palace: any) => {
+  palaces.forEach((palace) => {
     const pName = palace.name || '未知宮';
     const stemBranch = `${palace.heavenlyStem || ''}${palace.earthlyBranch || ''}`;
     const isBody = palace.isBodyPalace ? '【身宮】' : '';
@@ -97,7 +108,7 @@ export function summarizeAstrolabe(chart: any): string {
       lines.push(`- **輔星/吉凶曜**: ${minors.join('、')}`);
     }
 
-    const adjectives = (palace.adjectiveStars || []).map((s: any) => s.name || s).filter(Boolean);
+    const adjectives = (palace.adjectiveStars || []).map((s) => s.name || String(s)).filter(Boolean);
     if (adjectives.length > 0) {
       lines.push(`- **雜曜/神煞**: ${adjectives.join('、')}`);
     }
@@ -141,7 +152,7 @@ function generateNonce(): string {
 /**
  * 依據解讀類型與選項產生 Prompt
  */
-export function buildReadingPrompt(chart: any, options: PromptOptions): { systemPrompt: string; userPrompt: string } {
+export function buildReadingPrompt(chart: AstrolabeSummaryLike | null, options: PromptOptions): { systemPrompt: string; userPrompt: string } {
   const chartSummary = summarizeAstrolabe(chart);
 
   let typePrompt: string;

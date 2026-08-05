@@ -33,12 +33,12 @@ import {
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '../lib/llm';
 import { buildReadingPrompt, ReadingType } from '../lib/prompts';
-import { canonicalizeAstrolabeForReading, type AppLocale } from '../lib/chartModel';
+import { canonicalizeAstrolabeForReading, type AppLocale, type IFunctionalAstrolabe } from '../lib/chartModel';
 import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
 
 interface ReadingPanelProps {
-  chart: any;
+  chart: IFunctionalAstrolabe | null;
 }
 
 const READING_TYPES: Array<{ id: ReadingType; labelKey: TranslationKey }> = [
@@ -129,9 +129,10 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           setFinishStatus(result.status);
         },
       }, DEFAULT_STREAM_IDLE_TIMEOUT_MS, locale);
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        setErrorMsg(`${t('reading.error.apiError')}: ${err.message || String(err)}`);
+    } catch (err: unknown) {
+      if (!(err instanceof Error) || err.name !== 'AbortError') {
+        const message = err instanceof Error ? err.message || String(err) : String(err);
+        setErrorMsg(`${t('reading.error.apiError')}: ${message}`);
       }
       setIsLoading(false);
     }
