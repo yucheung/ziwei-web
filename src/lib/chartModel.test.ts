@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { getChart } from './astro';
 import {
   canonicalizeFlyingPalaces,
+  canonicalizeAstrolabeForReading,
   findSoulPalaceIndex,
   toCanonicalKey,
   type FlyingPalaceLike,
+  type ReadingAstrolabeLike,
 } from './chartModel';
 import { calculateFlyingStars } from './flying';
 import { getDecadalTable } from './fortunes';
@@ -109,4 +111,69 @@ describe('chartModel.ts - 跨語系 (zh-TW / en-US) 等價性測試', () => {
       });
     });
   }
+});
+
+describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
+  for (const fixture of FIXTURES) {
+    const zhAstro = getChart({
+      date: fixture.date,
+      timeIndex: fixture.timeIndex,
+      gender: fixture.gender,
+      language: 'zh-TW',
+    });
+    const enAstro = getChart({
+      date: fixture.date,
+      timeIndex: fixture.timeIndex,
+      gender: fixture.gender,
+      language: 'en-US',
+    });
+
+    it(`${fixture.label}: en-US astrolabe 還原後與 zh-TW astrolabe 語意等價`, () => {
+      const canonical = canonicalizeAstrolabeForReading(enAstro as unknown as ReadingAstrolabeLike, 'en');
+
+      expect(canonical.soul).toBe((zhAstro as any).soul);
+      expect(canonical.body).toBe((zhAstro as any).body);
+
+      for (let i = 0; i < 12; i++) {
+        const zhPalace = (zhAstro as any).palaces[i];
+        const palace = canonical.palaces[i];
+        expect(palace.name).toBe(zhPalace.name);
+        expect(palace.heavenlyStem).toBe(zhPalace.heavenlyStem);
+        expect(palace.earthlyBranch).toBe(zhPalace.earthlyBranch);
+        expect(palace.majorStars!.map((s) => s.name)).toEqual(
+          zhPalace.majorStars.map((s: any) => s.name),
+        );
+        expect(palace.majorStars!.map((s) => s.brightness)).toEqual(
+          zhPalace.majorStars.map((s: any) => s.brightness || undefined),
+        );
+        expect(palace.majorStars!.map((s) => s.mutagen)).toEqual(
+          zhPalace.majorStars.map((s: any) => s.mutagen || undefined),
+        );
+      }
+    });
+
+    it(`${fixture.label}: 還原後的四化/亮度不再是 iztro en-US 的縮寫代碼 (A/B/C/D、[+3] 等)`, () => {
+      const canonical = canonicalizeAstrolabeForReading(enAstro as unknown as ReadingAstrolabeLike, 'en');
+
+      const allStars = canonical.palaces.flatMap((p) => [...(p.majorStars || []), ...(p.minorStars || [])]);
+      const mutagens = allStars.map((s) => s.mutagen).filter(Boolean);
+      const brightnesses = allStars.map((s) => s.brightness).filter(Boolean);
+
+      expect(mutagens.length).toBeGreaterThan(0);
+      for (const m of mutagens) {
+        expect(['祿', '權', '科', '忌']).toContain(m);
+      }
+      for (const b of brightnesses) {
+        expect(b).not.toMatch(/^\[.+\]$/);
+      }
+    });
+  }
+
+  it('zh-TW 來源已是 canonical，轉換為 identity（不改變任何欄位）', () => {
+    const zhAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
+    const canonical = canonicalizeAstrolabeForReading(zhAstro as unknown as ReadingAstrolabeLike, 'zh-TW');
+
+    expect(canonical.soul).toBe((zhAstro as any).soul);
+    expect(canonical.palaces[0].name).toBe((zhAstro as any).palaces[0].name);
+  });
 });

@@ -89,6 +89,12 @@ export const API_KEY_SESSION_KEY = 'ziwei_llm_apikey';
  */
 export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 30_000;
 
+/**
+ * 連線測試逾時 (ms)：testLLMConnection 是單次非串流請求，若端點填錯 (例如打到
+ * 一個永遠不回應的 hang 端點)，沒有逾時會讓「測試連線」按鈕永久轉圈。
+ */
+export const DEFAULT_TEST_CONNECTION_TIMEOUT_MS = 15_000;
+
 /** 安全警告：提醒使用者前端存儲 API Key 的風險 */
 export const API_KEY_SECURITY_WARNING =
   '⚠️ 安全提醒：API Key 僅暫存於本瀏覽器分頁（sessionStorage），關閉分頁即自動清除。' +
@@ -276,6 +282,8 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
         messages: [{ role: 'user', content: 'Hi' }],
         max_tokens: 5,
       }),
+      // 避免填錯的 hang 端點讓「測試連線」按鈕永久轉圈 (A-6)
+      signal: AbortSignal.timeout(DEFAULT_TEST_CONNECTION_TIMEOUT_MS),
     });
 
     if (!res.ok) {
@@ -294,6 +302,12 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
 
     return { success: true, message: '連線成功！API Key 與 Base URL 驗證通過' };
   } catch (err: any) {
+    if (err?.name === 'TimeoutError') {
+      return {
+        success: false,
+        message: `連線逾時：端點在 ${DEFAULT_TEST_CONNECTION_TIMEOUT_MS / 1000} 秒內未回應，請確認 Base URL 是否正確`,
+      };
+    }
     return { success: false, message: `網絡或連線錯誤: ${err.message || String(err)}` };
   }
 }
@@ -426,36 +440,45 @@ export async function callLLMStream(
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith(':')) continue;
-        if (trimmed === 'data: [DONE]') {
+        if (!trimmed.startsWith('data:')) continue;
+
+        // Tolerate both "data: {...}" (with space, per SSE spec) and the
+        // occasional non-conforming "data:{...}" (no space) emitted by some
+        // OpenAI-compatible providers/proxies.
+        const dataPayload = (trimmed.startsWith('data: ') ? trimmed.slice(6) : trimmed.slice(5)).trim();
+        if (dataPayload === '[DONE]') {
           break streamLoop;
         }
 
-        if (trimmed.startsWith('data: ')) {
-          const jsonStr = trimmed.slice(6);
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content || '';
-            if (content) {
-              fullText += content;
-              callbacks.onChunk(content, fullText);
-            }
-          } catch {
-            // parse error on partial chunk line, ignore
+        try {
+          const parsed = JSON.parse(dataPayload);
+          const content = parsed.choices?.[0]?.delta?.content || '';
+          if (content) {
+            fullText += content;
+            callbacks.onChunk(content, fullText);
           }
+        } catch {
+          // parse error on partial chunk line, ignore
         }
       }
     }
 
-    if (buffer.trim().startsWith('data: ') && buffer.trim() !== 'data: [DONE]') {
-      try {
-        const parsed = JSON.parse(buffer.trim().slice(6));
-        const content = parsed.choices?.[0]?.delta?.content || '';
-        if (content) {
-          fullText += content;
-          callbacks.onChunk(content, fullText);
+    const trailingTrimmed = buffer.trim();
+    if (trailingTrimmed.startsWith('data:')) {
+      const dataPayload = (
+        trailingTrimmed.startsWith('data: ') ? trailingTrimmed.slice(6) : trailingTrimmed.slice(5)
+      ).trim();
+      if (dataPayload !== '[DONE]') {
+        try {
+          const parsed = JSON.parse(dataPayload);
+          const content = parsed.choices?.[0]?.delta?.content || '';
+          if (content) {
+            fullText += content;
+            callbacks.onChunk(content, fullText);
+          }
+        } catch {
+          // parse error on trailing buffer, ignore
         }
-      } catch {
-        // parse error on trailing buffer, ignore
       }
     }
 

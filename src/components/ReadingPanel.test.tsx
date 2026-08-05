@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReadingPanel } from './ReadingPanel';
 import * as llmModule from '../lib/llm';
 import { getChart } from '../lib/astro';
+import { I18nProvider } from '../i18n';
 
 // Mock LLM module
 vi.mock('../lib/llm', async () => {
@@ -65,7 +66,7 @@ describe('ReadingPanel Component Test Suite', () => {
     const generateBtn = screen.getByRole('button', { name: /生成 AI 命盤解讀/i });
     fireEvent.click(generateBtn);
 
-    expect(await screen.findByText('請先在上表單輸入生辰資料並生成命盤！')).toBeInTheDocument();
+    expect((await screen.findAllByText('請先在上表單輸入生辰資料並生成命盤！'))[0]).toBeInTheDocument();
   });
 
   it('opens LLMConfigModal when API Key is missing and user clicks generate', async () => {
@@ -251,7 +252,7 @@ describe('ReadingPanel Component Test Suite', () => {
     const generateBtn = screen.getByRole('button', { name: /生成 AI 命盤解讀/i });
     fireEvent.click(generateBtn);
 
-    expect(await screen.findByText(/Network Timeout/)).toBeInTheDocument();
+    expect((await screen.findAllByText(/Network Timeout/))[0]).toBeInTheDocument();
   });
 
   it('handles stop reading button click', async () => {
@@ -317,5 +318,115 @@ describe('ReadingPanel Component Test Suite', () => {
 
     expect(writeTextMock).toHaveBeenCalledWith('命格分析結果');
     expect(await screen.findByText(/已複製/)).toBeInTheDocument();
+  });
+
+  describe('A-1: aria-live status announcer (does not wrap the whole streaming output tree)', () => {
+    it('keeps the output container aria-live="off" so streaming chunks are not spammed to screen readers', () => {
+      const { container } = render(<ReadingPanel chart={mockChart} />);
+
+      const outputArea = container.querySelector('[aria-busy]');
+      expect(outputArea).toHaveAttribute('aria-live', 'off');
+    });
+
+    it('announces completion via a dedicated role="status" element', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '命格分析結果' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+
+      const generateBtn = screen.getByRole('button', { name: /生成 AI 命盤解讀/i });
+      fireEvent.click(generateBtn);
+
+      const status = screen.getByRole('status');
+      await waitFor(() => {
+        expect(status).toHaveTextContent('已收到全部回應');
+      });
+    });
+
+    it('announces abort via the role="status" element, distinct from completion', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'aborted_by_user' as const, text: '' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+
+      const generateBtn = screen.getByRole('button', { name: /生成 AI 命盤解讀/i });
+      fireEvent.click(generateBtn);
+
+      const status = screen.getByRole('status');
+      await waitFor(() => {
+        expect(status).toHaveTextContent('回應已中止');
+      });
+    });
+  });
+
+  describe('A-3: LLM ACL — canonical (locale-independent) chart data feeds the LLM prompt', () => {
+    it('strips iztro en-US mutagen letter codes (A/B/C/D) and bracket brightness codes from the prompt when UI locale is English', async () => {
+      const enChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'en-US' });
+
+      let capturedMessages: llmModule.ChatMessage[] | undefined;
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (msg, _cfg, callbacks) => {
+        capturedMessages = msg;
+        const result = { status: 'completed' as const, text: '' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(
+        <I18nProvider defaultLocale="en">
+          <ReadingPanel chart={enChart} />
+        </I18nProvider>,
+      );
+
+      const generateBtn = screen.getByRole('button', { name: /Generate AI Reading/i });
+      fireEvent.click(generateBtn);
+
+      await waitFor(() => {
+        expect(capturedMessages).toBeDefined();
+      });
+
+      const userPrompt = capturedMessages!.find((m) => m.role === 'user')!.content;
+      expect(userPrompt).not.toMatch(/生年[ABCD](?![a-zA-Z])/);
+      expect(userPrompt).not.toMatch(/\[[+-]?\d\]/);
+    });
+
+    it('produces the same user prompt regardless of whether the source astrolabe was rendered in zh-TW or en-US', async () => {
+      const zhChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'zh-TW' });
+      const enChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'en-US' });
+
+      let capturedUserPrompt = '';
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (msg, _cfg, callbacks) => {
+        capturedUserPrompt = msg.find((m) => m.role === 'user')!.content;
+        const result = { status: 'completed' as const, text: '' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      const { unmount } = render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={zhChart} />
+        </I18nProvider>,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(capturedUserPrompt).not.toBe(''));
+      const zhSourcedPrompt = capturedUserPrompt;
+      unmount();
+
+      capturedUserPrompt = '';
+      render(
+        <I18nProvider defaultLocale="en">
+          <ReadingPanel chart={enChart} />
+        </I18nProvider>,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Generate AI Reading/i }));
+      await waitFor(() => expect(capturedUserPrompt).not.toBe(''));
+
+      expect(capturedUserPrompt).toBe(zhSourcedPrompt);
+    });
   });
 });

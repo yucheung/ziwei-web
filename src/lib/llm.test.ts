@@ -13,6 +13,7 @@ import {
   API_KEY_SESSION_KEY,
   API_KEY_SECURITY_WARNING,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+  DEFAULT_TEST_CONNECTION_TIMEOUT_MS,
   LLMConfig,
 } from './llm';
 
@@ -426,6 +427,101 @@ describe('llm.ts - OpenAI Compatible LLM Client & Settings', () => {
 
   it('should export DEFAULT_STREAM_IDLE_TIMEOUT_MS as an idle (not total) timeout', () => {
     expect(DEFAULT_STREAM_IDLE_TIMEOUT_MS).toBe(30_000);
+  });
+
+  it('should process SSE lines using "data:{...}" with no space after the colon (A-5)', async () => {
+    const encoder = new TextEncoder();
+    let callCount = 0;
+    const mockReader = {
+      read: vi.fn().mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) {
+          // No space after "data:" — some OpenAI-compatible proxies emit this.
+          return { done: false, value: encoder.encode('data:{"choices":[{"delta":{"content":"星"}}]}\n\n') };
+        }
+        if (callCount === 2) {
+          return { done: false, value: encoder.encode('data:{"choices":[{"delta":{"content":"盤"}}]}\n\n') };
+        }
+        if (callCount === 3) {
+          return { done: false, value: encoder.encode('data:[DONE]\n\n') };
+        }
+        return { done: true, value: undefined };
+      }),
+      releaseLock: vi.fn(),
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      body: { getReader: () => mockReader },
+    }));
+
+    const chunks: string[] = [];
+    const result = await callLLMStream(
+      [{ role: 'user', content: 'test' }],
+      { ...DEFAULT_LLM_CONFIG, apiKey: 'sk-test' },
+      { onChunk: (chunk) => chunks.push(chunk) }
+    );
+
+    expect(result).toEqual({ status: 'completed', text: '星盤' });
+    expect(chunks).toEqual(['星', '盤']);
+  });
+
+  it('should process a trailing "data:{...}" buffer with no space after the colon (A-5)', async () => {
+    const encoder = new TextEncoder();
+    const mockReader = {
+      // No trailing newline: the payload stays in `buffer` and is only
+      // flushed by the post-loop trailing-buffer handling.
+      read: vi
+        .fn()
+        .mockResolvedValueOnce({
+          done: false,
+          value: encoder.encode('data:{"choices":[{"delta":{"content":"尾聲"}}]}'),
+        })
+        .mockResolvedValueOnce({ done: true, value: undefined }),
+      releaseLock: vi.fn(),
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      body: { getReader: () => mockReader },
+    }));
+
+    const chunks: string[] = [];
+    const result = await callLLMStream(
+      [{ role: 'user', content: 'test' }],
+      { ...DEFAULT_LLM_CONFIG, apiKey: 'sk-test' },
+      { onChunk: (chunk) => chunks.push(chunk) }
+    );
+
+    expect(result).toEqual({ status: 'completed', text: '尾聲' });
+    expect(chunks).toEqual(['尾聲']);
+  });
+
+  it('should export DEFAULT_TEST_CONNECTION_TIMEOUT_MS as 15 seconds (A-6)', () => {
+    expect(DEFAULT_TEST_CONNECTION_TIMEOUT_MS).toBe(15_000);
+  });
+
+  it('should pass an AbortSignal with a 15s timeout to fetch in testLLMConnection (A-6)', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 'chatcmpl-123' }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    await testLLMConnection({ ...DEFAULT_LLM_CONFIG, apiKey: 'sk-mock-key' });
+
+    const fetchCallArgs = mockFetch.mock.calls[0][1];
+    expect(fetchCallArgs.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('should report a timeout message instead of hanging forever when the endpoint never responds (A-6)', async () => {
+    const timeoutError = new DOMException('Signal timed out', 'TimeoutError');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(timeoutError));
+
+    const res = await testLLMConnection({ ...DEFAULT_LLM_CONFIG, apiKey: 'sk-mock-key' });
+
+    expect(res.success).toBe(false);
+    expect(res.message).toContain('逾時');
   });
 
   it('should include preset options for Gemini, DeepSeek, OpenAI, Kimi, OpenRouter', () => {

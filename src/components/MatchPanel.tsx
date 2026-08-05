@@ -14,6 +14,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { analyzeMatch, MatchResult, MutagenKind } from '../lib/match';
+import { translateKey, type AppLocale } from '../lib/chartModel';
 import { useTranslation } from '../i18n';
 
 interface MatchPanelProps {
@@ -32,7 +33,19 @@ interface MatchPanelProps {
 }
 
 export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialPersonB }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+
+  // A-2: match.ts 的計算結果 (星曜/宮位/天干/四化) 一律以 zh-TW canonical 字串產出
+  // (與 ChartGrid 相同的 ACL 設計)，這裡在渲染時才依目前 UI locale 轉換顯示文字，
+  // 避免英文模式下畫面仍殘留硬編碼中文星曜/宮位名稱。
+  const translateStarName = (name: string): string =>
+    name === '空宮' ? t('match.emptyPalaceStar') : translateKey(name, 'star', appLocale);
+
+  const translateStarList = (names: string[]): string =>
+    names.map(translateStarName).join(appLocale === 'zh-TW' ? '、' : ', ');
+
+  const translateBranch = (branch: string): string => translateKey(branch, 'branch', appLocale);
 
   // Person A inputs
   const [nameA, setNameA] = useState(initialPersonA?.name || t('match.defaultPersonA'));
@@ -484,22 +497,22 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 <div className="border-t border-slate-200 dark:border-slate-800/80 pt-2 space-y-1 text-xs">
                   <p>
                     <span className="text-slate-600 dark:text-slate-400">
-                      {t('match.mingStars', { branch: matchResult.personA.soulPalaceBranch })}：
+                      {t('match.mingStars', { branch: translateBranch(matchResult.personA.soulPalaceBranch) })}：
                     </span>
                     <span className="text-amber-700 dark:text-amber-300 font-bold ml-1">
-                      {matchResult.personA.mingMajorStars.join('\u3001')}
+                      {translateStarList(matchResult.personA.mingMajorStars)}
                     </span>
                   </p>
                   <p>
                     <span className="text-slate-600 dark:text-slate-400">{t('match.fuqiStars')}：</span>
                     <span className="text-rose-600 dark:text-rose-300 font-semibold ml-1">
-                      {matchResult.personA.fuqiMajorStars.join('\u3001')}
+                      {translateStarList(matchResult.personA.fuqiMajorStars)}
                     </span>
                   </p>
                   <p>
                     <span className="text-slate-600 dark:text-slate-400">{t('match.wealthStars')}：</span>
                     <span className="text-emerald-600 dark:text-emerald-300 ml-1">
-                      {matchResult.personA.wealthMajorStars.join('\u3001')}
+                      {translateStarList(matchResult.personA.wealthMajorStars)}
                     </span>
                   </p>
                 </div>
@@ -526,10 +539,10 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                 <div className="border-t border-slate-200 dark:border-slate-800/80 pt-2 space-y-1 text-xs">
                   <p>
                     <span className="text-slate-600 dark:text-slate-400">
-                      {t('match.mingStars', { branch: matchResult.personB.soulPalaceBranch })}：
+                      {t('match.mingStars', { branch: translateBranch(matchResult.personB.soulPalaceBranch) })}：
                     </span>
                     <span className="text-purple-700 dark:text-purple-300 font-bold ml-1">
-                      {matchResult.personB.mingMajorStars.join('\u3001')}
+                      {translateStarList(matchResult.personB.mingMajorStars)}
                     </span>
                   </p>
                   <p>

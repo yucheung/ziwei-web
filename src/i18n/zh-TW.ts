@@ -194,6 +194,10 @@ export const zhTW = {
   'reading.hint': '點擊「生成 AI 命盤解讀」，即刻獲得多模型結構化命理剖析',
   'reading.timeoutBanner': '⚠️ 回應中斷，內容可能不完整',
   'reading.continueGenerating': '繼續生成',
+  'reading.status.loading': 'AI 正在生成回應中，請稍候…',
+  'reading.status.completed': '已收到全部回應',
+  'reading.status.aborted': '回應已中止',
+  'reading.status.timeout': '回應逾時中斷，內容可能不完整',
 
   // LLM Config Modal
   'llm.title': 'OpenAI-Compatible LLM 多模型設定',
@@ -286,6 +290,11 @@ export const zhTW = {
   'match.strengthsTitle': '契合亮點 (Strengths)',
   'match.risksTitle': '潛在磨合 (Risks)',
   'match.adviceTitle': '相處建議 (Advice)',
+  'match.stemTypeYear': '生年天干',
+  'match.stemTypeSoul': '命宮天干',
+  'match.stemTypeSpouse': '夫妻宮天干',
+  'match.emptyPalaceStar': '空宮',
+  'match.unknownPalace': '未知宮位',
 
   // ─── Accessibility (a11y) ───
   'a11y.viewMode': '頁面模式切換',

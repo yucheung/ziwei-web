@@ -353,6 +353,76 @@ export function canonicalizeFlyingPalaces(
   }));
 }
 
+// ─────────────────────────────────────────────────────────────
+// 與 ReadingPanel/prompts.ts (LLM 解讀) 的介接 adapter
+// ─────────────────────────────────────────────────────────────
+
+export interface ReadingStarLike {
+  name: string;
+  brightness?: string;
+  mutagen?: string;
+}
+
+export interface ReadingPalaceLike {
+  name: string;
+  heavenlyStem: string;
+  earthlyBranch: string;
+  isBodyPalace?: boolean;
+  decadal?: { range: [number, number]; heavenlyStem: string; earthlyBranch: string };
+  majorStars?: ReadingStarLike[];
+  minorStars?: ReadingStarLike[];
+  adjectiveStars?: ReadingStarLike[];
+}
+
+export interface ReadingAstrolabeLike {
+  soul?: string;
+  body?: string;
+  palaces: ReadingPalaceLike[];
+}
+
+/**
+ * 將「顯示語言不確定」的完整命盤摘要 (供 prompts.ts 組 LLM prompt 使用) 轉換回
+ * zh-TW canonical key。
+ *
+ * 涵蓋 canonicalizeFlyingPalaces 未涵蓋的欄位 (亮度 brightness / 雜曜
+ * adjectiveStars / 大限 decadal / 命主 soul / 身主 body)，避免英文模式下 iztro
+ * 原生輸出的四化字母碼 (A/B/C/D) 與亮度括號碼 (例如 [+3]) 直接混入 LLM prompt
+ * ——這些編碼對 LLM 而言毫無語意，僅是 iztro 英文 UI 的縮寫顯示形式。
+ */
+export function canonicalizeAstrolabeForReading(
+  astrolabe: ReadingAstrolabeLike,
+  sourceLocale: AppLocale,
+): ReadingAstrolabeLike {
+  const star = (s: ReadingStarLike): ReadingStarLike => ({
+    ...s,
+    name: toCanonicalKey(s.name, 'star', sourceLocale),
+    brightness: s.brightness ? toCanonicalKey(s.brightness, 'brightness', sourceLocale) : undefined,
+    mutagen: s.mutagen ? toCanonicalKey(s.mutagen, 'mutagen', sourceLocale) : undefined,
+  });
+
+  return {
+    ...astrolabe,
+    soul: astrolabe.soul ? toCanonicalKey(astrolabe.soul, 'star', sourceLocale) : astrolabe.soul,
+    body: astrolabe.body ? toCanonicalKey(astrolabe.body, 'star', sourceLocale) : astrolabe.body,
+    palaces: (astrolabe.palaces || []).map((p) => ({
+      ...p,
+      name: toCanonicalKey(p.name, 'palace', sourceLocale),
+      heavenlyStem: toCanonicalKey(p.heavenlyStem, 'stem', sourceLocale),
+      earthlyBranch: toCanonicalKey(p.earthlyBranch, 'branch', sourceLocale),
+      decadal: p.decadal
+        ? {
+            range: p.decadal.range,
+            heavenlyStem: toCanonicalKey(p.decadal.heavenlyStem, 'stem', sourceLocale),
+            earthlyBranch: toCanonicalKey(p.decadal.earthlyBranch, 'branch', sourceLocale),
+          }
+        : p.decadal,
+      majorStars: (p.majorStars || []).map(star),
+      minorStars: (p.minorStars || []).map(star),
+      adjectiveStars: (p.adjectiveStars || []).map(star),
+    })),
+  };
+}
+
 /**
  * 找出命宮在 astrolabe.palaces 中的索引，使用 locale 無關的
  * `earthlyBranchOfSoulPalace` 欄位做比對 (而非比對顯示字串 '命宮')。

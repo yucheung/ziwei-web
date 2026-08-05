@@ -32,6 +32,7 @@ import {
   API_KEY_SECURITY_WARNING,
 } from '../lib/llm';
 import { buildReadingPrompt, ReadingType } from '../lib/prompts';
+import { canonicalizeAstrolabeForReading, type AppLocale } from '../lib/chartModel';
 import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
 
@@ -63,7 +64,7 @@ const PALACE_OPTIONS: Array<{ id: string; key: TranslationKey }> = [
 ];
 
 export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
   const [readingType, setReadingType] = useState<ReadingType>('overall');
   const [customInstructions, setCustomInstructions] = useState('');
@@ -149,7 +150,13 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
     setReadingText('');
 
-    const { systemPrompt, userPrompt } = buildReadingPrompt(chart, {
+    // A-3: chart 為 App 層依目前 UI 顯示語言排出的 astrolabe (可能為 en-US 顯示字串)，
+    // 先還原為 zh-TW canonical key 再交給 buildReadingPrompt，避免英文模式下 iztro
+    // 原生的四化字母碼 (A/B/C/D)、亮度括號碼等對 LLM 毫無語意的縮寫混入 prompt。
+    const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+    const canonicalChart = canonicalizeAstrolabeForReading(chart, appLocale);
+
+    const { systemPrompt, userPrompt } = buildReadingPrompt(canonicalChart, {
       type: readingType,
       customInstructions,
       focusPalace: focusPalace || undefined,
@@ -193,6 +200,22 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
   const currentProviderName =
     PROVIDER_PRESETS.find((p) => p.id === llmConfig.provider)?.name || llmConfig.provider;
+
+  // A-1: 輸出區的 aria-live 只用於播報「狀態」而非整段串流文字本身
+  // (串流逐字更新若整棵輸出樹都是 aria-live="polite"，會導致螢幕報讀器
+  // 每個 chunk 都搶著唸，噪音極大)。因此輸出容器一律 aria-live="off"，
+  // 由這個獨立、視覺隱藏的 role="status" 元素只在「狀態轉換」時播報一次。
+  const statusMessage = errorMsg
+    ? errorMsg
+    : isLoading
+    ? t('reading.status.loading')
+    : finishStatus === 'completed'
+    ? t('reading.status.completed')
+    : finishStatus === 'aborted_by_user'
+    ? t('reading.status.aborted')
+    : finishStatus === 'timeout'
+    ? t('reading.status.timeout')
+    : '';
 
   return (
     <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-5 shadow-2xl relative">
@@ -364,9 +387,14 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         </div>
       )}
 
+      {/* Status announcer: sr-only, announces state transitions only (not the streaming text itself) */}
+      <div role="status" className="sr-only">
+        {statusMessage}
+      </div>
+
       {/* Reading Output Area */}
       <div
-        aria-live="polite"
+        aria-live="off"
         aria-busy={isLoading}
         className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 p-4 sm:p-5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30"
       >

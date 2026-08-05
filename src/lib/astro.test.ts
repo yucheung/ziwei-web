@@ -372,6 +372,49 @@ describe('src/lib/astro.ts', () => {
       expect(chart.body).toBeDefined();
     });
   });
+
+  describe('getChart rejects longitude combined with a numeric timeIndex (A-4: no silent drop)', () => {
+    it('throws when longitude is provided with a numeric timeIndex (0-12 时辰 slot)', () => {
+      expect(() =>
+        getChart({
+          date: '2000-08-16',
+          timeIndex: 2,
+          gender: 'male',
+          longitude: '台北',
+        })
+      ).toThrow(/真太陽時校正僅在提供精確時間字串/);
+    });
+
+    it('throws when longitude is provided with a numeric-string timeIndex ("2")', () => {
+      expect(() =>
+        getChart({
+          date: '2000-08-16',
+          timeIndex: '2',
+          gender: 'male',
+          longitude: 121.56,
+        })
+      ).toThrow(/真太陽時校正僅在提供精確時間字串/);
+    });
+
+    it('still succeeds when longitude is combined with a precise "HH:mm" timeIndex', () => {
+      const chart = getChart({
+        date: '2000-08-16',
+        timeIndex: '02:30',
+        gender: 'male',
+        longitude: '台北',
+      });
+      expect(chart).toBeDefined();
+    });
+
+    it('still succeeds when longitude is omitted and timeIndex is numeric', () => {
+      const chart = getChart({
+        date: '2000-08-16',
+        timeIndex: 2,
+        gender: 'male',
+      });
+      expect(chart).toBeDefined();
+    });
+  });
 });
 
 

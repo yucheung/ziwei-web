@@ -495,6 +495,20 @@ export function getChart(
   // 1. 性別驗證
   const normGender = normalizeGender(opts.gender);
 
+  // 1.5 經度校正僅在 timeIndex 為精確時間字串 (例如 "14:30") 時才會生效
+  //     (見 normalizeTimeIndex：時辰索引數字分支完全不套用 solarTimeOffsetMinutes)。
+  //     若呼叫端同時提供 longitude 與時辰索引數字，校正會被靜默忽略，
+  //     產生使用者未預期、且未被告知的錯誤命盤，因此明確拋出錯誤而非靜默略過。
+  const hasLongitude = opts.longitude !== undefined && opts.longitude !== null && opts.longitude !== '';
+  const timeIndexIsNumericSlot =
+    typeof opts.timeIndex === 'number' ||
+    (typeof opts.timeIndex === 'string' && /^\d{1,2}$/.test(opts.timeIndex.trim()));
+  if (hasLongitude && timeIndexIsNumericSlot) {
+    throw new Error(
+      '已提供經度 (longitude) 但 timeIndex 為時辰索引數字，真太陽時校正僅在提供精確時間字串 (例如 "14:30") 時才會生效；請改用精確時間字串，或移除 longitude 參數。'
+    );
+  }
+
   const isLunar = opts.isLunar ?? false;
   let isLeapMonth = opts.isLeapMonth ?? false;
   const timeZone = opts.timeZone ?? 8;

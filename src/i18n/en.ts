@@ -196,6 +196,10 @@ export const en: Record<TranslationKey, string> = {
   'reading.hint': 'Click "Generate AI Reading" for a structured multi-model astrological analysis',
   'reading.timeoutBanner': '⚠️ Response interrupted — content may be incomplete',
   'reading.continueGenerating': 'Continue Generating',
+  'reading.status.loading': 'AI is generating a response, please wait…',
+  'reading.status.completed': 'Full response received',
+  'reading.status.aborted': 'Response stopped',
+  'reading.status.timeout': 'Response timed out — content may be incomplete',
 
   // LLM Config Modal
   'llm.title': 'OpenAI-Compatible LLM Multi-Model Settings',
@@ -288,6 +292,11 @@ export const en: Record<TranslationKey, string> = {
   'match.strengthsTitle': 'Strengths',
   'match.risksTitle': 'Risks',
   'match.adviceTitle': 'Advice',
+  'match.stemTypeYear': 'Year Stem',
+  'match.stemTypeSoul': 'Life Palace Stem',
+  'match.stemTypeSpouse': 'Spouse Palace Stem',
+  'match.emptyPalaceStar': 'Empty',
+  'match.unknownPalace': 'Unknown Palace',
 
   // ─── Accessibility (a11y) ───
   'a11y.viewMode': 'View Mode Switcher',
