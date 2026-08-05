@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Compass, Sparkles, Target, Layers, Shield, Zap } from 'lucide-react';
 import { PalaceCell, PalaceData, FlyingMutagenBadge } from './PalaceCell';
 import { StarTag } from './StarTag';
@@ -6,6 +6,33 @@ import {
   getAnheIndex,
   getGridPosition,
 } from '../data/palace-layout';
+
+/** Direction vectors for roving-tabindex arrow key navigation on the 4x4 palace ring */
+const ARROW_DELTA: Record<string, [number, number]> = {
+  ArrowUp: [-1, 0],
+  ArrowDown: [1, 0],
+  ArrowLeft: [0, -1],
+  ArrowRight: [0, 1],
+};
+
+/** Position (row,col) -> palace index lookup for the 12 outer palaces */
+const POSITION_TO_INDEX = new Map<string, number>();
+for (let i = 0; i < 12; i++) {
+  const { row, col } = getGridPosition(i);
+  POSITION_TO_INDEX.set(`${row},${col}`, i);
+}
+
+/** Find the next occupied palace stepping from `index` in direction (dRow, dCol), wrapping around the 4x4 grid */
+function getNextPalaceIndex(index: number, dRow: number, dCol: number): number {
+  let { row, col } = getGridPosition(index);
+  for (let step = 0; step < 4; step++) {
+    row = (row + dRow + 4) % 4;
+    col = (col + dCol + 4) % 4;
+    const next = POSITION_TO_INDEX.get(`${row},${col}`);
+    if (next !== undefined) return next;
+  }
+  return index;
+}
 import {
   calculateFlyingStars,
   getPalaceMutagenLabels,
@@ -98,6 +125,24 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
     }
   };
 
+  const cellRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const handleCellKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number | null = null;
+    const delta = ARROW_DELTA[event.key];
+    if (delta) {
+      nextIndex = getNextPalaceIndex(index, delta[0], delta[1]);
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = 11;
+    }
+    if (nextIndex === null) return;
+    event.preventDefault();
+    handleCellClick(nextIndex);
+    cellRefs.current[nextIndex]?.focus();
+  };
+
   if (!astrolabe || !astrolabe.palaces || astrolabe.palaces.length !== 12) {
     return (
       <div className="glass-panel p-8 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
@@ -176,11 +221,14 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
               }}
             >
               <PalaceCell
+                ref={(el) => { cellRefs.current[index] = el; }}
                 palace={palace}
                 isSelected={isSelected}
                 role={role}
                 flyingBadges={flyingBadges}
+                tabIndex={index === selectedIndex ? 0 : -1}
                 onClick={() => handleCellClick(index)}
+                onKeyDown={(e) => handleCellKeyDown(e, index)}
               />
             </div>
           );

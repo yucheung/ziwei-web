@@ -46,17 +46,22 @@ export interface PalaceCellProps {
   role?: 'target' | 'opposite' | 'career' | 'wealth' | 'anhe' | null;
   flyingBadges?: FlyingMutagenBadge[];
   onClick?: () => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
+  /** Roving tabindex: 0 for the single tab-stop cell, -1 for the rest */
+  tabIndex?: number;
   className?: string;
 }
 
-export const PalaceCell: React.FC<PalaceCellProps> = ({
+export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>(({
   palace,
   isSelected = false,
   role = null,
   flyingBadges = [],
   onClick,
+  onKeyDown,
+  tabIndex,
   className = '',
-}) => {
+}, ref) => {
   const { t } = useTranslation();
   const {
     name,
@@ -123,7 +128,10 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
   return (
     <button
       type="button"
+      ref={ref}
       onClick={onClick}
+      onKeyDown={onKeyDown}
+      tabIndex={tabIndex}
       aria-label={`${heavenlyStem}${earthlyBranch} ${name}`}
       aria-pressed={isSelected}
       className={`relative p-2 rounded-xl border flex flex-col justify-between transition-all duration-200 cursor-pointer overflow-hidden min-h-[140px] select-none text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${getBorderAndBgStyle()} ${className}`}
@@ -247,4 +255,6 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
       </div>
     </button>
   );
-};
+});
+
+PalaceCell.displayName = 'PalaceCell';

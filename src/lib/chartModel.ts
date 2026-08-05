@@ -25,25 +25,20 @@ export type IFunctionalPalace = IFunctionalAstrolabe['palaces'][number];
 /** App 端使用的 locale (對齊 src/i18n/locale.ts 的 Locale) */
 export type AppLocale = 'zh-TW' | 'en';
 
-/** iztro 實際接受的 language 參數 */
-export type IztroLanguage = 'zh-TW' | 'en-US';
-
 /** 四化類型 (zh-TW 為 canonical key) */
-export type MutagenKey = '祿' | '權' | '科' | '忌';
+type MutagenKey = '祿' | '權' | '科' | '忌';
 
 /** 可翻譯的分類 */
-export type TranslationCategory =
+type TranslationCategory =
   | 'palace'
   | 'star'
   | 'mutagen'
   | 'stem'
   | 'branch'
-  | 'brightness';
-
-/** App locale → iztro language */
-export function toIztroLanguage(locale: AppLocale): IztroLanguage {
-  return locale === 'en' ? 'en-US' : 'zh-TW';
-}
+  | 'brightness'
+  | 'gender'
+  | 'zodiac'
+  | 'fiveElementsClass';
 
 // ─────────────────────────────────────────────────────────────
 // 靜態對映表 (zh-TW canonical key → en-US 顯示字串)
@@ -120,6 +115,19 @@ const BRIGHTNESS_ZH_TO_EN: Record<string, string> = {
   '廟': '[+3]', '旺': '[+2]', '得': '[+1]', '利': '[0]', '平': '[-1]', '不': '[-2]', '陷': '[-3]',
 };
 
+const GENDER_ZH_TO_EN: Record<string, string> = {
+  '男': 'male', '女': 'female',
+};
+
+const ZODIAC_ZH_TO_EN: Record<string, string> = {
+  '鼠': 'rat', '牛': 'ox', '虎': 'tiger', '兔': 'rabbit', '龍': 'dragon', '蛇': 'snake',
+  '馬': 'horse', '羊': 'sheep', '猴': 'monkey', '雞': 'rooster', '狗': 'dog', '豬': 'pig',
+};
+
+const FIVE_ELEMENTS_CLASS_ZH_TO_EN: Record<string, string> = {
+  '水二局': 'water 2nd', '木三局': 'wood 3rd', '金四局': 'metal 4th', '土五局': 'earth 5th', '火六局': 'fire 6th',
+};
+
 const DICTS: Record<TranslationCategory, Record<string, string>> = {
   palace: PALACE_ZH_TO_EN,
   star: STAR_ZH_TO_EN,
@@ -127,6 +135,9 @@ const DICTS: Record<TranslationCategory, Record<string, string>> = {
   stem: STEM_ZH_TO_EN,
   branch: BRANCH_ZH_TO_EN,
   brightness: BRIGHTNESS_ZH_TO_EN,
+  gender: GENDER_ZH_TO_EN,
+  zodiac: ZODIAC_ZH_TO_EN,
+  fiveElementsClass: FIVE_ELEMENTS_CLASS_ZH_TO_EN,
 };
 
 function buildReverseDict(dict: Record<string, string>): Record<string, string> {
@@ -144,6 +155,9 @@ const REVERSE_DICTS: Record<TranslationCategory, Record<string, string>> = {
   stem: buildReverseDict(STEM_ZH_TO_EN),
   branch: buildReverseDict(BRANCH_ZH_TO_EN),
   brightness: buildReverseDict(BRIGHTNESS_ZH_TO_EN),
+  gender: buildReverseDict(GENDER_ZH_TO_EN),
+  zodiac: buildReverseDict(ZODIAC_ZH_TO_EN),
+  fiveElementsClass: buildReverseDict(FIVE_ELEMENTS_CLASS_ZH_TO_EN),
 };
 
 /**
@@ -166,6 +180,24 @@ export function toCanonicalKey(display: string, category: TranslationCategory, l
   if (!display) return display;
   if (locale === 'zh-TW') return display;
   return REVERSE_DICTS[category][display] ?? display;
+}
+
+/**
+ * 將 iztro 的「四柱/干支」複合字串 (例如 en-US 下的
+ * 'geng chen - jia shen - bing woo - geng yin') 轉回 zh-TW canonical 格式
+ * (例如 '庚辰 甲申 丙午 庚寅')。每一柱為 "天干拼音 地支拼音"，柱與柱之間以
+ * ' - ' 分隔，需逐柱拆解天干/地支後分別查表還原。
+ */
+function toCanonicalChineseDate(display: string, locale: AppLocale): string {
+  if (!display) return display;
+  if (locale === 'zh-TW') return display;
+  return display
+    .split(' - ')
+    .map((pillar) => {
+      const [stem, branch] = pillar.trim().split(/\s+/);
+      return `${toCanonicalKey(stem, 'stem', locale)}${toCanonicalKey(branch, 'branch', locale)}`;
+    })
+    .join(' ');
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -377,6 +409,12 @@ export interface ReadingPalaceLike {
 export interface ReadingAstrolabeLike {
   soul?: string;
   body?: string;
+  gender?: string;
+  zodiac?: string;
+  fiveElementsClass?: string;
+  chineseDate?: string;
+  earthlyBranchOfSoulPalace?: string;
+  earthlyBranchOfBodyPalace?: string;
   palaces: ReadingPalaceLike[];
 }
 
@@ -404,6 +442,20 @@ export function canonicalizeAstrolabeForReading(
     ...astrolabe,
     soul: astrolabe.soul ? toCanonicalKey(astrolabe.soul, 'star', sourceLocale) : astrolabe.soul,
     body: astrolabe.body ? toCanonicalKey(astrolabe.body, 'star', sourceLocale) : astrolabe.body,
+    gender: astrolabe.gender ? toCanonicalKey(astrolabe.gender, 'gender', sourceLocale) : astrolabe.gender,
+    zodiac: astrolabe.zodiac ? toCanonicalKey(astrolabe.zodiac, 'zodiac', sourceLocale) : astrolabe.zodiac,
+    fiveElementsClass: astrolabe.fiveElementsClass
+      ? toCanonicalKey(astrolabe.fiveElementsClass, 'fiveElementsClass', sourceLocale)
+      : astrolabe.fiveElementsClass,
+    chineseDate: astrolabe.chineseDate
+      ? toCanonicalChineseDate(astrolabe.chineseDate, sourceLocale)
+      : astrolabe.chineseDate,
+    earthlyBranchOfSoulPalace: astrolabe.earthlyBranchOfSoulPalace
+      ? toCanonicalKey(astrolabe.earthlyBranchOfSoulPalace, 'branch', sourceLocale)
+      : astrolabe.earthlyBranchOfSoulPalace,
+    earthlyBranchOfBodyPalace: astrolabe.earthlyBranchOfBodyPalace
+      ? toCanonicalKey(astrolabe.earthlyBranchOfBodyPalace, 'branch', sourceLocale)
+      : astrolabe.earthlyBranchOfBodyPalace,
     palaces: (astrolabe.palaces || []).map((p) => ({
       ...p,
       name: toCanonicalKey(p.name, 'palace', sourceLocale),
