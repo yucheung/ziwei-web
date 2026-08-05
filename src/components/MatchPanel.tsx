@@ -99,13 +99,13 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
   const getMutagenBadgeStyle = (mutagen: MutagenKind) => {
     switch (mutagen) {
       case '\u797f':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+        return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30';
       case '\u6b0a':
-        return 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+        return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30';
       case '\u79d1':
-        return 'bg-sky-500/20 text-sky-400 border-sky-500/40';
+        return 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30';
       case '\u5fcc':
-        return 'bg-rose-500/20 text-rose-400 border-rose-500/40';
+        return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30';
     }
   };
 

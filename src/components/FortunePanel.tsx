@@ -388,7 +388,7 @@ export function FortunePanel({
                     key={item.index}
                     tabIndex={0}
                     role="button"
-                    aria-selected={isSelected}
+                    aria-pressed={isSelected}
                     aria-label={`${item.rangeText} ${item.palaceName}${t('fortune.gong')} ${item.stemBranch}`}
                     onClick={() => {
                       setSelectedPalaceIndex(item.index);

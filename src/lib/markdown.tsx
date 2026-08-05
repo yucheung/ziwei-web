@@ -111,7 +111,7 @@ export function renderMarkdown(markdown: string): React.ReactNode {
     if (quoteMatch) {
       flushList();
       blocks.push(
-        <blockquote key={key++} className="border-l-2 border-amber-500/40 pl-3 text-slate-400 italic">
+        <blockquote key={key++} className="border-l-2 border-amber-500/40 pl-3 text-slate-600 dark:text-slate-400 italic">
           {renderInline(quoteMatch[1])}
         </blockquote>
       );
