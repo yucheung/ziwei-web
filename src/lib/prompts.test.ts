@@ -22,6 +22,7 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(summary).toContain('命宮');
     expect(summary).toContain('西元生日: 2000-8-16');
     expect(summary).toContain('性別: 男');
+    expect(summary).toMatch(/局數: .+局/);
   });
 
   it('should generate overall reading prompt correctly', () => {

@@ -188,7 +188,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
 
         {/* 雜曜 (若空間許可，取前幾顆) */}
         {adjectiveStars.length > 0 && (
-          <div className="hidden sm:flex flex-col gap-0.5 justify-start text-[10px] text-slate-400/80 border-l border-slate-200 dark:border-slate-800/40 pl-1">
+          <div className="hidden sm:flex flex-col gap-0.5 justify-start text-[10px] text-slate-600 dark:text-slate-400/80 border-l border-slate-200 dark:border-slate-800/40 pl-1">
             {adjectiveStars.slice(0, 3).map((star, i) => (
               <span key={`adj-${i}`} className="truncate max-w-[28px]" title={star.name}>
                 {star.name}

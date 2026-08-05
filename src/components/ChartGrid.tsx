@@ -250,7 +250,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
                   <Target className="w-3 h-3 text-amber-500 dark:text-amber-400" aria-hidden="true" />
                   {t('chart.sanfang')}
                 </span>
-                <span className="text-[10px] text-slate-400">{t('chart.clickHint')}</span>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400">{t('chart.clickHint')}</span>
               </div>
               <div className="grid grid-cols-2 gap-1.5 text-[11px]">
                 <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30 rounded p-1.5 flex items-center justify-between text-rose-800 dark:text-rose-200">
@@ -413,7 +413,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
                       }`}
                     >
                       <span className="font-bold">{translateKey(fly.star, 'star', appLocale)}</span>
-                      <span className="text-slate-400"> {t('chart.hua')}</span>
+                      <span className="text-slate-600 dark:text-slate-400"> {t('chart.hua')}</span>
                       <span className={`font-bold ${
                         fly.type === '\u797f' ? 'text-emerald-600 dark:text-emerald-400' :
                         fly.type === '\u6b0a' ? 'text-rose-600 dark:text-rose-400' :
@@ -437,7 +437,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
                         className="px-2 py-1 rounded text-[11px] border border-dashed bg-slate-100/50 dark:bg-slate-800/30 border-slate-300 dark:border-slate-600/50 text-slate-700 dark:text-slate-300"
                       >
                         <span className="font-bold">{translateKey(fly.star, 'star', appLocale)}</span>
-                        <span className="text-slate-400"> {t('chart.hua')}</span>
+                        <span className="text-slate-600 dark:text-slate-400"> {t('chart.hua')}</span>
                         <span className={`font-bold ${
                           fly.type === '\u797f' ? 'text-emerald-600 dark:text-emerald-400' :
                           fly.type === '\u6b0a' ? 'text-rose-600 dark:text-rose-400' :
