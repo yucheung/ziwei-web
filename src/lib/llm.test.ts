@@ -306,7 +306,7 @@ describe('llm.ts - OpenAI Compatible LLM Client & Settings', () => {
         { ...DEFAULT_LLM_CONFIG, apiKey: 'sk-test' },
         { onChunk: vi.fn(), onError: onErrorMock }
       );
-    } catch (err) {
+    } catch {
       // Expected error
     }
 

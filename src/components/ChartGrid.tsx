@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Compass, Sparkles, Target, Layers, Shield, Zap } from 'lucide-react';
 import { PalaceCell, PalaceData, FlyingMutagenBadge } from './PalaceCell';
 import { StarTag } from './StarTag';
@@ -64,9 +64,11 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   const [internalSelectedIndex, setInternalSelectedIndex] = useState<number>(defaultIndex);
 
   // Reset to defaultIndex when new astrolabe is provided
-  useEffect(() => {
+  const [prevDefaultIndex, setPrevDefaultIndex] = useState(defaultIndex);
+  if (defaultIndex !== prevDefaultIndex) {
+    setPrevDefaultIndex(defaultIndex);
     setInternalSelectedIndex(defaultIndex);
-  }, [defaultIndex]);
+  }
 
   // Selected palace index (controlled vs uncontrolled)
   const selectedIndex = propSelectedIndex !== undefined ? propSelectedIndex : internalSelectedIndex;

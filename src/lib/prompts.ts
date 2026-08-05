@@ -129,7 +129,7 @@ function generateNonce(): string {
 export function buildReadingPrompt(chart: any, options: PromptOptions): { systemPrompt: string; userPrompt: string } {
   const chartSummary = summarizeAstrolabe(chart);
 
-  let typePrompt = '';
+  let typePrompt: string;
   switch (options.type) {
     case 'overall':
       typePrompt = `【解讀重點：命格總覽與特質】

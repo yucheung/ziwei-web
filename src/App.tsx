@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useMemo, useRef, lazy, Suspense } from 'react';
 import { Layers, Bot, TrendingUp, Download } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { useTheme } from './hooks/useTheme';
@@ -70,7 +70,9 @@ export default function App() {
   });
 
   // 當語言變更時，自動更新星盤語言
-  useEffect(() => {
+  const [prevLocale, setPrevLocale] = useState(locale);
+  if (locale !== prevLocale) {
+    setPrevLocale(locale);
     try {
       const chart = getChart({
         date: solarDate,
@@ -86,7 +88,7 @@ export default function App() {
     } catch {
       // 保留原有星盤
     }
-  }, [locale]);
+  }
 
   // 四柱八字 (由已排好的命盤干支直接組出，避免與命盤日期產生分歧)
   const fourPillars = useMemo(() => {

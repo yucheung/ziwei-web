@@ -439,7 +439,7 @@ export async function callLLMStream(
               fullText += content;
               callbacks.onChunk(content, fullText);
             }
-          } catch (e) {
+          } catch {
             // parse error on partial chunk line, ignore
           }
         }
@@ -454,7 +454,9 @@ export async function callLLMStream(
           fullText += content;
           callbacks.onChunk(content, fullText);
         }
-      } catch (e) {}
+      } catch {
+        // parse error on trailing buffer, ignore
+      }
     }
 
     const result: StreamResult = { status: 'completed', text: fullText };

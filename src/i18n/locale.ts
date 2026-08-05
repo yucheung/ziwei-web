@@ -11,7 +11,9 @@ export function getInitialLocale(): Locale {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'zh-TW' || saved === 'en') return saved;
-  } catch {}
+  } catch {
+    // localStorage unavailable, fall through to detection below
+  }
   // Browser language detection
   const nav = typeof navigator !== 'undefined' ? navigator.language : '';
   if (nav.startsWith('zh')) return 'zh-TW';
@@ -21,5 +23,7 @@ export function getInitialLocale(): Locale {
 export function saveLocale(locale: Locale): void {
   try {
     localStorage.setItem(STORAGE_KEY, locale);
-  } catch {}
+  } catch {
+    // localStorage unavailable, ignore
+  }
 }

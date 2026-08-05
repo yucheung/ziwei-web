@@ -412,7 +412,7 @@ export function normalizeTimeIndex(
     const clockMatch = trimmed.match(/^(\d{1,2}):(\d{1,2})(?::\d{1,2})?$/);
     if (clockMatch) {
       let hour = parseInt(clockMatch[1], 10);
-      let minute = parseInt(clockMatch[2], 10);
+      const minute = parseInt(clockMatch[2], 10);
 
       if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
         throw new Error(`時間數值無效: "${timeInput}"`);
@@ -429,7 +429,6 @@ export function normalizeTimeIndex(
           adjustedDateOffsetDays = 1;
         }
         hour = Math.floor(totalMinutes / 60);
-        minute = totalMinutes % 60;
       }
 
       // 依小時轉為時辰

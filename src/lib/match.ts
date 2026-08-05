@@ -343,7 +343,7 @@ export function calculateCompatibility(
 
   const overallScore = Math.round((emotional * 0.35 + personality * 0.25 + careerWealth * 0.2 + stability * 0.2));
 
-  let ratingLabel = '相輔相成';
+  let ratingLabel: string;
   if (overallScore >= 90) ratingLabel = '天作之合 · 琴瑟和鳴';
   else if (overallScore >= 82) ratingLabel = '相輔相成 · 佳偶天成';
   else if (overallScore >= 72) ratingLabel = '互補磨合 · 越陳越香';
