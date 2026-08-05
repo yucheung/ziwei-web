@@ -285,6 +285,16 @@ export const zhTW = {
   'match.strengthsTitle': '契合亮點 (Strengths)',
   'match.risksTitle': '潛在磨合 (Risks)',
   'match.adviceTitle': '相處建議 (Advice)',
+
+  // ─── Accessibility (a11y) ───
+  'a11y.viewMode': '頁面模式切換',
+  'a11y.mainNav': '主要功能頁籤',
+  'a11y.chartGrid': '紫微斗數十二宮命盤',
+  'a11y.showApiKey': '顯示 API Key',
+  'a11y.hideApiKey': '隱藏 API Key',
+  'a11y.closeModal': '關閉設定視窗',
+  'a11y.calendarType': '切換曆法類型',
+  'a11y.gender': '選擇性別',
 } as const;
 
 export type TranslationKey = keyof typeof zhTW;

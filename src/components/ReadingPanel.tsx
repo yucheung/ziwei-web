@@ -200,7 +200,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400">
-            <Sparkles className="w-5 h-5" />
+            <Sparkles className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -218,9 +218,9 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         <button
           type="button"
           onClick={() => setIsConfigOpen(true)}
-          className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-300 hover:border-amber-500/40 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-300 hover:border-amber-500/40 transition-all flex items-center gap-2 cursor-pointer shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >
-          <Settings className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+          <Settings className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
           {t('reading.apiSettings')}
         </button>
       </div>
@@ -229,12 +229,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       {!llmConfig.apiKey && llmConfig.provider !== 'custom' && (
         <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-800 dark:text-amber-200">
           <div className="flex items-center gap-2.5">
-            <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 animate-bounce" />
+            <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 animate-bounce" aria-hidden="true" />
             <span>{t('reading.noApiKey')}</span>
           </div>
           <button
             onClick={() => setIsConfigOpen(true)}
-            className="px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition-colors shrink-0 ml-2 cursor-pointer"
+            className="px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition-colors shrink-0 ml-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             {t('reading.goSettings')}
           </button>
@@ -243,14 +243,15 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
 
       {/* Topic Pills */}
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400">{t('reading.chooseTopic')}</label>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <span className="block text-xs font-medium text-slate-600 dark:text-slate-400">{t('reading.chooseTopic')}</span>
+        <div role="radiogroup" aria-label={t('reading.chooseTopic')} className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {READING_TYPES.map((type) => (
             <button
               key={type.id}
               type="button"
+              aria-checked={readingType === type.id}
               onClick={() => setReadingType(type.id)}
-              className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center ${
+              className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                 readingType === type.id
                   ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-500/60 text-amber-700 dark:text-amber-300 shadow-md shadow-amber-500/10'
                   : 'bg-slate-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
@@ -266,11 +267,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {readingType === 'palaces' && (
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('reading.focusPalace')}</label>
+            <label htmlFor="focus-palace-select" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('reading.focusPalace')}</label>
             <select
+              id="focus-palace-select"
               value={focusPalace}
               onChange={(e) => setFocusPalace(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             >
               <option value="">{t('reading.defaultFocus')}</option>
               {PALACE_OPTIONS.map((p) => (
@@ -282,13 +284,14 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           </div>
         )}
         <div className={readingType === 'palaces' ? 'sm:col-span-2' : 'sm:col-span-3'}>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('reading.customQ')}</label>
+          <label htmlFor="custom-instructions-input" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('reading.customQ')}</label>
           <input
+            id="custom-instructions-input"
             type="text"
             placeholder={t('reading.customPlaceholder')}
             value={customInstructions}
             onChange={(e) => setCustomInstructions(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           />
         </div>
       </div>
@@ -299,18 +302,18 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           <button
             type="button"
             onClick={handleStartReading}
-            className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
             {t('reading.generate')}
           </button>
         ) : (
           <button
             type="button"
             onClick={handleStopReading}
-            className="flex-1 py-3 px-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold text-xs sm:text-sm hover:bg-rose-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+            className="flex-1 py-3 px-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold text-xs sm:text-sm hover:bg-rose-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer animate-pulse focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
           >
-            <Square className="w-4 h-4 fill-rose-600 dark:fill-rose-300" />
+            <Square className="w-4 h-4 fill-rose-600 dark:fill-rose-300" aria-hidden="true" />
             {t('reading.stop')}
           </button>
         )}
@@ -319,15 +322,15 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           <button
             type="button"
             onClick={handleCopy}
-            className="px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:border-slate-400 dark:hover:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:border-slate-400 dark:hover:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> {t('reading.copied')}
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" /> {t('reading.copied')}
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400" /> {t('reading.copy')}
+                <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" /> {t('reading.copy')}
               </>
             )}
           </button>
@@ -337,7 +340,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       {/* Error Message Banner */}
       {errorMsg && (
         <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+          <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" aria-hidden="true" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -346,22 +349,26 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       {!isLoading && finishStatus === 'timeout' && (
         <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true" />
             <span>{t('reading.timeoutBanner')}</span>
           </div>
           <button
             type="button"
             onClick={handleContinueReading}
-            className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
-            <PlayCircle className="w-3.5 h-3.5" />
+            <PlayCircle className="w-3.5 h-3.5" aria-hidden="true" />
             {t('reading.continueGenerating')}
           </button>
         </div>
       )}
 
       {/* Reading Output Area */}
-      <div className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 p-4 sm:p-5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30">
+      <div
+        aria-live="polite"
+        aria-busy={isLoading}
+        className="min-h-[220px] max-h-[500px] overflow-y-auto rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 p-4 sm:p-5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed space-y-3 font-sans selection:bg-amber-500/30"
+      >
         {readingText ? (
           <div className="font-sans text-slate-800 dark:text-slate-200 leading-relaxed space-y-2">
             {renderMarkdown(readingText)}
@@ -454,12 +461,14 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
       <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5 text-slate-900 dark:text-slate-100 animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <h3 className="text-base font-bold text-amber-700 dark:text-amber-300 flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <Sliders className="w-5 h-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
             {t('llm.title')}
           </h3>
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-bold px-2 py-1 rounded"
+            aria-label={t('a11y.closeModal')}
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-bold px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             ✕
           </button>
@@ -474,11 +483,12 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
         >
           {/* Provider Preset Dropdown */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('llm.provider')}</label>
+            <label htmlFor="llm-provider-select" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('llm.provider')}</label>
             <select
+              id="llm-provider-select"
               value={formData.provider}
               onChange={(e) => handleProviderChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             >
               {PROVIDER_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>
@@ -490,19 +500,20 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* Base URL */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="llm-base-url-input" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('llm.baseUrl')}
             </label>
             <input
+              id="llm-base-url-input"
               type="text"
               value={formData.baseUrl}
               onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
               placeholder="https://api.openai.com/v1"
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             />
             {showHttpsWarning && (
               <p className="mt-1.5 text-[11px] text-rose-600 dark:text-rose-400 flex items-start gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />
                 <span>{urlCheck.message}</span>
               </p>
             )}
@@ -510,24 +521,26 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* API Key */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-              <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <label htmlFor="llm-api-key-input" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+              <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
               {t('llm.apiKey')}
             </label>
             <div className="relative">
               <input
+                id="llm-api-key-input"
                 type={showApiKey ? 'text' : 'password'}
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                 placeholder="sk-..."
-                className="w-full px-3 py-2 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-2 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               />
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                aria-label={showApiKey ? t('a11y.hideApiKey') : t('a11y.showApiKey')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded p-1"
               >
-                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showApiKey ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
               </button>
             </div>
             <p className="mt-1.5 text-[11px] text-amber-700/90 dark:text-amber-400/90 leading-relaxed">
@@ -540,13 +553,14 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
           {/* Model Name */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('llm.modelName')}</label>
+            <label htmlFor="llm-model-name-input" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('llm.modelName')}</label>
             <input
+              id="llm-model-name-input"
               type="text"
               value={formData.model}
               onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               placeholder="e.g. gemini-2.5-flash, deepseek-chat, gpt-4o"
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             />
 
             {/* Model Suggestions */}
@@ -558,7 +572,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
                     key={m}
                     type="button"
                     onClick={() => setFormData({ ...formData, model: m })}
-                    className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] text-slate-700 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors font-mono"
+                    className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] text-slate-700 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   >
                     {m}
                   </button>
@@ -570,17 +584,18 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
           {/* Temperature Slider */}
           <div>
             <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 mb-1">
-              <span>{t('llm.temperature')}: {formData.temperature}</span>
+              <label htmlFor="llm-temperature-input">{t('llm.temperature')}: {formData.temperature}</label>
               <span className="text-[10px] text-slate-600 dark:text-slate-400">{t('llm.tempHint')}</span>
             </div>
             <input
+              id="llm-temperature-input"
               type="range"
               min="0.1"
               max="1.0"
               step="0.05"
               value={formData.temperature}
               onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
-              className="w-full accent-amber-500"
+              className="w-full accent-amber-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             />
           </div>
 
@@ -594,9 +609,9 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
               }`}
             >
               {testStatus.success ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" aria-hidden="true" />
               )}
               <span>{testStatus.message}</span>
             </div>
@@ -607,9 +622,9 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
             <button
               type="button"
               onClick={handleClearKey}
-              className="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
               {t('llm.clearKey')}
             </button>
             <div className="flex items-center gap-3">
@@ -617,14 +632,14 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
                 type="button"
                 onClick={handleTest}
                 disabled={testStatus.loading}
-                className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
-                {testStatus.loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                {testStatus.loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />}
                 {t('llm.test')}
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 {t('llm.save')}
               </button>

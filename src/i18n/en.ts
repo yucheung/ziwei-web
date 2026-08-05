@@ -287,4 +287,14 @@ export const en: Record<TranslationKey, string> = {
   'match.strengthsTitle': 'Strengths',
   'match.risksTitle': 'Risks',
   'match.adviceTitle': 'Advice',
+
+  // ─── Accessibility (a11y) ───
+  'a11y.viewMode': 'View Mode Switcher',
+  'a11y.mainNav': 'Main Navigation Tabs',
+  'a11y.chartGrid': 'Ziwei Astrolabe 12-Palace Grid',
+  'a11y.showApiKey': 'Show API Key',
+  'a11y.hideApiKey': 'Hide API Key',
+  'a11y.closeModal': 'Close settings modal',
+  'a11y.calendarType': 'Switch Calendar Type',
+  'a11y.gender': 'Select Gender',
 };

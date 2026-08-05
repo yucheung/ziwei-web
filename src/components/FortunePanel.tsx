@@ -136,7 +136,7 @@ export function FortunePanel({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400">
-              <TrendingUp className="w-5 h-5" />
+              <TrendingUp className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -158,7 +158,7 @@ export function FortunePanel({
         {/* Date Input & Quick Buttons */}
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <Calendar className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+            <Calendar className="w-4 h-4 text-amber-500 dark:text-amber-400" aria-hidden="true" />
             <label htmlFor="target-date-input" className="text-xs text-slate-600 dark:text-slate-400 font-medium">
               {t('fortune.switchDate')}：
             </label>
@@ -167,7 +167,7 @@ export function FortunePanel({
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="bg-transparent text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded cursor-pointer"
             />
           </div>
 
@@ -175,7 +175,7 @@ export function FortunePanel({
             <button
               type="button"
               onClick={() => setTargetDate(`${currentYear}-01-01`)}
-              className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${
+              className={`px-2.5 py-1 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                 targetDate.startsWith(String(currentYear))
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-800 dark:text-amber-300 font-semibold'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -186,7 +186,7 @@ export function FortunePanel({
             <button
               type="button"
               onClick={() => setTargetDate(`${currentYear + 1}-01-01`)}
-              className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${
+              className={`px-2.5 py-1 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                 targetDate.startsWith(String(currentYear + 1))
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-800 dark:text-amber-300 font-semibold'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -197,7 +197,7 @@ export function FortunePanel({
             <button
               type="button"
               onClick={() => setTargetDate(`${currentYear + 2}-01-01`)}
-              className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${
+              className={`px-2.5 py-1 text-xs rounded-lg border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                 targetDate.startsWith(String(currentYear + 2))
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-800 dark:text-amber-300 font-semibold'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -215,7 +215,7 @@ export function FortunePanel({
         <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-indigo-50/50 via-white to-slate-50/50 dark:from-indigo-950/30 dark:to-slate-900/60 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-pulse" aria-hidden="true" />
               <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{t('fortune.decadal')}</h3>
             </div>
             <span className="text-xs font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 border border-indigo-500/30">
@@ -264,13 +264,14 @@ export function FortunePanel({
         {/* Fortune Level Card (流年/流月/流日/流時 切換) */}
         <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-amber-50/50 via-white to-slate-50/50 dark:from-amber-950/20 dark:to-slate-900/60 space-y-3">
           {/* Level Tab Buttons */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+          <div role="tablist" aria-label={t('fortune.overview')} className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
             {(['yearly', 'monthly', 'daily', 'hourly'] as FortuneLevel[]).map((level) => (
               <button
                 key={level}
                 type="button"
+                aria-selected={fortuneLevel === level}
                 onClick={() => setFortuneLevel(level)}
-                className={`flex-1 px-2 py-1.5 text-xs rounded-md font-medium transition-all ${
+                className={`flex-1 px-2 py-1.5 text-xs rounded-md font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                   fortuneLevel === level
                     ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'
@@ -291,7 +292,7 @@ export function FortunePanel({
                 id="hourly-time-index-select"
                 value={hourlyTimeIndex}
                 onChange={(e) => setHourlyTimeIndex(Number(e.target.value))}
-                className="flex-1 bg-transparent text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
+                className="flex-1 bg-transparent text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded cursor-pointer"
               >
                 {Array.from({ length: 12 }, (_, i) => i).map((idx) => (
                   <option key={idx} value={idx}>
@@ -304,7 +305,7 @@ export function FortunePanel({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full animate-pulse ${FORTUNE_LEVEL_CLASSES[fortuneLevel].dot}`} />
+              <div className={`w-2 h-2 rounded-full animate-pulse ${FORTUNE_LEVEL_CLASSES[fortuneLevel].dot}`} aria-hidden="true" />
               <h3 className={`text-sm font-bold ${FORTUNE_LEVEL_CLASSES[fortuneLevel].title}`}>
                 {t('fortune.current')}{t(FORTUNE_LEVEL_KEYS[fortuneLevel].labelKey)} ({t(FORTUNE_LEVEL_KEYS[fortuneLevel].subKey)})
               </h3>
@@ -359,7 +360,7 @@ export function FortunePanel({
       <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <TableIcon className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+            <TableIcon className="w-4 h-4 text-amber-500 dark:text-amber-400" aria-hidden="true" />
             <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">{t('fortune.decadalTable')}</h3>
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400">{t('fortune.greenHint')}</span>
@@ -384,11 +385,22 @@ export function FortunePanel({
                 return (
                   <tr
                     key={item.index}
+                    tabIndex={0}
+                    role="button"
+                    aria-selected={isSelected}
+                    aria-label={`${item.rangeText} ${item.palaceName}${t('fortune.gong')} ${item.stemBranch}`}
                     onClick={() => {
                       setSelectedPalaceIndex(item.index);
                       if (onSelectDecadal) onSelectDecadal(item);
                     }}
-                    className={`transition-colors cursor-pointer ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedPalaceIndex(item.index);
+                        if (onSelectDecadal) onSelectDecadal(item);
+                      }
+                    }}
+                    className={`transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                       item.isCurrent
                         ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 dark:text-amber-200'
                         : isSelected
@@ -427,7 +439,7 @@ export function FortunePanel({
                     <td className="py-3 px-3 text-right font-sans">
                       {item.isCurrent ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-xs shadow-amber-500/30">
-                          <Flame className="w-3 h-3" /> {t('fortune.currentDecadal')}
+                          <Flame className="w-3 h-3" aria-hidden="true" /> {t('fortune.currentDecadal')}
                         </span>
                       ) : (
                         <span className="text-[11px] text-slate-400 dark:text-slate-500">-</span>
@@ -445,7 +457,7 @@ export function FortunePanel({
       <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+            <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" aria-hidden="true" />
             <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
               {t('fortune.flowStars')} ({summary.solarDate})
             </h3>

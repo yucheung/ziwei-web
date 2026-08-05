@@ -121,9 +121,12 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
   };
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`relative p-2 rounded-xl border flex flex-col justify-between transition-all duration-200 cursor-pointer overflow-hidden min-h-[140px] select-none ${getBorderAndBgStyle()} ${className}`}
+      aria-label={`${heavenlyStem}${earthlyBranch} ${name}`}
+      aria-pressed={isSelected}
+      className={`relative p-2 rounded-xl border flex flex-col justify-between transition-all duration-200 cursor-pointer overflow-hidden min-h-[140px] select-none text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${getBorderAndBgStyle()} ${className}`}
       data-testid={`palace-cell-${earthlyBranch}`}
     >
       {/* 宮位標頭：三方/暗合 Role 標籤 (若有) */}
@@ -196,7 +199,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
       </div>
 
       {/* 底部宮位資訊資訊列 */}
-      <div className="border-t border-slate-200 dark:border-slate-800/80 pt-1 mt-1 flex flex-col gap-1">
+      <div className="border-t border-slate-200 dark:border-slate-800/80 pt-1 mt-1 flex flex-col gap-1 w-full">
         {/* 飛星四化標記列 */}
         {flyingBadges.length > 0 && (
           <div className="flex flex-wrap gap-0.5" title="飛星四化標記">
@@ -212,7 +215,7 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
           </div>
         )}
 
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between w-full">
           {/* 12 神 & 大限歲數 */}
           <div className="flex flex-col text-[10px] text-slate-500 dark:text-slate-400 font-mono leading-tight">
             {decadal?.range && (
@@ -242,6 +245,6 @@ export const PalaceCell: React.FC<PalaceCellProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 };

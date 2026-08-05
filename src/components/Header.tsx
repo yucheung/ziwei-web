@@ -1,4 +1,4 @@
-import { Compass, ShieldCheck } from 'lucide-react';
+import { Compass, ShieldCheck, User, Users } from 'lucide-react';
 import { useTranslation } from '../i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -19,7 +19,7 @@ export function Header({ viewMode, setViewMode, theme, onToggleTheme }: HeaderPr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500/20 to-purple-500/20 border border-amber-500/30 text-amber-500 dark:text-amber-400">
-            <Compass className="w-6 h-6 animate-pulse" />
+            <Compass className="w-6 h-6 animate-pulse" aria-hidden="true" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-600 via-amber-500 to-purple-600 dark:from-amber-200 dark:via-amber-400 dark:to-purple-300 bg-clip-text text-transparent">
@@ -30,27 +30,31 @@ export function Header({ viewMode, setViewMode, theme, onToggleTheme }: HeaderPr
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+          <div role="tablist" aria-label={t('a11y.viewMode')} className="flex items-center p-1 bg-slate-100 dark:bg-slate-900/90 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
             <button
               type="button"
+              aria-selected={viewMode === 'single'}
               onClick={() => setViewMode('single')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                 viewMode === 'single'
                   ? 'bg-amber-500 text-slate-950 shadow-md'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
+              <User className="w-3.5 h-3.5" aria-hidden="true" />
               {t('app.single')}
             </button>
             <button
               type="button"
+              aria-selected={viewMode === 'match'}
               onClick={() => setViewMode('match')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                 viewMode === 'match'
-                  ? 'bg-rose-500 text-white dark:text-slate-950 shadow-md'
+                  ? 'bg-purple-600 text-white shadow-md'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
+              <Users className="w-3.5 h-3.5" aria-hidden="true" />
               {t('app.match')}
             </button>
           </div>
@@ -59,7 +63,7 @@ export function Header({ viewMode, setViewMode, theme, onToggleTheme }: HeaderPr
           <LanguageSwitcher />
 
           <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
             {t('app.engine')}
           </span>
         </div>

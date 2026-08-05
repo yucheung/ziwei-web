@@ -157,7 +157,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* 4x4 Palace Grid */}
-      <div className="grid grid-cols-4 grid-rows-4 gap-2 aspect-square w-full max-w-[800px] mx-auto p-3 bg-slate-100/90 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl relative">
+      <div role="region" aria-label={t('a11y.chartGrid')} className="grid grid-cols-4 grid-rows-4 gap-2 aspect-square w-full max-w-[800px] mx-auto p-3 bg-slate-100/90 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl relative">
         {/* Outer 12 Palaces */}
         {palaces.map((palace, index) => {
           const { row, col } = getGridPosition(index);
@@ -196,7 +196,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
           <div className="border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-500 dark:text-amber-400">
-                <Compass className="w-4 h-4" />
+                <Compass className="w-4 h-4" aria-hidden="true" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-amber-700 dark:text-amber-200">{t('chart.center')}</h4>
@@ -245,7 +245,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
             <div className="border-t border-slate-200 dark:border-slate-800 pt-2 text-xs space-y-1.5">
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 <span className="flex items-center gap-1">
-                  <Target className="w-3 h-3 text-amber-500 dark:text-amber-400" />
+                  <Target className="w-3 h-3 text-amber-500 dark:text-amber-400" aria-hidden="true" />
                   {t('chart.sanfang')}
                 </span>
                 <span className="text-[10px] text-slate-400">{t('chart.clickHint')}</span>
@@ -321,7 +321,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
             {/* Major Stars */}
             <div className="bg-white/80 dark:bg-slate-900/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
               <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
                 {t('chart.majorStars')}
               </h4>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -345,7 +345,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
             {/* Auxiliary Stars */}
             <div className="bg-white/80 dark:bg-slate-900/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
               <h4 className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5" />
+                <Shield className="w-3.5 h-3.5" aria-hidden="true" />
                 {t('chart.minorStars')}
               </h4>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -369,7 +369,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
             {/* Minor Stars & Spirits */}
             <div className="bg-white/80 dark:bg-slate-900/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
               <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5" />
+                <Layers className="w-3.5 h-3.5" aria-hidden="true" />
                 {t('chart.adjectiveStars')}
               </h4>
               <div className="flex flex-wrap gap-1.5 pt-1">
@@ -393,7 +393,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
           {selectedFlyingDetail && (
             <div className="bg-white/80 dark:bg-slate-900/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
               <h4 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5" />
+                <Zap className="w-3.5 h-3.5" aria-hidden="true" />
                 {t('chart.flying')} ({t('chart.stemLabel')}：{translateKey(selectedFlyingDetail.heavenlyStem, 'stem', appLocale)})
               </h4>
 
