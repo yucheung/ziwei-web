@@ -20,6 +20,14 @@ export const zhTW = {
   'form.male': '乾造 (男)',
   'form.female': '坤造 (女)',
 
+  // ─── True Solar Time Correction (真太陽時) ───
+  'form.solarTimeSection': '真太陽時修正 (選填)',
+  'form.longitude': '出生地經度',
+  'form.longitudePlaceholder': '例如 121.56',
+  'form.preciseTime': '精確出生時間',
+  'form.solarTimeApplied': '已套用真太陽時修正',
+  'form.solarTimeHint': '同時輸入經度與精確時間，即可套用真太陽時修正時辰',
+
   // ─── Time Index (shichen) ───
   'time.0': '早子時 (00:00 - 01:00)',
   'time.1': '丑時 (01:00 - 03:00)',
@@ -140,6 +148,21 @@ export const zhTW = {
   'fortune.hourly.sub': '時辰運勢',
   'fortune.decadalLife': '限命',
   'fortune.levelLife': '命',
+
+  // ─── Hourly Fortune Time Selector (流時時辰選擇) ───
+  'fortune.hourlySelector': '查詢時辰',
+  'fortune.hourlyBranch.0': '子時 (23:00 - 01:00)',
+  'fortune.hourlyBranch.1': '丑時 (01:00 - 03:00)',
+  'fortune.hourlyBranch.2': '寅時 (03:00 - 05:00)',
+  'fortune.hourlyBranch.3': '卯時 (05:00 - 07:00)',
+  'fortune.hourlyBranch.4': '辰時 (07:00 - 09:00)',
+  'fortune.hourlyBranch.5': '巳時 (09:00 - 11:00)',
+  'fortune.hourlyBranch.6': '午時 (11:00 - 13:00)',
+  'fortune.hourlyBranch.7': '未時 (13:00 - 15:00)',
+  'fortune.hourlyBranch.8': '申時 (15:00 - 17:00)',
+  'fortune.hourlyBranch.9': '酉時 (17:00 - 19:00)',
+  'fortune.hourlyBranch.10': '戌時 (19:00 - 21:00)',
+  'fortune.hourlyBranch.11': '亥時 (21:00 - 23:00)',
 
   // ─── Reading Panel ───
   'reading.title': 'AI 多模型命盤結構化解讀',

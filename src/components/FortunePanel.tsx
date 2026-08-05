@@ -81,6 +81,8 @@ export function FortunePanel({
   const [targetDate, setTargetDate] = useState<string>(defaultDateStr);
   const [selectedPalaceIndex, setSelectedPalaceIndex] = useState<number | null>(null);
   const [fortuneLevel, setFortuneLevel] = useState<FortuneLevel>('yearly');
+  // 流時查詢時辰 (0=子時 ... 11=亥時)，預設 0 與原本行為 (未帶時辰參數) 一致
+  const [hourlyTimeIndex, setHourlyTimeIndex] = useState<number>(0);
 
   // 快捷切換年份
   const currentYear = new Date().getFullYear();
@@ -89,12 +91,12 @@ export function FortunePanel({
   const summary: HoroscopeSummary | null = useMemo(() => {
     if (!astrolabe) return null;
     try {
-      return getHoroscopeSummary(astrolabe, targetDate, appLocale);
+      return getHoroscopeSummary(astrolabe, targetDate, appLocale, hourlyTimeIndex);
     } catch (e) {
       console.error('Horoscope calculation failed:', e);
       return null;
     }
-  }, [astrolabe, targetDate, appLocale]);
+  }, [astrolabe, targetDate, appLocale, hourlyTimeIndex]);
 
   if (!astrolabe) {
     return (
@@ -278,6 +280,27 @@ export function FortunePanel({
               </button>
             ))}
           </div>
+
+          {/* Hourly (流時) Time Index Selector */}
+          {fortuneLevel === 'hourly' && (
+            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <label htmlFor="hourly-time-index-select" className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                {t('fortune.hourlySelector')}：
+              </label>
+              <select
+                id="hourly-time-index-select"
+                value={hourlyTimeIndex}
+                onChange={(e) => setHourlyTimeIndex(Number(e.target.value))}
+                className="flex-1 bg-transparent text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
+              >
+                {Array.from({ length: 12 }, (_, i) => i).map((idx) => (
+                  <option key={idx} value={idx}>
+                    {t(`fortune.hourlyBranch.${idx}` as TranslationKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

@@ -226,4 +226,38 @@ describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
     expect(summary.hourly.mutagen.ke).toBe(expectedHourly.ke);
     expect(summary.hourly.mutagen.ji).toBe(expectedHourly.ji);
   });
+
+  it('forwards an explicit timeIndex to astrolabe.horoscope() to compute the correct 流時 (hourly) result', () => {
+    const astrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    // 子時 (index 0) vs 午時 (index 6) must resolve to different hourly earthly branches
+    const summaryZi = getHoroscopeSummary(astrolabe, '2026-08-04', 'zh-TW', 0);
+    const summaryWu = getHoroscopeSummary(astrolabe, '2026-08-04', 'zh-TW', 6);
+
+    expect(summaryZi.hourly.stemBranch.endsWith('子')).toBe(true);
+    expect(summaryWu.hourly.stemBranch.endsWith('午')).toBe(true);
+    expect(summaryZi.hourly.stemBranch).not.toBe(summaryWu.hourly.stemBranch);
+  });
+
+  it('leaves 流時 (hourly) result unchanged when timeIndex is omitted (regression protection)', () => {
+    const astrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    // Previously the code never passed a timeIndex argument at all; explicit index 0
+    // (早子時, matching the implicit midnight-derived default) must produce an identical result.
+    const summaryDefault = getHoroscopeSummary(astrolabe, '2026-08-04', 'zh-TW');
+    const summaryExplicitZero = getHoroscopeSummary(astrolabe, '2026-08-04', 'zh-TW', 0);
+
+    expect(summaryDefault.hourly.stemBranch).toBe(summaryExplicitZero.hourly.stemBranch);
+    expect(summaryDefault.hourly.index).toBe(summaryExplicitZero.hourly.index);
+  });
 });

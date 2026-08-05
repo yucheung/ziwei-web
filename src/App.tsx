@@ -32,6 +32,14 @@ export default function App() {
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [calendarType, setCalendarType] = useState<'solar' | 'lunar'>('solar');
 
+  // 真太陽時修正：經度 + 精確出生時間 (兩者皆填才會套用修正，預設空白 = 不啟用)
+  const [longitude, setLongitude] = useState('');
+  const [preciseTime, setPreciseTime] = useState('');
+  const parsedLongitude = longitude.trim() === '' ? undefined : parseFloat(longitude);
+  const hasValidLongitude =
+    parsedLongitude !== undefined && !Number.isNaN(parsedLongitude) && parsedLongitude >= -180 && parsedLongitude <= 180;
+  const solarTimeActive = hasValidLongitude && preciseTime.trim() !== '';
+
   const [viewMode, setViewMode] = useState<'single' | 'match'>('single');
   const [activeTab, setActiveTab] = useState<'chart' | 'fortunes' | 'reading'>('chart');
 
@@ -62,12 +70,13 @@ export default function App() {
     try {
       const chart = getChart({
         date: solarDate,
-        timeIndex: parseInt(timeIndex, 10),
+        timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
         gender,
         isLunar: calendarType === 'lunar',
         language: iztroLanguage,
         config,
         astroType,
+        ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
       });
       setAstrolabe(chart);
     } catch {
@@ -80,12 +89,13 @@ export default function App() {
     try {
       const chart = getChart({
         date: solarDate,
-        timeIndex: parseInt(timeIndex, 10),
+        timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
         gender,
         isLunar: calendarType === 'lunar',
         language: iztroLanguage,
         config,
         astroType,
+        ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
       });
       setAstrolabe(chart);
     } catch (err) {
@@ -133,6 +143,11 @@ export default function App() {
                     setConfig={setConfig}
                     astroType={astroType}
                     setAstroType={setAstroType}
+                    longitude={longitude}
+                    setLongitude={setLongitude}
+                    preciseTime={preciseTime}
+                    setPreciseTime={setPreciseTime}
+                    solarTimeActive={solarTimeActive}
                     onSubmit={handleGenerateChart}
                   />
                 </aside>

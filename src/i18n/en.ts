@@ -22,6 +22,14 @@ export const en: Record<TranslationKey, string> = {
   'form.male': 'Male',
   'form.female': 'Female',
 
+  // ─── True Solar Time Correction ───
+  'form.solarTimeSection': 'True Solar Time Correction (optional)',
+  'form.longitude': 'Birthplace Longitude',
+  'form.longitudePlaceholder': 'e.g. 121.56',
+  'form.preciseTime': 'Precise Birth Time',
+  'form.solarTimeApplied': 'True solar time correction applied',
+  'form.solarTimeHint': 'Enter both longitude and precise time to apply true solar time correction',
+
   // ─── Time Index (shichen) ───
   'time.0': 'Early Zi (00:00 - 01:00)',
   'time.1': 'Chou (01:00 - 03:00)',
@@ -142,6 +150,21 @@ export const en: Record<TranslationKey, string> = {
   'fortune.hourly.sub': 'Hourly Fortune',
   'fortune.decadalLife': 'Decadal Life',
   'fortune.levelLife': 'Life',
+
+  // ─── Hourly Fortune Time Selector ───
+  'fortune.hourlySelector': 'Query Hour',
+  'fortune.hourlyBranch.0': 'Zi (23:00 - 01:00)',
+  'fortune.hourlyBranch.1': 'Chou (01:00 - 03:00)',
+  'fortune.hourlyBranch.2': 'Yin (03:00 - 05:00)',
+  'fortune.hourlyBranch.3': 'Mao (05:00 - 07:00)',
+  'fortune.hourlyBranch.4': 'Chen (07:00 - 09:00)',
+  'fortune.hourlyBranch.5': 'Si (09:00 - 11:00)',
+  'fortune.hourlyBranch.6': 'Wu (11:00 - 13:00)',
+  'fortune.hourlyBranch.7': 'Wei (13:00 - 15:00)',
+  'fortune.hourlyBranch.8': 'Shen (15:00 - 17:00)',
+  'fortune.hourlyBranch.9': 'You (17:00 - 19:00)',
+  'fortune.hourlyBranch.10': 'Xu (19:00 - 21:00)',
+  'fortune.hourlyBranch.11': 'Hai (21:00 - 23:00)',
 
   // ─── Reading Panel ───
   'reading.title': 'AI Multi-Model Chart Reading',

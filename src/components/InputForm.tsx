@@ -17,6 +17,11 @@ export interface InputFormProps {
   setConfig: React.Dispatch<React.SetStateAction<Config>>;
   astroType: AstroType;
   setAstroType: (type: AstroType) => void;
+  longitude: string;
+  setLongitude: (value: string) => void;
+  preciseTime: string;
+  setPreciseTime: (value: string) => void;
+  solarTimeActive: boolean;
   onSubmit: (e?: React.FormEvent) => void;
 }
 
@@ -33,6 +38,11 @@ export function InputForm({
   setConfig,
   astroType,
   setAstroType,
+  longitude,
+  setLongitude,
+  preciseTime,
+  setPreciseTime,
+  solarTimeActive,
   onSubmit,
 }: InputFormProps) {
   const { t } = useTranslation();
@@ -111,6 +121,50 @@ export function InputForm({
             <option value="11">{t('time.11')}</option>
             <option value="12">{t('time.12')}</option>
           </select>
+        </div>
+
+        {/* True Solar Time Correction (真太陽時修正) */}
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+            {t('form.solarTimeSection')}
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="longitude-input" className="block text-[11px] text-slate-500 dark:text-slate-400 mb-1">
+                {t('form.longitude')}
+              </label>
+              <input
+                id="longitude-input"
+                type="number"
+                min={-180}
+                max={180}
+                step="any"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                placeholder={t('form.longitudePlaceholder')}
+                className="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+            </div>
+            <div>
+              <label htmlFor="precise-time-input" className="block text-[11px] text-slate-500 dark:text-slate-400 mb-1">
+                {t('form.preciseTime')}
+              </label>
+              <input
+                id="precise-time-input"
+                type="time"
+                value={preciseTime}
+                onChange={(e) => setPreciseTime(e.target.value)}
+                className="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+            </div>
+          </div>
+          {solarTimeActive ? (
+            <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              {t('form.solarTimeApplied')}
+            </p>
+          ) : (
+            <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">{t('form.solarTimeHint')}</p>
+          )}
         </div>
 
         {/* Gender */}

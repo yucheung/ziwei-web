@@ -152,4 +152,28 @@ describe('FortunePanel Component', () => {
     fireEvent.click(screen.getByRole('button', { name: '流時' }));
     expect(screen.getByText(/流時天干.*四化引動/)).toBeInTheDocument();
   });
+
+  it('updates the 流時 (hourly) result when the queried time index selector changes', () => {
+    const astrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    render(<FortunePanel astrolabe={astrolabe} initialTargetDate="2026-08-04" />);
+
+    // Selector only appears on the hourly tab
+    expect(screen.queryByLabelText(/查詢時辰/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '流時' }));
+
+    const hourSelect = screen.getByLabelText(/查詢時辰/) as HTMLSelectElement;
+    // Defaults to 0 (子時), matching the prior implicit midnight-derived behavior
+    expect(hourSelect.value).toBe('0');
+    expect(screen.getByText(/^[甲乙丙丁戊己庚辛壬癸]子 流時$/)).toBeInTheDocument();
+
+    // Switch to 午時 (index 6) and verify the hourly stem-branch badge updates accordingly
+    fireEvent.change(hourSelect, { target: { value: '6' } });
+    expect(screen.getByText(/^[甲乙丙丁戊己庚辛壬癸]午 流時$/)).toBeInTheDocument();
+  });
 });

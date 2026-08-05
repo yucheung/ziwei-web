@@ -136,4 +136,41 @@ describe('App Integration Test Suite', () => {
     // Wait for chart to update with 坤造
     expect(await screen.findByText(/坤造/)).toBeInTheDocument();
   });
+
+  it('applies true solar time correction once longitude and precise time are entered (H1)', async () => {
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    // No correction active by default
+    expect(screen.getByText('同時輸入經度與精確時間，即可套用真太陽時修正時辰')).toBeInTheDocument();
+    expect(screen.queryByText('已套用真太陽時修正')).not.toBeInTheDocument();
+
+    // Hong Kong longitude (114.17), matches the known golden test case in astro.test.ts:
+    // 2000-08-16 00:10 at 114.17°E / UTC+8 crosses midnight back to 2000-8-15 (晚子時)
+    const longitudeInput = screen.getByLabelText('出生地經度') as HTMLInputElement;
+    fireEvent.change(longitudeInput, { target: { value: '114.17' } });
+
+    const preciseTimeInput = screen.getByLabelText('精確出生時間') as HTMLInputElement;
+    fireEvent.change(preciseTimeInput, { target: { value: '00:10' } });
+
+    expect(screen.getByText('已套用真太陽時修正')).toBeInTheDocument();
+
+    const submitBtn = await screen.findByRole('button', { name: /生成紫微命盤/i });
+    fireEvent.click(submitBtn);
+
+    // Chart's solar date shifts a day earlier due to the true solar time correction
+    expect(await screen.findByText('2000-8-15')).toBeInTheDocument();
+  });
+
+  it('leaves the chart unaffected when longitude is left blank (regression protection)', async () => {
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    const submitBtn = await screen.findByRole('button', { name: /生成紫微命盤/i });
+    fireEvent.click(submitBtn);
+
+    // Default birth date (2000-08-16) is unaffected by the (unused) solar time correction fields
+    expect(await screen.findByText('2000-8-16')).toBeInTheDocument();
+    expect(screen.queryByText('已套用真太陽時修正')).not.toBeInTheDocument();
+  });
 });

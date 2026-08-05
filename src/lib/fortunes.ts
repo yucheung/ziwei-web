@@ -211,6 +211,7 @@ export function getHoroscopeSummary(
   astrolabe: IFunctionalAstrolabe | any,
   targetDateInput?: string | Date,
   locale: AppLocale = 'zh-TW',
+  timeIndex?: number,
 ): HoroscopeSummary {
   if (!astrolabe || typeof astrolabe.horoscope !== 'function') {
     throw new Error('無效的 Astrolabe 物件');
@@ -230,7 +231,7 @@ export function getHoroscopeSummary(
     dateStr = String(targetDateInput).trim();
   }
 
-  const h = astrolabe.horoscope(dateStr);
+  const h = typeof timeIndex === 'number' ? astrolabe.horoscope(dateStr, timeIndex) : astrolabe.horoscope(dateStr);
 
   const nominalAge = h.age?.nominalAge ?? 0;
 
