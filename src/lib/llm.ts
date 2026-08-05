@@ -10,6 +10,9 @@
  * - finally 內固定呼叫 reader.releaseLock() 避免 ReadableStream 記憶體洩漏
  */
 
+import { translate } from '../i18n';
+import type { Locale } from '../i18n';
+
 export interface LLMProviderPreset {
   id: string;
   name: string;
@@ -205,10 +208,10 @@ export interface BaseUrlCheck {
  * 驗證 Base URL 是否為合法且安全（https）的網址。
  * 為保護 API Key，僅允許 https 端點，本機開發用的 localhost/127.0.0.1 例外放行。
  */
-export function validateBaseUrl(url: string): BaseUrlCheck {
+export function validateBaseUrl(url: string, locale: Locale = 'zh-TW'): BaseUrlCheck {
   const cleaned = cleanBaseUrl(url);
   if (!cleaned) {
-    return { valid: false, secure: false, message: '請輸入 Base URL' };
+    return { valid: false, secure: false, message: translate(locale, 'llm.errMissingBaseUrl') };
   }
 
   let parsed: URL;
@@ -218,7 +221,7 @@ export function validateBaseUrl(url: string): BaseUrlCheck {
     return {
       valid: false,
       secure: false,
-      message: 'Base URL 格式不正確，請輸入完整網址（需包含 https://）',
+      message: translate(locale, 'llm.errInvalidBaseUrl'),
     };
   }
 
@@ -232,7 +235,7 @@ export function validateBaseUrl(url: string): BaseUrlCheck {
     return {
       valid: true,
       secure: false,
-      message: '⚠️ 此 Base URL 並非 https，您的 API Key 傳輸時可能遭中間人攔截，強烈建議改用 https 端點',
+      message: translate(locale, 'llm.errNotHttps'),
     };
   }
 
@@ -242,25 +245,25 @@ export function validateBaseUrl(url: string): BaseUrlCheck {
 /**
  * 測試 API 連線狀態
  */
-export async function testLLMConnection(config: LLMConfig): Promise<{ success: boolean; message: string }> {
+export async function testLLMConnection(config: LLMConfig, locale: Locale = 'zh-TW'): Promise<{ success: boolean; message: string }> {
   if (!config.apiKey && config.provider !== 'custom') {
-    return { success: false, message: '請輸入 API Key' };
+    return { success: false, message: translate(locale, 'llm.errMissingApiKey') };
   }
   if (!config.baseUrl) {
-    return { success: false, message: '請輸入 Base URL' };
+    return { success: false, message: translate(locale, 'llm.errMissingBaseUrl') };
   }
   if (!config.model) {
-    return { success: false, message: '請輸入模型名稱' };
+    return { success: false, message: translate(locale, 'llm.errMissingModel') };
   }
 
-  const urlCheck = validateBaseUrl(config.baseUrl);
+  const urlCheck = validateBaseUrl(config.baseUrl, locale);
   if (!urlCheck.valid) {
     return { success: false, message: urlCheck.message! };
   }
   if (!urlCheck.secure) {
     return {
       success: false,
-      message: '為保護 API Key 安全，暫不允許透過非 https 端點測試連線（localhost 除外）',
+      message: translate(locale, 'llm.errNotHttpsTest'),
     };
   }
 
@@ -297,18 +300,18 @@ export async function testLLMConnection(config: LLMConfig): Promise<{ success: b
       } catch {
         if (errText) msg = errText.slice(0, 120);
       }
-      return { success: false, message: `連線失敗: ${msg}` };
+      return { success: false, message: translate(locale, 'llm.errConnectionFailed', { msg }) };
     }
 
-    return { success: true, message: '連線成功！API Key 與 Base URL 驗證通過' };
+    return { success: true, message: translate(locale, 'llm.successConnected') };
   } catch (err: any) {
     if (err?.name === 'TimeoutError') {
       return {
         success: false,
-        message: `連線逾時：端點在 ${DEFAULT_TEST_CONNECTION_TIMEOUT_MS / 1000} 秒內未回應，請確認 Base URL 是否正確`,
+        message: translate(locale, 'llm.errTimeout', { seconds: String(DEFAULT_TEST_CONNECTION_TIMEOUT_MS / 1000) }),
       };
     }
-    return { success: false, message: `網絡或連線錯誤: ${err.message || String(err)}` };
+    return { success: false, message: translate(locale, 'llm.errNetwork', { msg: err.message || String(err) }) };
   }
 }
 
@@ -324,25 +327,26 @@ export async function callLLMStream(
   messages: ChatMessage[],
   config: LLMConfig,
   callbacks: StreamCallbacks,
-  idleTimeoutMs: number = DEFAULT_STREAM_IDLE_TIMEOUT_MS
+  idleTimeoutMs: number = DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+  locale: Locale = 'zh-TW'
 ): Promise<StreamResult> {
   const { apiKey, baseUrl, model, temperature, maxTokens } = config;
   if (!apiKey && config.provider !== 'custom') {
-    throw new Error('未設定 API Key，請點擊「API 設定」設定您的 API Key');
+    throw new Error(translate(locale, 'llm.errNoApiKey'));
   }
   if (!baseUrl) {
-    throw new Error('未設定 Base URL');
+    throw new Error(translate(locale, 'llm.errNoBaseUrl'));
   }
   if (!model) {
-    throw new Error('未設定 Model 名稱');
+    throw new Error(translate(locale, 'llm.errNoModel'));
   }
 
-  const urlCheck = validateBaseUrl(baseUrl);
+  const urlCheck = validateBaseUrl(baseUrl, locale);
   if (!urlCheck.valid) {
     throw new Error(urlCheck.message);
   }
   if (!urlCheck.secure) {
-    throw new Error('為保護 API Key 安全，暫不允許透過非 https 端點傳送請求（localhost 除外）');
+    throw new Error(translate(locale, 'llm.errNotHttpsSend'));
   }
 
   const endpoint = `${cleanBaseUrl(baseUrl)}/chat/completions`;
@@ -397,7 +401,7 @@ export async function callLLMStream(
 
     if (!response.ok) {
       const errorText = await response.text();
-      let errorMessage = `API 請求失敗 (HTTP ${response.status})`;
+      let errorMessage = translate(locale, 'llm.errHttpStatus', { status: String(response.status) });
       try {
         const json = JSON.parse(errorText);
         if (json.error?.message) {
@@ -410,7 +414,7 @@ export async function callLLMStream(
     }
 
     if (!response.body) {
-      throw new Error('伺服器未回傳響應串流 (Response Body is empty)');
+      throw new Error(translate(locale, 'llm.errEmptyStream'));
     }
 
     reader = response.body.getReader();

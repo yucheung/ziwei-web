@@ -108,12 +108,12 @@ export default function App() {
 
   const handleExportCsv = () => {
     if (!astrolabe) return;
-    downloadChartCsv(astrolabe as unknown as ExportAstrolabe);
+    downloadChartCsv(astrolabe as unknown as ExportAstrolabe, undefined, locale);
   };
 
   const handleExportSummary = () => {
     if (!astrolabe) return;
-    downloadChartSummaryText(astrolabe as unknown as ExportAstrolabe);
+    downloadChartSummaryText(astrolabe as unknown as ExportAstrolabe, undefined, locale);
   };
 
   const handleExportImage = async () => {

@@ -30,6 +30,7 @@ import {
   testLLMConnection,
   validateBaseUrl,
   API_KEY_SECURITY_WARNING,
+  DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '../lib/llm';
 import { buildReadingPrompt, ReadingType } from '../lib/prompts';
 import { canonicalizeAstrolabeForReading, type AppLocale } from '../lib/chartModel';
@@ -127,7 +128,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           setIsLoading(false);
           setFinishStatus(result.status);
         },
-      });
+      }, DEFAULT_STREAM_IDLE_TIMEOUT_MS, locale);
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         setErrorMsg(`${t('reading.error.apiError')}: ${err.message || String(err)}`);
@@ -435,7 +436,7 @@ interface ModalProps {
 }
 
 const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [formData, setFormData] = useState<LLMConfig>({ ...config });
   const [showApiKey, setShowApiKey] = useState(false);
   const [testStatus, setTestStatus] = useState<{ loading: boolean; message: string; success?: boolean }>({
@@ -444,7 +445,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
   });
   const [clearedMsg, setClearedMsg] = useState<string | null>(null);
 
-  const urlCheck = validateBaseUrl(formData.baseUrl);
+  const urlCheck = validateBaseUrl(formData.baseUrl, locale);
   const showHttpsWarning = urlCheck.valid && !urlCheck.secure;
 
   const handleClearKey = () => {
@@ -475,7 +476,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
 
   const handleTest = async () => {
     setTestStatus({ loading: true, message: t('llm.testing') });
-    const result = await testLLMConnection(formData);
+    const result = await testLLMConnection(formData, locale);
     setTestStatus({
       loading: false,
       message: result.message,

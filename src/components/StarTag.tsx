@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation, type TranslationKey } from '../i18n';
+import { translateKey, type AppLocale } from '../lib/chartModel';
 
 export type StarCategory = 'major' | 'minor' | 'adjective' | 'helper' | 'soft' | 'mutagen';
 
@@ -35,6 +37,17 @@ const LUCKY_STARS = new Set([
   '文昌', '文曲', '左輔', '右弼', '天魁', '天鉞', '祿存', '天馬'
 ]);
 
+/** 四化單字元 → 生年四化既有 i18n key (用於 title 顯示，例如 en 模式顯示 'Lu (Prosperity)') */
+const MUTAGEN_TITLE_KEY: Record<string, TranslationKey> = {
+  '祿': 'fortune.lu',
+  '權': 'fortune.quan',
+  '科': 'fortune.ke',
+  '忌': 'fortune.ji',
+};
+
+/** 僅含 CJK 統一表意文字的字串才適合逐字直排；英文/羅馬拼音等應整段單行顯示 */
+const isCjkOnly = (s: string): boolean => /^[一-鿿㐀-䶿]+$/.test(s);
+
 export const StarTag: React.FC<StarTagProps> = ({
   name,
   brightness,
@@ -44,6 +57,14 @@ export const StarTag: React.FC<StarTagProps> = ({
   vertical = true,
   className = '',
 }) => {
+  const { t, locale } = useTranslation();
+  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+
+  // 顯示用字串：name/brightness 皆為 chartModel ACL 的 zh-TW canonical key，
+  // 邏輯比對 (MAJOR_STARS.has(name) 等) 一律沿用未翻譯的 canonical `name`/`brightness`。
+  const displayName = translateKey(name, 'star', appLocale);
+  const displayBrightness = brightness ? translateKey(brightness, 'brightness', appLocale) : undefined;
+
   // 自動判斷分類 (若未傳入 type)
   const category: StarCategory = type || (
     MAJOR_STARS.has(name)
@@ -117,37 +138,43 @@ export const StarTag: React.FC<StarTagProps> = ({
   };
 
   const cleanMutagen = mutagen ? mutagen.replace('化', '') : undefined;
+  const displayMutagen = cleanMutagen ? translateKey(cleanMutagen, 'mutagen', appLocale) : undefined;
+  const mutagenTitleKey = cleanMutagen ? MUTAGEN_TITLE_KEY[cleanMutagen] : undefined;
 
   if (vertical) {
     return (
       <div
         className={`inline-flex flex-col items-center select-none group leading-tight ${className}`}
-        title={`${name}${brightness ? ` (${brightness})` : ''}${mutagen ? ` [${mutagen}]` : ''}`}
+        title={`${displayName}${displayBrightness ? ` (${displayBrightness})` : ''}${mutagenTitleKey ? ` [${t(mutagenTitleKey)}]` : ''}`}
       >
         {/* 四化標記 (若有) */}
-        {cleanMutagen && (
+        {displayMutagen && (
           <span
             className={`px-0.5 py-0.2 rounded text-[10px] font-bold border shadow-xs mb-0.5 ${getMutagenStyle(
               cleanMutagen
             )}`}
           >
-            {cleanMutagen}
+            {displayMutagen}
           </span>
         )}
 
-        {/* 星曜名稱 (直排) */}
+        {/* 星曜名稱 (直排；僅 CJK 字串逐字直排，非 CJK 如英文星名整段單行顯示) */}
         <div className={`flex flex-col items-center tracking-tighter ${getStarNameStyle()}`}>
-          {name.split('').map((char, idx) => (
-            <span key={idx} className={size === 'md' ? 'text-sm' : 'text-xs'}>
-              {char}
-            </span>
-          ))}
+          {isCjkOnly(displayName) ? (
+            displayName.split('').map((char, idx) => (
+              <span key={idx} className={size === 'md' ? 'text-sm' : 'text-xs'}>
+                {char}
+              </span>
+            ))
+          ) : (
+            <span className={size === 'md' ? 'text-sm' : 'text-xs'}>{displayName}</span>
+          )}
         </div>
 
         {/* 亮度 (若有) */}
-        {brightness && (
+        {displayBrightness && (
           <span className={`text-[10px] mt-0.5 leading-none ${getBrightnessStyle(brightness)}`}>
-            {brightness}
+            {displayBrightness}
           </span>
         )}
       </div>
@@ -165,11 +192,11 @@ export const StarTag: React.FC<StarTagProps> = ({
           : 'bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300'
       } ${className}`}
     >
-      <span className={getStarNameStyle()}>{name}</span>
-      {brightness && <span className={`text-[10px] ${getBrightnessStyle(brightness)}`}>{brightness}</span>}
-      {cleanMutagen && (
+      <span className={getStarNameStyle()}>{displayName}</span>
+      {displayBrightness && <span className={`text-[10px] ${getBrightnessStyle(brightness)}`}>{displayBrightness}</span>}
+      {displayMutagen && (
         <span className={`px-1 py-0.2 rounded text-[10px] font-bold border ${getMutagenStyle(cleanMutagen)}`}>
-          {cleanMutagen}
+          {displayMutagen}
         </span>
       )}
     </span>

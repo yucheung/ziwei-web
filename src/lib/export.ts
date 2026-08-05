@@ -1,4 +1,7 @@
 import html2canvas from 'html2canvas';
+import { translate } from '../i18n';
+import type { Locale, TranslationKey } from '../i18n';
+import { translateKey, type AppLocale } from './chartModel';
 
 /**
  * iztro 星盤與宮位資料型別定義 (相容 iztro FunctionalAstrolabe)
@@ -57,73 +60,82 @@ export function escapeCsvField(val: string | number | undefined | null): string 
   return `"${str}"`;
 }
 
+function starToken(s: ExportStarInfo, appLocale: AppLocale): string {
+  const name = translateKey(s.name, 'star', appLocale);
+  const brightness = s.brightness ? `(${translateKey(s.brightness, 'brightness', appLocale)})` : '';
+  const mutagen = s.mutagen ? `[${translateKey(s.mutagen, 'mutagen', appLocale)}]` : '';
+  return `${name}${brightness}${mutagen}`;
+}
+
 /**
  * 1. 生成命盤 CSV 字串
  * 包含：基本資訊標頭 + 12 宮位詳細星曜與柱位資料
  * 回傳附帶 BOM (\uFEFF) 以使 Excel 能正常顯示 Unicode / 中文
  */
-export function generateChartCsv(astrolabe: ExportAstrolabe): string {
+export function generateChartCsv(astrolabe: ExportAstrolabe, locale: Locale = 'zh-TW'): string {
+  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const tr = (key: TranslationKey) => translate(locale, key);
   const lines: string[] = [];
 
   // UTF-8 BOM
-  const bom = '\uFEFF';
+  const bom = '﻿';
 
   // 基本資訊段落
-  lines.push('=== 紫微斗數命盤基本資料 ===');
-  lines.push(`陽曆生日,${escapeCsvField(astrolabe.solarDate)}`);
-  lines.push(`陰曆生日,${escapeCsvField(astrolabe.lunarDate)}`);
-  lines.push(`八字干支,${escapeCsvField(astrolabe.chineseDate)}`);
-  lines.push(`性別,${escapeCsvField(astrolabe.gender)}`);
-  lines.push(`五行局,${escapeCsvField(astrolabe.fiveElementsClass)}`);
-  lines.push(`命主,${escapeCsvField(astrolabe.soul)}`);
-  lines.push(`身主,${escapeCsvField(astrolabe.body)}`);
+  lines.push(tr('export.csvBasicHeader'));
+  lines.push(`${tr('export.solarLabel')},${escapeCsvField(astrolabe.solarDate)}`);
+  lines.push(`${tr('export.lunarLabel')},${escapeCsvField(astrolabe.lunarDate)}`);
+  lines.push(`${tr('export.chineseDateLabel')},${escapeCsvField(astrolabe.chineseDate)}`);
+  lines.push(`${tr('export.gender')},${escapeCsvField(translateKey(astrolabe.gender || '', 'gender', appLocale))}`);
+  lines.push(`${tr('export.fiveElementsClass')},${escapeCsvField(translateKey(astrolabe.fiveElementsClass || '', 'fiveElementsClass', appLocale))}`);
+  lines.push(`${tr('export.soulStar')},${escapeCsvField(translateKey(astrolabe.soul || '', 'star', appLocale))}`);
+  lines.push(`${tr('export.bodyStar')},${escapeCsvField(translateKey(astrolabe.body || '', 'star', appLocale))}`);
   lines.push('');
 
   // 12 宮位標頭
-  lines.push('=== 十二宮星曜與干支明細 ===');
+  lines.push(tr('export.csvPalaceHeader'));
   const headers = [
-    '宮位名稱',
-    '天干',
-    '地支',
-    '身宮',
-    '主星(星曜/亮度/四化)',
-    '輔星',
-    '雜曜/乙丙丁級星',
-    '長生十二神',
-    '博士十二神',
-    '大限歲數範圍',
+    tr('export.palaceName'),
+    tr('export.heavenlyStem'),
+    tr('export.earthlyBranch'),
+    tr('chart.bodyPalace'),
+    tr('export.majorStars'),
+    tr('export.minorStars'),
+    tr('export.adjStars'),
+    tr('export.changsheng12'),
+    tr('export.boshi12'),
+    tr('export.decadalRange'),
   ];
   lines.push(headers.map(escapeCsvField).join(','));
 
   if (Array.isArray(astrolabe.palaces)) {
     for (const palace of astrolabe.palaces) {
       const majorStr = (palace.majorStars || [])
-        .map((s) => `${s.name}${s.brightness ? `(${s.brightness})` : ''}${s.mutagen ? `[${s.mutagen}]` : ''}`)
+        .map((s) => starToken(s, appLocale))
         .join(' ');
 
       const minorStr = (palace.minorStars || [])
-        .map((s) => `${s.name}${s.brightness ? `(${s.brightness})` : ''}${s.mutagen ? `[${s.mutagen}]` : ''}`)
+        .map((s) => starToken(s, appLocale))
         .join(' ');
 
       const adjStr = (palace.adjectiveStars || [])
-        .map((s) => s.name)
+        .map((s) => translateKey(s.name, 'star', appLocale))
         .join(' ');
 
       let decadalStr = '';
       if (palace.decadal?.range) {
-        decadalStr = `${palace.decadal.range[0]} - ${palace.decadal.range[1]} 歲`;
+        decadalStr = `${palace.decadal.range[0]} - ${palace.decadal.range[1]} ${tr('export.yearsUnit')}`;
       }
 
       const row = [
-        palace.name,
-        palace.heavenlyStem || '',
-        palace.earthlyBranch || '',
-        palace.isBodyPalace ? '是' : '否',
-        majorStr || '無主星',
+        translateKey(palace.name, 'palace', appLocale),
+        translateKey(palace.heavenlyStem || '', 'stem', appLocale),
+        translateKey(palace.earthlyBranch || '', 'branch', appLocale),
+        palace.isBodyPalace ? tr('export.yes') : tr('export.no'),
+        majorStr || tr('export.noMajorStar'),
         minorStr,
         adjStr,
-        palace.changsheng12 || '',
-        palace.boshi12 || '',
+        translateKey(palace.changsheng12 || '', 'star', appLocale),
+        translateKey(palace.boshi12 || '', 'star', appLocale),
         decadalStr,
       ];
 
@@ -140,45 +152,47 @@ export const exportChartToCsv = generateChartCsv;
 /**
  * 2. 生成命盤摘要文字 (純文字，適合複製貼上至 Telegram / Line / WeChat / 社群)
  */
-export function generateChartSummaryText(astrolabe: ExportAstrolabe): string {
+export function generateChartSummaryText(astrolabe: ExportAstrolabe, locale: Locale = 'zh-TW'): string {
+  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const tr = (key: TranslationKey) => translate(locale, key);
   const lines: string[] = [];
 
-  lines.push('☯️【紫微斗數命盤摘要】☯️');
-  lines.push(`📅 陽曆：${astrolabe.solarDate || '未知'}`);
-  lines.push(`🌙 陰曆：${astrolabe.lunarDate || '未知'}`);
-  lines.push(`📜 八字：${astrolabe.chineseDate || '未知'}`);
-  lines.push(`🔮 局數：${astrolabe.fiveElementsClass || '未知'} | 性別：${astrolabe.gender || '未知'}`);
-  lines.push(`✨ 命主：${astrolabe.soul || '無'} | 身主：${astrolabe.body || '無'}`);
+  lines.push(tr('export.summaryTitle'));
+  lines.push(`\u{1F4C5} ${tr('export.solarLabel')}：${astrolabe.solarDate || tr('export.unknown')}`);
+  lines.push(`\u{1F319} ${tr('export.lunarLabel')}：${astrolabe.lunarDate || tr('export.unknown')}`);
+  lines.push(`\u{1F4DC} ${tr('export.baziLabel')}：${astrolabe.chineseDate || tr('export.unknown')}`);
+  lines.push(`\u{1F52E} ${tr('export.fiveElementsClassLabel')}：${translateKey(astrolabe.fiveElementsClass || '', 'fiveElementsClass', appLocale) || tr('export.unknown')} | ${tr('export.gender')}：${translateKey(astrolabe.gender || '', 'gender', appLocale) || tr('export.unknown')}`);
+  lines.push(`✨ ${tr('export.soulStar')}：${translateKey(astrolabe.soul || '', 'star', appLocale) || tr('export.none')} | ${tr('export.bodyStar')}：${translateKey(astrolabe.body || '', 'star', appLocale) || tr('export.none')}`);
   lines.push('----------------------------------------');
-  lines.push('🏛️【十二宮星曜總覽】');
+  lines.push(`\u{1F3DB}️【${tr('export.overviewTitle')}】`);
 
   if (Array.isArray(astrolabe.palaces)) {
     for (const palace of astrolabe.palaces) {
-      const stemBranch = `${palace.heavenlyStem || ''}${palace.earthlyBranch || ''}`;
-      const bodyTag = palace.isBodyPalace ? ' [身宮]' : '';
+      const stemBranch = `${translateKey(palace.heavenlyStem || '', 'stem', appLocale)}${translateKey(palace.earthlyBranch || '', 'branch', appLocale)}`;
+      const bodyTag = palace.isBodyPalace ? ` [${tr('chart.bodyPalace')}]` : '';
 
       const majorFormatted = (palace.majorStars || []).length > 0
         ? (palace.majorStars || [])
-            .map((s) => `${s.name}${s.brightness ? `(${s.brightness})` : ''}${s.mutagen ? `[${s.mutagen}]` : ''}`)
+            .map((s) => starToken(s, appLocale))
             .join(' ')
-        : '無主星';
+        : tr('export.noMajorStar');
 
       const minorFormatted = (palace.minorStars || []).length > 0
-        ? ` | 輔星: ` + (palace.minorStars || [])
-            .map((s) => `${s.name}${s.mutagen ? `[${s.mutagen}]` : ''}`)
+        ? ` | ${tr('export.minorStarsPrefix')}` + (palace.minorStars || [])
+            .map((s) => starToken(s, appLocale))
             .join(' ')
         : '';
 
       const decadalFormatted = palace.decadal?.range
-        ? ` (大限 ${palace.decadal.range[0]}~${palace.decadal.range[1]}歲)`
+        ? ` (${tr('export.decadal')} ${palace.decadal.range[0]}~${palace.decadal.range[1]}${tr('export.yearsUnit')})`
         : '';
 
-      lines.push(`• ${palace.name} (${stemBranch})${bodyTag}${decadalFormatted}: ${majorFormatted}${minorFormatted}`);
+      lines.push(`• ${translateKey(palace.name, 'palace', appLocale)} (${stemBranch})${bodyTag}${decadalFormatted}: ${majorFormatted}${minorFormatted}`);
     }
   }
 
   lines.push('----------------------------------------');
-  lines.push('💡 由 紫微斗數 Web 專業版 自動生成');
+  lines.push(`\u{1F4A1} ${tr('export.generatedBy')}`);
 
   return lines.join('\n');
 }
@@ -245,14 +259,14 @@ export function downloadFile(content: string | Blob, filename: string, mimeType:
   URL.revokeObjectURL(url);
 }
 
-export function downloadChartCsv(astrolabe: ExportAstrolabe, filename?: string): void {
-  const csvContent = generateChartCsv(astrolabe);
+export function downloadChartCsv(astrolabe: ExportAstrolabe, filename?: string, locale: Locale = 'zh-TW'): void {
+  const csvContent = generateChartCsv(astrolabe, locale);
   const fname = filename || `ziwei_astrolabe_${astrolabe.solarDate || 'chart'}.csv`;
   downloadFile(csvContent, fname, 'text/csv;charset=utf-8');
 }
 
-export function downloadChartSummaryText(astrolabe: ExportAstrolabe, filename?: string): void {
-  const summaryContent = generateChartSummaryText(astrolabe);
+export function downloadChartSummaryText(astrolabe: ExportAstrolabe, filename?: string, locale: Locale = 'zh-TW'): void {
+  const summaryContent = generateChartSummaryText(astrolabe, locale);
   const fname = filename || `ziwei_summary_${astrolabe.solarDate || 'chart'}.txt`;
   downloadFile(summaryContent, fname, 'text/plain;charset=utf-8');
 }

@@ -143,13 +143,13 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
         <div>{getRoleBadge()}</div>
         <div className="flex items-center gap-1">
           {isBodyPalace && (
-            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-purple-500/30 text-purple-700 dark:text-purple-300 border border-purple-500/50" title="身宮">
-              身
+            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-purple-500/30 text-purple-700 dark:text-purple-300 border border-purple-500/50" title={t('chart.bodyPalace')}>
+              {t('chart.bodyPalace').slice(0, 1)}
             </span>
           )}
           {isOriginalPalace && (
-            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-amber-500/30 text-amber-800 dark:text-amber-300 border border-amber-500/50" title="來因宮">
-              來
+            <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-amber-500/30 text-amber-800 dark:text-amber-300 border border-amber-500/50" title={t('chart.originPalace')}>
+              {t('chart.originPalace').slice(0, 1)}
             </span>
           )}
         </div>
@@ -174,7 +174,7 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
         ) : (
           <div className="flex items-start">
             <span className="text-[10px] text-slate-500 font-medium px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/30">
-              空宮
+              {t('match.emptyPalaceStar')}
             </span>
           </div>
         )}
@@ -211,7 +211,7 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
       <div className="border-t border-slate-200 dark:border-slate-800/80 pt-1 mt-1 flex flex-col gap-1 w-full">
         {/* 飛星四化標記列 */}
         {flyingBadges.length > 0 && (
-          <div className="flex flex-wrap gap-0.5" title="飛星四化標記">
+          <div className="flex flex-wrap gap-0.5" title={t('chart.flyingMark')}>
             {flyingBadges.map((badge, i) => (
               <span
                 key={`fly-${i}`}

@@ -548,13 +548,13 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
                   <p>
                     <span className="text-slate-600 dark:text-slate-400">{t('match.fuqiStars')}：</span>
                     <span className="text-rose-600 dark:text-rose-300 font-semibold ml-1">
-                      {matchResult.personB.fuqiMajorStars.join('\u3001')}
+                      {translateStarList(matchResult.personB.fuqiMajorStars)}
                     </span>
                   </p>
                   <p>
                     <span className="text-slate-600 dark:text-slate-400">{t('match.wealthStars')}：</span>
                     <span className="text-emerald-600 dark:text-emerald-300 ml-1">
-                      {matchResult.personB.wealthMajorStars.join('\u3001')}
+                      {translateStarList(matchResult.personB.wealthMajorStars)}
                     </span>
                   </p>
                 </div>
