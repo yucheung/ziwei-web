@@ -72,7 +72,7 @@ function starToken(s: ExportStarInfo, appLocale: AppLocale): string {
  * 回傳附帶 BOM (\uFEFF) 以使 Excel 能正常顯示 Unicode / 中文
  */
 export function generateChartCsv(astrolabe: ExportAstrolabe, locale: Locale = 'zh-TW'): string {
-  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
   const tr = (key: TranslationKey) => translate(locale, key);
   const lines: string[] = [];
 
@@ -152,7 +152,7 @@ export const exportChartToCsv = generateChartCsv;
  * 2. 生成命盤摘要文字 (純文字，適合複製貼上至 Telegram / Line / WeChat / 社群)
  */
 export function generateChartSummaryText(astrolabe: ExportAstrolabe, locale: Locale = 'zh-TW'): string {
-  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
   const tr = (key: TranslationKey) => translate(locale, key);
   const lines: string[] = [];
 

@@ -6,6 +6,7 @@ import {
   findSoulPalaceIndex,
   toCanonicalKey,
   toGenderKey,
+  translateKey,
   type FlyingPalaceLike,
   type ReadingAstrolabeLike,
 } from './chartModel';
@@ -13,7 +14,7 @@ import { calculateFlyingStars } from './flying';
 import { getDecadalTable } from './fortunes';
 
 /**
- * 跨語系等價性測試 (根因 C1)：同一命盤在 zh-TW 與 en-US 顯示語言下，
+ * 跨語系等價性測試 (根因 C1)：同一命盤在 zh-TW 與 zh-CN 顯示語言下，
  * 12宮主星、四化落宮、大限起訖、命宮定位等「計算」結果必須等價
  * (差異只允許出現在顯示字串，不可出現在計算邏輯)。
  */
@@ -42,7 +43,7 @@ function toFlyingPalaces(astrolabe: any): FlyingPalaceLike[] {
   }));
 }
 
-describe('chartModel.ts - 跨語系 (zh-TW / en-US) 等價性測試', () => {
+describe('chartModel.ts - 跨語系 (zh-TW / zh-CN) 等價性測試', () => {
   for (const fixture of FIXTURES) {
     const zhAstro = getChart({
       date: fixture.date,
@@ -50,24 +51,24 @@ describe('chartModel.ts - 跨語系 (zh-TW / en-US) 等價性測試', () => {
       gender: fixture.gender,
       language: 'zh-TW',
     });
-    const enAstro = getChart({
+    const cnAstro = getChart({
       date: fixture.date,
       timeIndex: fixture.timeIndex,
       gender: fixture.gender,
-      language: 'en-US',
+      language: 'zh-CN',
     });
 
     describe(fixture.label, () => {
       it('12 宮主星 / 天干地支 (canonical) 相同', () => {
         const zhPalaces = toFlyingPalaces(zhAstro);
-        const enPalacesCanonical = canonicalizeFlyingPalaces(toFlyingPalaces(enAstro), 'en');
+        const cnPalacesCanonical = canonicalizeFlyingPalaces(toFlyingPalaces(cnAstro), 'zh-CN');
 
-        expect(enPalacesCanonical).toHaveLength(12);
+        expect(cnPalacesCanonical).toHaveLength(12);
         for (let i = 0; i < 12; i++) {
-          expect(enPalacesCanonical[i].name).toBe(zhPalaces[i].name);
-          expect(enPalacesCanonical[i].heavenlyStem).toBe(zhPalaces[i].heavenlyStem);
-          expect(enPalacesCanonical[i].earthlyBranch).toBe(zhPalaces[i].earthlyBranch);
-          expect(enPalacesCanonical[i].majorStars.map((s) => s.name)).toEqual(
+          expect(cnPalacesCanonical[i].name).toBe(zhPalaces[i].name);
+          expect(cnPalacesCanonical[i].heavenlyStem).toBe(zhPalaces[i].heavenlyStem);
+          expect(cnPalacesCanonical[i].earthlyBranch).toBe(zhPalaces[i].earthlyBranch);
+          expect(cnPalacesCanonical[i].majorStars.map((s) => s.name)).toEqual(
             zhPalaces[i].majorStars.map((s) => s.name),
           );
         }
@@ -75,39 +76,39 @@ describe('chartModel.ts - 跨語系 (zh-TW / en-US) 等價性測試', () => {
 
       it('四化落宮 (flying stars) 結果相同', () => {
         const zhFlying = calculateFlyingStars(toFlyingPalaces(zhAstro) as any);
-        const enFlyingCanonical = calculateFlyingStars(
-          canonicalizeFlyingPalaces(toFlyingPalaces(enAstro), 'en') as any,
+        const cnFlyingCanonical = calculateFlyingStars(
+          canonicalizeFlyingPalaces(toFlyingPalaces(cnAstro), 'zh-CN') as any,
         );
 
         for (let i = 0; i < 12; i++) {
           const zhOut = zhFlying.palaces[i].flyingOut.map((f) => `${f.star}${f.type}->${f.targetPalaceIndex}`);
-          const enOut = enFlyingCanonical.palaces[i].flyingOut.map(
+          const cnOut = cnFlyingCanonical.palaces[i].flyingOut.map(
             (f) => `${f.star}${f.type}->${f.targetPalaceIndex}`,
           );
-          expect(enOut).toEqual(zhOut);
-          expect(enFlyingCanonical.palaces[i].flyingIn.length).toBe(zhFlying.palaces[i].flyingIn.length);
+          expect(cnOut).toEqual(zhOut);
+          expect(cnFlyingCanonical.palaces[i].flyingIn.length).toBe(zhFlying.palaces[i].flyingIn.length);
         }
       });
 
       it('命宮定位 (soul palace index) 相同', () => {
         const zhIdx = findSoulPalaceIndex(zhAstro as any);
-        const enIdx = findSoulPalaceIndex(enAstro as any);
-        expect(enIdx).toBe(zhIdx);
+        const cnIdx = findSoulPalaceIndex(cnAstro as any);
+        expect(cnIdx).toBe(zhIdx);
         expect(zhAstro.palaces[zhIdx].name).toBe('命宮');
       });
 
       it('大限起訖 (decadal range) 相同，且四化星曜互為翻譯對應', () => {
         const zhTable = getDecadalTable(zhAstro, undefined, 'zh-TW');
-        const enTable = getDecadalTable(enAstro, undefined, 'en');
+        const cnTable = getDecadalTable(cnAstro, undefined, 'zh-CN');
 
-        expect(enTable).toHaveLength(zhTable.length);
+        expect(cnTable).toHaveLength(zhTable.length);
         for (let i = 0; i < zhTable.length; i++) {
-          expect(enTable[i].range).toEqual(zhTable[i].range);
+          expect(cnTable[i].range).toEqual(zhTable[i].range);
           expect(zhTable[i].mutagen.lu).not.toBe('-');
-          expect(toCanonicalKey(enTable[i].mutagen.lu, 'star', 'en')).toBe(zhTable[i].mutagen.lu);
-          expect(toCanonicalKey(enTable[i].mutagen.quan, 'star', 'en')).toBe(zhTable[i].mutagen.quan);
-          expect(toCanonicalKey(enTable[i].mutagen.ke, 'star', 'en')).toBe(zhTable[i].mutagen.ke);
-          expect(toCanonicalKey(enTable[i].mutagen.ji, 'star', 'en')).toBe(zhTable[i].mutagen.ji);
+          expect(toCanonicalKey(cnTable[i].mutagen.lu, 'star', 'zh-CN')).toBe(zhTable[i].mutagen.lu);
+          expect(toCanonicalKey(cnTable[i].mutagen.quan, 'star', 'zh-CN')).toBe(zhTable[i].mutagen.quan);
+          expect(toCanonicalKey(cnTable[i].mutagen.ke, 'star', 'zh-CN')).toBe(zhTable[i].mutagen.ke);
+          expect(toCanonicalKey(cnTable[i].mutagen.ji, 'star', 'zh-CN')).toBe(zhTable[i].mutagen.ji);
         }
       });
     });
@@ -122,15 +123,15 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
       gender: fixture.gender,
       language: 'zh-TW',
     });
-    const enAstro = getChart({
+    const cnAstro = getChart({
       date: fixture.date,
       timeIndex: fixture.timeIndex,
       gender: fixture.gender,
-      language: 'en-US',
+      language: 'zh-CN',
     });
 
-    it(`${fixture.label}: en-US astrolabe 還原後與 zh-TW astrolabe 語意等價`, () => {
-      const canonical = canonicalizeAstrolabeForReading(enAstro as unknown as ReadingAstrolabeLike, 'en');
+    it(`${fixture.label}: zh-CN astrolabe 還原後與 zh-TW astrolabe 語意等價`, () => {
+      const canonical = canonicalizeAstrolabeForReading(cnAstro as unknown as ReadingAstrolabeLike, 'zh-CN');
 
       expect(canonical.soul).toBe((zhAstro as any).soul);
       expect(canonical.body).toBe((zhAstro as any).body);
@@ -153,8 +154,8 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
       }
     });
 
-    it(`${fixture.label}: 還原後的四化/亮度不再是 iztro en-US 的縮寫代碼 (A/B/C/D、[+3] 等)`, () => {
-      const canonical = canonicalizeAstrolabeForReading(enAstro as unknown as ReadingAstrolabeLike, 'en');
+    it(`${fixture.label}: 還原後的四化/亮度皆為 zh-TW canonical 字形 (非簡體)`, () => {
+      const canonical = canonicalizeAstrolabeForReading(cnAstro as unknown as ReadingAstrolabeLike, 'zh-CN');
 
       const allStars = canonical.palaces.flatMap((p) => [...(p.majorStars || []), ...(p.minorStars || [])]);
       const mutagens = allStars.map((s) => s.mutagen).filter(Boolean);
@@ -164,8 +165,9 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
       for (const m of mutagens) {
         expect(['祿', '權', '科', '忌']).toContain(m);
       }
+      expect(brightnesses.length).toBeGreaterThan(0);
       for (const b of brightnesses) {
-        expect(b).not.toMatch(/^\[.+\]$/);
+        expect(['廟', '旺', '得', '利', '平', '不', '陷']).toContain(b);
       }
     });
   }
@@ -180,28 +182,70 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
 });
 
 describe('toGenderKey (B-4: 中宮/合盤性別語系無關判斷)', () => {
-  it('辨識各顯示語言的性別字串', () => {
+  it('辨識各顯示語言的性別字串 (繁簡字形相同)', () => {
     expect(toGenderKey('女', 'zh-TW')).toBe('female');
     expect(toGenderKey('男', 'zh-TW')).toBe('male');
-    expect(toGenderKey('female', 'en')).toBe('female');
-    expect(toGenderKey('male', 'en')).toBe('male');
-  });
-
-  it('locale 與實際顯示字串不一致時仍能正確判斷', () => {
-    expect(toGenderKey('female', 'zh-TW')).toBe('female');
-    expect(toGenderKey('女', 'en')).toBe('female');
+    expect(toGenderKey('女', 'zh-CN')).toBe('female');
+    expect(toGenderKey('男', 'zh-CN')).toBe('male');
   });
 
   it('空值或無法辨識的字串回傳 undefined', () => {
     expect(toGenderKey(undefined, 'zh-TW')).toBeUndefined();
     expect(toGenderKey('', 'zh-TW')).toBeUndefined();
-    expect(toGenderKey('unknown', 'en')).toBeUndefined();
+    expect(toGenderKey('unknown', 'zh-CN')).toBeUndefined();
+    expect(toGenderKey('female', 'zh-TW')).toBeUndefined();
   });
 
-  it('對實際 iztro 輸出有效 (zh-TW 與 en-US 排盤結果一致)', () => {
+  it('對實際 iztro 輸出有效 (zh-TW 與 zh-CN 排盤結果一致)', () => {
     const zhAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'zh-TW' });
-    const enAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'en-US' });
+    const cnAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'zh-CN' });
     expect(toGenderKey((zhAstro as any).gender, 'zh-TW')).toBe('female');
-    expect(toGenderKey((enAstro as any).gender, 'en')).toBe('female');
+    expect(toGenderKey((cnAstro as any).gender, 'zh-CN')).toBe('female');
   });
+});
+
+/**
+ * 對映表完整性：以 iztro 實際輸出為準，驗證 chartModel.ts 靜態對映表對每一個
+ * 會出現在盤面上的字串都能 zh-TW → zh-CN → zh-TW 無損往返。
+ * 這是「REVERSE_DICTS 反查唯一」這項設計前提的實測依據。
+ */
+describe('zh-TW ↔ zh-CN 對映表往返一致性', () => {
+  for (const fixture of FIXTURES) {
+    it(`${fixture.label}: 星曜/宮位/亮度/四化/干支 往返還原無損`, () => {
+      const zhAstro = getChart({ ...fixture, language: 'zh-TW' }) as any;
+      const cnAstro = getChart({ ...fixture, language: 'zh-CN' }) as any;
+
+      const checked = { count: 0 };
+      const check = (zhVal: string, cnVal: string, category: Parameters<typeof toCanonicalKey>[1]) => {
+        if (!zhVal) return;
+        expect(translateKey(zhVal, category, 'zh-CN')).toBe(cnVal);
+        expect(toCanonicalKey(cnVal, category, 'zh-CN')).toBe(zhVal);
+        checked.count++;
+      };
+
+      check(zhAstro.soul, cnAstro.soul, 'star');
+      check(zhAstro.body, cnAstro.body, 'star');
+      check(zhAstro.zodiac, cnAstro.zodiac, 'zodiac');
+      check(zhAstro.fiveElementsClass, cnAstro.fiveElementsClass, 'fiveElementsClass');
+
+      for (let i = 0; i < 12; i++) {
+        const zhP = zhAstro.palaces[i];
+        const cnP = cnAstro.palaces[i];
+        check(zhP.name, cnP.name, 'palace');
+        check(zhP.heavenlyStem, cnP.heavenlyStem, 'stem');
+        check(zhP.earthlyBranch, cnP.earthlyBranch, 'branch');
+
+        for (const group of ['majorStars', 'minorStars', 'adjectiveStars'] as const) {
+          zhP[group].forEach((zhStar: any, j: number) => {
+            const cnStar = cnP[group][j];
+            check(zhStar.name, cnStar.name, 'star');
+            check(zhStar.brightness, cnStar.brightness, 'brightness');
+            check(zhStar.mutagen, cnStar.mutagen, 'mutagen');
+          });
+        }
+      }
+
+      expect(checked.count).toBeGreaterThan(100);
+    });
+  }
 });

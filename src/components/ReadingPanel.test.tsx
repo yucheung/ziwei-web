@@ -387,8 +387,8 @@ describe('ReadingPanel Component Test Suite', () => {
   });
 
   describe('A-3: LLM ACL — canonical (locale-independent) chart data feeds the LLM prompt', () => {
-    it('strips iztro en-US mutagen letter codes (A/B/C/D) and bracket brightness codes from the prompt when UI locale is English', async () => {
-      const enChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'en-US' });
+    it('canonicalizes simplified star/mutagen forms back to zh-TW in the prompt when UI locale is zh-CN', async () => {
+      const cnChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'zh-CN' });
 
       let capturedMessages: llmModule.ChatMessage[] | undefined;
       vi.mocked(llmModule.callLLMStream).mockImplementation(async (msg, _cfg, callbacks) => {
@@ -399,12 +399,12 @@ describe('ReadingPanel Component Test Suite', () => {
       });
 
       render(
-        <I18nProvider defaultLocale="en">
-          <ReadingPanel chart={enChart} />
+        <I18nProvider defaultLocale="zh-CN">
+          <ReadingPanel chart={cnChart} />
         </I18nProvider>,
       );
 
-      const generateBtn = screen.getByRole('button', { name: /Generate AI Reading/i });
+      const generateBtn = screen.getByRole('button', { name: /生成 AI 命盘解读/i });
       fireEvent.click(generateBtn);
 
       await waitFor(() => {
@@ -412,13 +412,16 @@ describe('ReadingPanel Component Test Suite', () => {
       });
 
       const userPrompt = capturedMessages!.find((m) => m.role === 'user')!.content;
-      expect(userPrompt).not.toMatch(/生年[ABCD](?![a-zA-Z])/);
-      expect(userPrompt).not.toMatch(/\[[+-]?\d\]/);
+      // 簡體字形不得殘留在 prompt 中；一律還原為 zh-TW canonical 命理詞彙
+      expect(userPrompt).toContain('命宮');
+      expect(userPrompt).not.toContain('命宫');
+      expect(userPrompt).not.toContain('巨门');
+      expect(userPrompt).not.toContain('生年禄');
     });
 
-    it('produces the same user prompt regardless of whether the source astrolabe was rendered in zh-TW or en-US', async () => {
+    it('produces the same user prompt regardless of whether the source astrolabe was rendered in zh-TW or zh-CN', async () => {
       const zhChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'zh-TW' });
-      const enChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'en-US' });
+      const cnChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'zh-CN' });
 
       let capturedUserPrompt = '';
       vi.mocked(llmModule.callLLMStream).mockImplementation(async (msg, _cfg, callbacks) => {
@@ -440,11 +443,11 @@ describe('ReadingPanel Component Test Suite', () => {
 
       capturedUserPrompt = '';
       render(
-        <I18nProvider defaultLocale="en">
-          <ReadingPanel chart={enChart} />
+        <I18nProvider defaultLocale="zh-CN">
+          <ReadingPanel chart={cnChart} />
         </I18nProvider>,
       );
-      fireEvent.click(screen.getByRole('button', { name: /Generate AI Reading/i }));
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盘解读/i }));
       await waitFor(() => expect(capturedUserPrompt).not.toBe(''));
 
       expect(capturedUserPrompt).toBe(zhSourcedPrompt);

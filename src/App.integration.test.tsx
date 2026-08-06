@@ -11,7 +11,7 @@ vi.mock('./i18n/locale', () => ({
   saveLocale: vi.fn(),
   LOCALES: [
     { id: 'zh-TW', label: '繁體中文', flag: '🇹🇼' },
-    { id: 'en', label: 'English', flag: '🇬🇧' },
+    { id: 'zh-CN', label: '简体中文', flag: '🇨🇳' },
   ],
 }));
 
@@ -146,15 +146,15 @@ describe('App Integration Test Suite', () => {
     expect(centerInfo?.textContent).not.toMatch(/乾造/);
   });
 
-  it('displays gender correctly in the chart center panel under English locale', async () => {
+  it('displays gender correctly in the chart center panel under zh-CN locale', async () => {
     const { container } = renderApp();
 
     // Wait for initial load
     await screen.findByText('生辰資料輸入');
 
-    // Switch to English
+    // Switch to Simplified Chinese
     const langSwitcher = await screen.findByRole('combobox', { name: '語言' });
-    fireEvent.change(langSwitcher, { target: { value: 'en' } });
+    fireEvent.change(langSwitcher, { target: { value: 'zh-CN' } });
 
     // Change date so the form is valid for submission
     const dateInput = container.querySelector('input[type="date"]') as HTMLInputElement;
@@ -162,22 +162,22 @@ describe('App Integration Test Suite', () => {
     fireEvent.change(dateInput, { target: { value: '1995-10-15' } });
 
     // Change gender to female
-    const femaleBtn = await screen.findByRole('radio', { name: /^Female$/i });
+    const femaleBtn = await screen.findByRole('radio', { name: '坤造 (女)' });
     fireEvent.click(femaleBtn);
 
     // Submit form
-    const submitBtn = await screen.findByRole('button', { name: /Generate Chart/i });
+    const submitBtn = await screen.findByRole('button', { name: '生成紫微命盘' });
     fireEvent.click(submitBtn);
 
-    // Verify the chart center panel (not the form radio) shows "Female".
+    // Verify the chart center panel (not the form radio) shows the female label.
     // Re-query the heading on every retry since the chart panel remounts
     // (briefly showing an empty placeholder) while the astrolabe recalculates.
     await waitFor(() => {
-      const centerInfo = screen.getByText('Chart Center').nextElementSibling;
-      expect(centerInfo?.textContent?.startsWith('Female')).toBe(true);
+      const centerInfo = screen.getByText('紫微斗数命盘中枢').nextElementSibling;
+      expect(centerInfo?.textContent?.startsWith('坤造 (女)')).toBe(true);
     });
-    const centerInfo = screen.getByText('Chart Center').nextElementSibling;
-    expect(centerInfo?.textContent?.startsWith('Male')).toBe(false);
+    const centerInfo = screen.getByText('紫微斗数命盘中枢').nextElementSibling;
+    expect(centerInfo?.textContent?.startsWith('乾造')).toBe(false);
   });
 
   it('applies true solar time correction once longitude and precise time are entered (H1)', async () => {

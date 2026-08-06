@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getChart } from './astro';
-import { translateKey, canonicalizeAstrolabeForReading, type ReadingAstrolabeLike } from './chartModel';
+import { canonicalizeAstrolabeForReading, type ReadingAstrolabeLike } from './chartModel';
 import {
   summarizeAstrolabe,
   buildReadingPrompt,
@@ -200,40 +200,38 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(systemPrompt).toBe(DEFAULT_SYSTEM_PROMPT);
   });
 
-  // --- A-3: LLM ACL — 星曜名稱一律以英文餵給 LLM，要求以繁體中文作答 ---
+  // --- A-3: LLM ACL — 命盤一律以 zh-TW canonical 詞彙餵給 LLM ---
 
-  describe('A-3: 星曜名稱英文化 (ACL 介接)', () => {
-    it('summarizeAstrolabe 將命主/身主/主星名稱轉為英文，同時保留繁體中文亮度與四化', () => {
+  describe('A-3: 命盤詞彙 canonical 化 (ACL 介接)', () => {
+    it('summarizeAstrolabe 以繁體命理詞彙輸出命主/身主/主星/亮度/四化', () => {
       const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
       const summary = summarizeAstrolabe(chart);
 
-      const soulEn = translateKey((chart as any).soul, 'star', 'en');
-      expect(summary).toContain(`命主: ${soulEn}`);
-      // Raw zh-TW soul name should no longer appear as the label value itself
-      expect(summary).not.toContain(`命主: ${(chart as any).soul}`);
+      expect(summary).toContain(`命主: ${(chart as any).soul}`);
+      expect(summary).toContain(`身主: ${(chart as any).body}`);
 
       const firstPalaceMajor = (chart as any).palaces[0].majorStars[0];
       if (firstPalaceMajor) {
-        const nameEn = translateKey(firstPalaceMajor.name, 'star', 'en');
-        expect(summary).toContain(nameEn);
+        expect(summary).toContain(firstPalaceMajor.name);
       }
 
-      // Palace headers stay in Traditional Chinese (domain vocabulary for the system prompt)
       expect(summary).toContain('命宮');
     });
 
-    it('英文模式的 astrolabe 經 canonicalizeAstrolabeForReading 還原後，summarizeAstrolabe 產出與 zh-TW 來源相同的英文星名（不會殘留 A/B/C/D 或 [+3] 這類 iztro 縮寫代碼）', () => {
+    it('簡體模式的 astrolabe 經 canonicalizeAstrolabeForReading 還原後，summarizeAstrolabe 產出與 zh-TW 來源逐字相同的摘要', () => {
       const zhChart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
-      const enChart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'en-US' });
+      const cnChart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-CN' });
 
-      const canonicalFromEn = canonicalizeAstrolabeForReading(enChart as unknown as ReadingAstrolabeLike, 'en');
+      const canonicalFromCn = canonicalizeAstrolabeForReading(cnChart as unknown as ReadingAstrolabeLike, 'zh-CN');
 
       const zhSummary = summarizeAstrolabe(zhChart);
-      const enSummary = summarizeAstrolabe({ ...enChart, ...canonicalFromEn } as any);
+      const cnSummary = summarizeAstrolabe({ ...cnChart, ...canonicalFromCn } as any);
 
-      expect(enSummary).toBe(zhSummary);
-      expect(enSummary).not.toMatch(/生年[ABCD](?![a-zA-Z])/);
-      expect(enSummary).not.toMatch(/\[[+-]?\d\]/);
+      expect(cnSummary).toBe(zhSummary);
+      // 簡體字形不得殘留
+      expect(cnSummary).not.toContain('命宫');
+      expect(cnSummary).not.toContain('巨门');
+      expect(cnSummary).not.toContain('生年禄');
     });
   });
 });

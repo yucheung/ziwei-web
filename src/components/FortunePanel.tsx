@@ -66,7 +66,7 @@ export function FortunePanel({
   onSelectDecadal,
 }: FortunePanelProps) {
   const { t, locale } = useTranslation();
-  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   // 預設查詢日期 (預設為今天 "YYYY-MM-DD")
   const defaultDateStr = useMemo(() => {

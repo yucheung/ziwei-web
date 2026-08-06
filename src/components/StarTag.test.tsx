@@ -26,17 +26,17 @@ describe('StarTag Component', () => {
     expect(screen.queryByText('祿')).not.toBeInTheDocument();
   });
 
-  describe('English locale rendering', () => {
-    it('renders translated star name and brightness in English locale', () => {
+  describe('zh-CN locale rendering', () => {
+    it('renders simplified star name and brightness in zh-CN locale', () => {
       render(
-        <I18nProvider defaultLocale="en">
-          <StarTag name="紫微" brightness="廟" mutagen="權" vertical={false} />
+        <I18nProvider defaultLocale="zh-CN">
+          <StarTag name="貪狼" brightness="廟" mutagen="權" vertical={false} />
         </I18nProvider>
       );
-      expect(screen.getByText('emperor')).toBeInTheDocument();
-      expect(screen.getByText('[+3]')).toBeInTheDocument();
-      expect(screen.getByText('B')).toBeInTheDocument();
-      expect(screen.queryByText('紫微')).not.toBeInTheDocument();
+      expect(screen.getByText('贪狼')).toBeInTheDocument();
+      expect(screen.getByText('庙')).toBeInTheDocument();
+      expect(screen.queryByText('貪狼')).not.toBeInTheDocument();
+      expect(screen.queryByText('廟')).not.toBeInTheDocument();
     });
   });
 

@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { zhTW, type TranslationKey } from './zh-TW';
-import { en } from './en';
+import { zhCN } from './zh-CN';
 import { Locale, LOCALES, getInitialLocale, saveLocale } from './locale';
 
 const translations: Record<Locale, Record<string, string>> = {
   'zh-TW': zhTW,
-  en,
+  'zh-CN': zhCN,
 };
 
 interface I18nContextValue {

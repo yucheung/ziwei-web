@@ -34,7 +34,7 @@ interface MatchPanelProps {
 
 export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialPersonB }) => {
   const { t, locale } = useTranslation();
-  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   // A-2: match.ts 的計算結果 (星曜/宮位/天干/四化) 一律以 zh-TW canonical 字串產出
   // (與 ChartGrid 相同的 ACL 設計)，這裡在渲染時才依目前 UI locale 轉換顯示文字，

@@ -78,7 +78,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
   className = '',
 }) => {
   const { t, locale } = useTranslation();
-  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   // Find Life Palace default index (default to 0 if not found)
   // Root-cause C1 fix: match via locale-independent earthlyBranchOfSoulPalace,

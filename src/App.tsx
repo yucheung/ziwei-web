@@ -51,7 +51,7 @@ export default function App() {
   const [config, setConfig] = useState<Config>(() => ({ ...DEFAULT_CONFIG }));
   const [astroType, setAstroType] = useState<AstroType>('heaven');
 
-  const iztroLanguage = locale === 'en' ? 'en-US' : 'zh-TW';
+  const iztroLanguage = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   // 初始化星盤資料
   const [astrolabe, setAstrolabe] = useState(() => {

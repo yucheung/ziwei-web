@@ -58,7 +58,7 @@ export const StarTag: React.FC<StarTagProps> = ({
   className = '',
 }) => {
   const { t, locale } = useTranslation();
-  const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   // 顯示用字串：name/brightness 皆為 chartModel ACL 的 zh-TW canonical key，
   // 邏輯比對 (MAJOR_STARS.has(name) 等) 一律沿用未翻譯的 canonical `name`/`brightness`。

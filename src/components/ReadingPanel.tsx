@@ -155,7 +155,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
     // A-3: chart 為 App 層依目前 UI 顯示語言排出的 astrolabe (可能為 en-US 顯示字串)，
     // 先還原為 zh-TW canonical key 再交給 buildReadingPrompt，避免英文模式下 iztro
     // 原生的四化字母碼 (A/B/C/D)、亮度括號碼等對 LLM 毫無語意的縮寫混入 prompt。
-    const appLocale: AppLocale = locale === 'en' ? 'en' : 'zh-TW';
+    const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
     const canonicalChart = canonicalizeAstrolabeForReading(chart, appLocale);
 
     const { systemPrompt, userPrompt } = buildReadingPrompt(canonicalChart, {

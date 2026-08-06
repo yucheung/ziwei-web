@@ -21,7 +21,15 @@ describe('src/lib/export.ts', () => {
   let sampleAstrolabe: ExportAstrolabe;
 
   beforeEach(() => {
-    sampleAstrolabe = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', config: { algorithm: 'default' } });
+    // language 必須明示：iztro 的顯示字串在建盤當下就以「全域」語系解析，
+    // 省略時會沿用前一個測試設定的語系，斷言將隨測試執行順序而飄移。
+    sampleAstrolabe = getChart({
+      date: '2000-08-16',
+      timeIndex: 1,
+      gender: 'male',
+      language: 'zh-CN',
+      config: { algorithm: 'default' },
+    });
   });
 
   describe('escapeCsvField', () => {
@@ -68,15 +76,35 @@ describe('src/lib/export.ts', () => {
       expect(csv).toContain('巨门');
     });
 
-    it('generates English-locale CSV with translated headers and values', () => {
-      const csv = generateChartCsv(sampleAstrolabe, 'en');
+    it('generates zh-CN-locale CSV with simplified headers and values', () => {
+      const csv = generateChartCsv(sampleAstrolabe, 'zh-CN');
 
-      expect(csv.startsWith('﻿')).toBe(true);
+      expect(csv.startsWith('\uFEFF')).toBe(true);
       expect(csv).not.toContain('=== 紫微斗數命盤基本資料 ===');
-      expect(csv).toContain('Gender');
-      expect(csv).toContain('"male"');
-      expect(csv).toContain('Palace Name');
-      expect(csv).toContain('general');
+      expect(csv).toContain('=== 紫微斗数命盘基本资料 ===');
+      expect(csv).toContain('性别');
+      expect(csv).toContain('"男"');
+      expect(csv).toContain('"宫位名称","天干","地支","身宫"');
+      expect(csv).toContain('"迁移"');
+      expect(csv).toContain('巨门');
+    });
+
+    it('translates a zh-TW-sourced astrolabe into simplified star/palace names under zh-CN locale', () => {
+      const twAstrolabe = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { algorithm: 'default' },
+      });
+
+      expect(generateChartCsv(twAstrolabe, 'zh-TW')).toContain('"遷移"');
+
+      const csv = generateChartCsv(twAstrolabe, 'zh-CN');
+      expect(csv).toContain('"迁移"');
+      expect(csv).not.toContain('"遷移"');
+      expect(csv).toContain('巨门');
+      expect(csv).not.toContain('巨門');
     });
   });
 

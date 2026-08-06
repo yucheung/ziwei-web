@@ -3,10 +3,11 @@
  *
  * 背景 (根因 C1)：
  * iztro 的『顯示字串』(palace.name / star.name / heavenlyStem / brightness ...)
- * 會依 GetChartOptions.language 而變動 (zh-TW / en-US / ...)。
+ * 會依 GetChartOptions.language 而變動 (zh-TW / zh-CN / ...)。
  * 但 flying.ts / fortunes.ts / match.ts 內部的四化查表 (MUTAGEN_TABLE / STEM_MUTAGENS ...)
- * 全部是用「繁體中文」字串當作查表 key。當使用者以 English 模式排盤時，
- * 這些函式收到的是英文顯示字串，導致查表全部失敗 (四化/飛星/命宮定位錯誤)。
+ * 全部是用「繁體中文」字串當作查表 key。當使用者以簡體模式排盤時，
+ * 這些函式收到的是簡體顯示字串 (貪狼→贪狼、祿→禄)，導致查表全部失敗
+ * (四化/飛星/命宮定位錯誤)。
  *
  * 解法：
  * 1. 排盤永遠以 zh-TW 為準 (getCanonicalAstrolabe)，
@@ -23,7 +24,7 @@ export type IFunctionalAstrolabe = ReturnType<typeof astro.bySolar>;
 export type IFunctionalPalace = IFunctionalAstrolabe['palaces'][number];
 
 /** App 端使用的 locale (對齊 src/i18n/locale.ts 的 Locale) */
-export type AppLocale = 'zh-TW' | 'en';
+export type AppLocale = 'zh-TW' | 'zh-CN';
 
 /** 四化類型 (zh-TW 為 canonical key) */
 type MutagenKey = '祿' | '權' | '科' | '忌';
@@ -41,123 +42,94 @@ type TranslationCategory =
   | 'fiveElementsClass';
 
 // ─────────────────────────────────────────────────────────────
-// 靜態對映表 (zh-TW canonical key → en-US 顯示字串)
-// 直接取自 iztro 內建 i18n locale 資源 (node_modules/iztro/lib/i18n/locales)，
-// 確保與 iztro 實際輸出的英文字串完全一致。
+// 靜態對映表 (zh-TW canonical key → zh-CN 顯示字串)
+// 直接由 iztro 內建 i18n locale 資源 (node_modules/iztro/lib/i18n/locales) 的
+// zh-TW / zh-CN 兩份字典逐鍵配對產生，確保與 iztro 實際輸出的簡體字串完全一致。
 //
-// 注意：iztro 的 en-US star locale 本身將部分不同概念對映到相同英文字串
-// (例如 wuquMaj/'武曲' 與 jiangjun/'將軍' 皆為 'general'；dahao/'大耗' 與
-// suipo/'歲破' 皆為 'wastrel')。這類字串在 en-US 顯示下無法被反查回唯一的
-// zh-TW key，因此故意只保留「十四主星/輔星」這一側 (實際會出現在
-// majorStars/minorStars、需要參與四化查表計算的字串)，捨去「十二神」側
-// (將軍/歲破等，僅作為 palace.boshi12/suiqian12 等純顯示欄位，從未經過
-// translateKey/toCanonicalKey 往返轉換)，避免 REVERSE_DICTS 因重複值而
-// 反查出錯誤的 canonical key。
+// 只列出「繁簡字形不同」的條目：translateKey / toCanonicalKey 查無對映時會回傳
+// 原字串，而字形相同的詞 (紫微、天府、文昌、干支、五行局、男/女 ...) 正好就是
+// 恆等對映，因此省略不影響正確性，也讓表格只呈現真正需要轉換的部分。
+//
+// 已驗證 (見 chartModel.test.ts)：每張表的值皆唯一，且沒有任何簡體值恰好等於
+// 另一個不同詞的繁體 key，因此 REVERSE_DICTS 反查一律可還原出唯一的 canonical key。
+// (先前的英文對映表因 iztro 英文字典存在同名碰撞，必須刻意捨去十二神一側；
+// 簡體對映無此問題，故為完整覆蓋。)
 // ─────────────────────────────────────────────────────────────
 
-const STAR_ZH_TO_EN: Record<string, string> = {
-  '紫微': 'emperor', '天機': 'advisor', '太陽': 'sun', '武曲': 'general', '天同': 'fortunate',
-  '廉貞': 'judge', '天府': 'empress', '太陰': 'moon', '貪狼': 'wolf', '巨門': 'advocator',
-  '天相': 'minister', '天梁': 'sage', '七殺': 'marshal', '破軍': 'rebel', '左輔': 'officer',
-  '右弼': 'helper', '文昌': 'scholar', '文曲': 'artist', '祿存': 'money', '天馬': 'horse',
-  '擎羊': 'driven', '陀羅': 'tangled', '火星': 'impulsive', '鈴星': 'spark', '天魁': 'assistant',
-  '天鉞': 'aide', '地空': 'ideologue', '地劫': 'fickle', '劫殺': 'murder', '天空': 'utopian',
-  '天刑': 'serious', '天姚': 'social', '解神': 'considery', '陰煞': 'gloomy', '天喜': 'cheerful',
-  '天官': 'solemn', '天福': 'lucky', '天哭': 'upset', '天虛': 'frail', '龍池': 'talented',
-  '鳳閣': 'refined', '紅鸞': 'attractive', '孤辰': 'alone', '寡宿': 'lonely', '蜚廉': 'instigated',
-  '破碎': 'broken', '台輔': 'honorable', '封誥': 'awarded', '天巫': 'psychic', '天月': 'sickly',
-  '三台': 'senior', '八座': 'dignified', '恩光': 'grateful', '天貴': 'noble', '天才': 'gifted',
-  '天壽': 'ageless', '截空': 'interrupted', '旬中': 'meditative', '旬空': 'fancied', '空亡': 'bottomless',
-  '截路': 'intercepted', '月德': 'peaceful', '天傷': 'wounded', '天使': 'heaven', '天廚': 'gourmet',
-  '長生': 'born', '沐浴': 'infancy', '冠帶': 'adolescence', '臨官': 'adulthood', '帝旺': 'prime',
-  '衰': 'weak', '病': 'sick', '死': 'dead', '墓': 'buried', '絕': 'dissipated', '胎': 'embryo',
-  '養': 'molding', '博士': 'doctor', '力士': 'sumo', '青龍': 'dragon', '小耗': 'consumer',
-  '奏書': 'book', '飛廉': 'gossip', '喜神': 'happiness', '病符': 'illness',
-  '大耗': 'wastrel', '伏兵': 'ambush', '官府': 'government', '歲建': 'initial',
-  '晦氣': 'unlucky', '喪門': 'downcast', '貫索': 'tied', '官符': 'official', '龍德': 'virtuous',
-  '白虎': 'sinister', '天德': 'blessed', '弔客': 'sorrowing', '將星': 'capable', '攀鞍': 'admired',
-  '歲驛': 'varied', '息神': 'listless', '華蓋': 'religious', '劫煞': 'robbed', '災煞': 'disastery',
-  '天煞': 'condemned', '指背': 'insidious', '咸池': 'passionate', '月煞': 'hapless', '亡神': 'perished',
-  '運魁': 'assistant(D)', '運鉞': 'aide(D)', '運昌': 'scholar(D)', '運曲': 'artist(D)', '運鸞': 'attractive(D)',
-  '運喜': 'cheerful(D)', '運祿': 'money(D)', '運羊': 'driven(D)', '運陀': 'tangled(D)', '運馬': 'horse(D)',
-  '流魁': 'assistant(Y)', '流鉞': 'aide(Y)', '流昌': 'scholar(Y)', '流曲': 'artist(Y)', '流鸞': 'attractive(Y)',
-  '流喜': 'cheerful(Y)', '流祿': 'money(Y)', '流羊': 'driven(Y)', '流陀': 'tangled(Y)', '流馬': 'horse(Y)',
-  '年解': 'considery(Y)',
-  '月魁': 'assistant(M)', '月鉞': 'aide(M)', '月昌': 'scholar(M)', '月曲': 'artist(M)', '月鸞': 'attractive(M)',
-  '月喜': 'cheerful(M)', '月祿': 'money(M)', '月羊': 'driven(M)', '月陀': 'tangled(M)', '月馬': 'horse(M)',
-  '日魁': 'assistant(d)', '日鉞': 'aide(d)', '日昌': 'scholar(d)', '日曲': 'artist(d)', '日鸞': 'attractive(d)',
-  '日喜': 'cheerful(d)', '日祿': 'money(d)', '日羊': 'driven(d)', '日陀': 'tangled(d)', '日馬': 'horse(d)',
-  '時魁': 'assistant(H)', '時鉞': 'aide(H)', '時昌': 'scholar(H)', '時曲': 'artist(H)', '時鸞': 'attractive(H)',
-  '時喜': 'cheerful(H)', '時祿': 'money(H)', '時羊': 'driven(H)', '時陀': 'tangled(H)', '時馬': 'horse(H)',
+const STAR_ZH_TW_TO_CN: Record<string, string> = {
+  '天機': '天机', '太陽': '太阳', '廉貞': '廉贞', '太陰': '太阴', '貪狼': '贪狼',
+  '巨門': '巨门', '七殺': '七杀', '破軍': '破军', '左輔': '左辅', '祿存': '禄存',
+  '天馬': '天马', '陀羅': '陀罗', '鈴星': '铃星', '天鉞': '天钺', '劫殺': '劫杀',
+  '陰煞': '阴煞', '天虛': '天虚', '龍池': '龙池', '鳳閣': '凤阁', '紅鸞': '红鸾',
+  '台輔': '台辅', '封誥': '封诰', '天貴': '天贵', '天壽': '天寿', '天傷': '天伤',
+  '天廚': '天厨', '長生': '长生', '冠帶': '冠带', '臨官': '临官', '絕': '绝',
+  '養': '养', '青龍': '青龙', '將軍': '将军', '奏書': '奏书', '飛廉': '飞廉',
+  '歲破': '岁破', '歲建': '岁建', '晦氣': '晦气', '喪門': '丧门', '貫索': '贯索',
+  '龍德': '龙德', '弔客': '吊客', '將星': '将星', '歲驛': '岁驿', '華蓋': '华盖',
+  '災煞': '灾煞', '運魁': '运魁', '運鉞': '运钺', '運昌': '运昌', '運曲': '运曲',
+  '運鸞': '运鸾', '運喜': '运喜', '運祿': '运禄', '運羊': '运羊', '運陀': '运陀',
+  '運馬': '运马', '流鉞': '流钺', '流鸞': '流鸾', '流祿': '流禄', '流馬': '流马',
+  '月鉞': '月钺', '月鸞': '月鸾', '月祿': '月禄', '月馬': '月马', '日鉞': '日钺',
+  '日鸞': '日鸾', '日祿': '日禄', '日馬': '日马', '時魁': '时魁', '時鉞': '时钺',
+  '時昌': '时昌', '時曲': '时曲', '時鸞': '时鸾', '時喜': '时喜', '時祿': '时禄',
+  '時羊': '时羊', '時陀': '时陀', '時馬': '时马',
 };
 
-const PALACE_ZH_TO_EN: Record<string, string> = {
-  '命宮': 'soul', '身宮': 'body', '兄弟': 'siblings', '夫妻': 'spouse', '子女': 'children',
-  '財帛': 'wealth', '疾厄': 'health', '遷移': 'surface', '僕役': 'friends', '官祿': 'career',
-  '田宅': 'property', '福德': 'spirit', '父母': 'parents', '来因': 'origin',
+const PALACE_ZH_TW_TO_CN: Record<string, string> = {
+  '命宮': '命宫', '身宮': '身宫', '財帛': '财帛', '遷移': '迁移', '僕役': '仆役',
+  '官祿': '官禄',
 };
 
-const MUTAGEN_ZH_TO_EN: Record<string, string> = {
-  '祿': 'A', '權': 'B', '科': 'C', '忌': 'D',
+const MUTAGEN_ZH_TW_TO_CN: Record<string, string> = {
+  '祿': '禄', '權': '权',
 };
 
-const STEM_ZH_TO_EN: Record<string, string> = {
-  '甲': 'jia', '乙': 'yi', '丙': 'bing', '丁': 'ding', '戊': 'wu',
-  '己': 'ji', '庚': 'geng', '辛': 'xin', '壬': 'ren', '癸': 'gui',
+const BRIGHTNESS_ZH_TW_TO_CN: Record<string, string> = {
+  '廟': '庙',
 };
 
-const BRANCH_ZH_TO_EN: Record<string, string> = {
-  '子': 'zi', '丑': 'chou', '寅': 'yin', '卯': 'mao', '辰': 'chen', '巳': 'si',
-  '午': 'woo', '未': 'wei', '申': 'shen', '酉': 'you', '戌': 'xu', '亥': 'hai',
+const ZODIAC_ZH_TW_TO_CN: Record<string, string> = {
+  '龍': '龙', '馬': '马', '雞': '鸡', '豬': '猪',
 };
 
-const BRIGHTNESS_ZH_TO_EN: Record<string, string> = {
-  '廟': '[+3]', '旺': '[+2]', '得': '[+1]', '利': '[0]', '平': '[-1]', '不': '[-2]', '陷': '[-3]',
-};
-
-const GENDER_ZH_TO_EN: Record<string, string> = {
-  '男': 'male', '女': 'female',
-};
-
-const ZODIAC_ZH_TO_EN: Record<string, string> = {
-  '鼠': 'rat', '牛': 'ox', '虎': 'tiger', '兔': 'rabbit', '龍': 'dragon', '蛇': 'snake',
-  '馬': 'horse', '羊': 'sheep', '猴': 'monkey', '雞': 'rooster', '狗': 'dog', '豬': 'pig',
-};
-
-const FIVE_ELEMENTS_CLASS_ZH_TO_EN: Record<string, string> = {
-  '水二局': 'water 2nd', '木三局': 'wood 3rd', '金四局': 'metal 4th', '土五局': 'earth 5th', '火六局': 'fire 6th',
-};
+/** 天干、地支、五行局、性別在繁簡下字形完全相同，為恆等對映 (查無對映即回傳原字串)。 */
+const IDENTITY: Record<string, string> = {};
 
 const DICTS: Record<TranslationCategory, Record<string, string>> = {
-  palace: PALACE_ZH_TO_EN,
-  star: STAR_ZH_TO_EN,
-  mutagen: MUTAGEN_ZH_TO_EN,
-  stem: STEM_ZH_TO_EN,
-  branch: BRANCH_ZH_TO_EN,
-  brightness: BRIGHTNESS_ZH_TO_EN,
-  gender: GENDER_ZH_TO_EN,
-  zodiac: ZODIAC_ZH_TO_EN,
-  fiveElementsClass: FIVE_ELEMENTS_CLASS_ZH_TO_EN,
+  palace: PALACE_ZH_TW_TO_CN,
+  star: STAR_ZH_TW_TO_CN,
+  mutagen: MUTAGEN_ZH_TW_TO_CN,
+  stem: IDENTITY,
+  branch: IDENTITY,
+  brightness: BRIGHTNESS_ZH_TW_TO_CN,
+  gender: IDENTITY,
+  zodiac: ZODIAC_ZH_TW_TO_CN,
+  fiveElementsClass: IDENTITY,
 };
 
 function buildReverseDict(dict: Record<string, string>): Record<string, string> {
   const reversed: Record<string, string> = {};
-  for (const [zh, en] of Object.entries(dict)) {
-    reversed[en] = zh;
+  for (const [zhTw, zhCn] of Object.entries(dict)) {
+    reversed[zhCn] = zhTw;
   }
   return reversed;
 }
 
 const REVERSE_DICTS: Record<TranslationCategory, Record<string, string>> = {
-  palace: buildReverseDict(PALACE_ZH_TO_EN),
-  star: buildReverseDict(STAR_ZH_TO_EN),
-  mutagen: buildReverseDict(MUTAGEN_ZH_TO_EN),
-  stem: buildReverseDict(STEM_ZH_TO_EN),
-  branch: buildReverseDict(BRANCH_ZH_TO_EN),
-  brightness: buildReverseDict(BRIGHTNESS_ZH_TO_EN),
-  gender: buildReverseDict(GENDER_ZH_TO_EN),
-  zodiac: buildReverseDict(ZODIAC_ZH_TO_EN),
-  fiveElementsClass: buildReverseDict(FIVE_ELEMENTS_CLASS_ZH_TO_EN),
+  palace: buildReverseDict(PALACE_ZH_TW_TO_CN),
+  star: buildReverseDict(STAR_ZH_TW_TO_CN),
+  mutagen: buildReverseDict(MUTAGEN_ZH_TW_TO_CN),
+  stem: IDENTITY,
+  branch: IDENTITY,
+  brightness: buildReverseDict(BRIGHTNESS_ZH_TW_TO_CN),
+  gender: IDENTITY,
+  zodiac: buildReverseDict(ZODIAC_ZH_TW_TO_CN),
+  fiveElementsClass: IDENTITY,
+};
+
+/** 語系無關的性別 key 對映 (繁簡字形相同，故為單一張表)。 */
+const GENDER_ZH_TO_KEY: Record<string, GenderKey> = {
+  '男': 'male', '女': 'female',
 };
 
 /**
@@ -188,39 +160,16 @@ export type GenderKey = 'male' | 'female';
 /**
  * 將 iztro 的性別「顯示字串」轉為語系無關的 key。
  *
- * iztro 的 astrolabe.gender 會隨排盤語言而變：zh-TW/zh-CN 為 '男'/'女'
- * (兩者字形相同)、en-US 為 'male'/'female'。顯示層若直接比對某一種語言的
- * 字面值，另一種語言下會恆為 false (女命被誤顯示成男命)。
+ * iztro 的 astrolabe.gender 在 zh-TW 與 zh-CN 下皆為 '男'/'女' (字形相同)，
+ * 但顯示層仍不應直接比對字面值：一律經由本函式取得 key，未來新增顯示語言時
+ * 只需補上 gender 對映表，呼叫端不必更動 (避免女命被誤顯示成男命的迴歸)。
  *
- * 先依 locale 反查回 zh canonical，再對照字典；若 locale 與實際輸出不一致
- * (例如 locale='zh-TW' 卻拿到 'male')，退回直接以英文字典反查做容錯。
- * 無法辨識時回傳 undefined，由呼叫端決定 fallback。
+ * 先依 locale 反查回 zh canonical，再對照字典。無法辨識時回傳 undefined，
+ * 由呼叫端決定 fallback。
  */
 export function toGenderKey(display: string | undefined, locale: AppLocale): GenderKey | undefined {
   if (!display) return undefined;
-  const key = GENDER_ZH_TO_EN[toCanonicalKey(display, 'gender', locale)]
-    ?? GENDER_ZH_TO_EN[REVERSE_DICTS.gender[display] ?? ''];
-  return key === 'male' || key === 'female' ? key : undefined;
-}
-
-/**
- * 將 iztro 的「四柱/干支」複合字串 (例如 en-US 下的
- * 'geng chen - jia shen - bing woo - geng yin') 轉回 zh-TW canonical 格式
- * (例如 '庚辰 甲申 丙午 庚寅')。每一柱為 "天干拼音 地支拼音"，柱與柱之間以
- * ' - ' 分隔，需逐柱拆解天干/地支後分別查表還原。
- */
-function toCanonicalChineseDate(display: string, locale: AppLocale): string {
-  if (!display) return display;
-  if (locale === 'zh-TW') return display;
-  return display
-    .split(' - ')
-    .map((pillar) => {
-      const parts = pillar.trim().split(/\s+/);
-      if (parts.length !== 2) return display;
-      const [stem, branch] = parts;
-      return `${toCanonicalKey(stem, 'stem', locale)}${toCanonicalKey(branch, 'branch', locale)}`;
-    })
-    .join(' ');
+  return GENDER_ZH_TO_KEY[toCanonicalKey(display, 'gender', locale)];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -318,7 +267,7 @@ export function chartModelToFlyingPalaces(model: ChartModel): FlyingPalaceLike[]
  * 將「顯示語言不確定」的宮位陣列 (例如某個已用 locale 顯示語言排盤的 astrolabe.palaces)
  * 轉換回 zh-TW canonical key，供 flying.ts 等 Chinese-keyed 計算函式安全使用。
  *
- * 用於已經拿到一個 astrolabe (可能是 en-US 顯示語言) 但沒有原始排盤參數可重新以
+ * 用於已經拿到一個 astrolabe (可能是 zh-CN 顯示語言) 但沒有原始排盤參數可重新以
  * zh-TW 排盤的情境 (例如純前端元件只收到 astrolabe prop)。
  */
 export function canonicalizeFlyingPalaces(
@@ -379,9 +328,8 @@ export interface ReadingAstrolabeLike {
  * zh-TW canonical key。
  *
  * 涵蓋 canonicalizeFlyingPalaces 未涵蓋的欄位 (亮度 brightness / 雜曜
- * adjectiveStars / 大限 decadal / 命主 soul / 身主 body)，避免英文模式下 iztro
- * 原生輸出的四化字母碼 (A/B/C/D) 與亮度括號碼 (例如 [+3]) 直接混入 LLM prompt
- * ——這些編碼對 LLM 而言毫無語意，僅是 iztro 英文 UI 的縮寫顯示形式。
+ * adjectiveStars / 大限 decadal / 命主 soul / 身主 body)，使 LLM prompt 內的
+ * 星曜/宮位/四化用字永遠是同一組繁體詞彙，不因使用者當下的顯示語言而變動。
  */
 export function canonicalizeAstrolabeForReading(
   astrolabe: ReadingAstrolabeLike,
@@ -403,9 +351,8 @@ export function canonicalizeAstrolabeForReading(
     fiveElementsClass: astrolabe.fiveElementsClass
       ? toCanonicalKey(astrolabe.fiveElementsClass, 'fiveElementsClass', sourceLocale)
       : astrolabe.fiveElementsClass,
-    chineseDate: astrolabe.chineseDate
-      ? toCanonicalChineseDate(astrolabe.chineseDate, sourceLocale)
-      : astrolabe.chineseDate,
+    // 四柱/干支在 zh-TW 與 zh-CN 下字形與格式完全相同 ('庚辰 甲申 丙午 庚寅')，無需轉換
+    chineseDate: astrolabe.chineseDate,
     earthlyBranchOfSoulPalace: astrolabe.earthlyBranchOfSoulPalace
       ? toCanonicalKey(astrolabe.earthlyBranchOfSoulPalace, 'branch', sourceLocale)
       : astrolabe.earthlyBranchOfSoulPalace,
@@ -434,7 +381,7 @@ export function canonicalizeAstrolabeForReading(
 /**
  * 找出命宮在 astrolabe.palaces 中的索引，使用 locale 無關的
  * `earthlyBranchOfSoulPalace` 欄位做比對 (而非比對顯示字串 '命宮')。
- * 修復英文模式下命宮定位錯誤 (根因 C1)。
+ * 修復非 zh-TW 顯示語言下命宮定位錯誤 (根因 C1)。
  */
 export function findSoulPalaceIndex(astrolabe: {
   palaces: Array<{ earthlyBranch: string; name?: string }>;
