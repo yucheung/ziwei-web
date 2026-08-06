@@ -182,6 +182,27 @@ export function toCanonicalKey(display: string, category: TranslationCategory, l
   return REVERSE_DICTS[category][display] ?? display;
 }
 
+/** 語系無關的性別 key */
+export type GenderKey = 'male' | 'female';
+
+/**
+ * 將 iztro 的性別「顯示字串」轉為語系無關的 key。
+ *
+ * iztro 的 astrolabe.gender 會隨排盤語言而變：zh-TW/zh-CN 為 '男'/'女'
+ * (兩者字形相同)、en-US 為 'male'/'female'。顯示層若直接比對某一種語言的
+ * 字面值，另一種語言下會恆為 false (女命被誤顯示成男命)。
+ *
+ * 先依 locale 反查回 zh canonical，再對照字典；若 locale 與實際輸出不一致
+ * (例如 locale='zh-TW' 卻拿到 'male')，退回直接以英文字典反查做容錯。
+ * 無法辨識時回傳 undefined，由呼叫端決定 fallback。
+ */
+export function toGenderKey(display: string | undefined, locale: AppLocale): GenderKey | undefined {
+  if (!display) return undefined;
+  const key = GENDER_ZH_TO_EN[toCanonicalKey(display, 'gender', locale)]
+    ?? GENDER_ZH_TO_EN[REVERSE_DICTS.gender[display] ?? ''];
+  return key === 'male' || key === 'female' ? key : undefined;
+}
+
 /**
  * 將 iztro 的「四柱/干支」複合字串 (例如 en-US 下的
  * 'geng chen - jia shen - bing woo - geng yin') 轉回 zh-TW canonical 格式

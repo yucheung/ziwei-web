@@ -5,6 +5,7 @@ import {
   canonicalizeAstrolabeForReading,
   findSoulPalaceIndex,
   toCanonicalKey,
+  toGenderKey,
   type FlyingPalaceLike,
   type ReadingAstrolabeLike,
 } from './chartModel';
@@ -175,5 +176,32 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
 
     expect(canonical.soul).toBe((zhAstro as any).soul);
     expect(canonical.palaces[0].name).toBe((zhAstro as any).palaces[0].name);
+  });
+});
+
+describe('toGenderKey (B-4: 中宮/合盤性別語系無關判斷)', () => {
+  it('辨識各顯示語言的性別字串', () => {
+    expect(toGenderKey('女', 'zh-TW')).toBe('female');
+    expect(toGenderKey('男', 'zh-TW')).toBe('male');
+    expect(toGenderKey('female', 'en')).toBe('female');
+    expect(toGenderKey('male', 'en')).toBe('male');
+  });
+
+  it('locale 與實際顯示字串不一致時仍能正確判斷', () => {
+    expect(toGenderKey('female', 'zh-TW')).toBe('female');
+    expect(toGenderKey('女', 'en')).toBe('female');
+  });
+
+  it('空值或無法辨識的字串回傳 undefined', () => {
+    expect(toGenderKey(undefined, 'zh-TW')).toBeUndefined();
+    expect(toGenderKey('', 'zh-TW')).toBeUndefined();
+    expect(toGenderKey('unknown', 'en')).toBeUndefined();
+  });
+
+  it('對實際 iztro 輸出有效 (zh-TW 與 en-US 排盤結果一致)', () => {
+    const zhAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'zh-TW' });
+    const enAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'en-US' });
+    expect(toGenderKey((zhAstro as any).gender, 'zh-TW')).toBe('female');
+    expect(toGenderKey((enAstro as any).gender, 'en')).toBe('female');
   });
 });

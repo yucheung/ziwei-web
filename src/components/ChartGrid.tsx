@@ -39,7 +39,7 @@ import {
   type FlyingPalace,
   type FlyingStarsResult,
 } from '../lib/flying';
-import { canonicalizeFlyingPalaces, findSoulPalaceIndex, translateKey, type AppLocale } from '../lib/chartModel';
+import { canonicalizeFlyingPalaces, findSoulPalaceIndex, toGenderKey, translateKey, type AppLocale } from '../lib/chartModel';
 import { useTranslation } from '../i18n';
 
 export interface ChartGridProps {
@@ -251,7 +251,7 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
               <div>
                 <h4 className="text-sm font-bold text-amber-700 dark:text-amber-200">{t('chart.center')}</h4>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                  {astrolabe.gender === 'female' ? t('form.female') : t('form.male')} · {astrolabe.fiveElementsClass || t('chart.fiveElementsDefault')}
+                  {toGenderKey(astrolabe.gender, appLocale) === 'female' ? t('form.female') : t('form.male')} · {astrolabe.fiveElementsClass || t('chart.fiveElementsDefault')}
                 </p>
               </div>
             </div>

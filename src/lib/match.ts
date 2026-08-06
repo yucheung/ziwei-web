@@ -1,6 +1,6 @@
 import { astro } from 'iztro';
 import { GetChartOptions } from './astro';
-import { getCanonicalAstrolabe } from './chartModel';
+import { getCanonicalAstrolabe, toGenderKey, type GenderKey } from './chartModel';
 
 export type IFunctionalAstrolabe = ReturnType<typeof astro.bySolar>;
 export type IFunctionalPalace = IFunctionalAstrolabe['palaces'][number];
@@ -19,7 +19,8 @@ export interface AnalyzeMatchOptions {
 
 export interface PersonInfo {
   name: string;
-  gender: string;
+  /** 語系無關的性別 key，顯示文字由 UI 層以 i18n 轉換 */
+  gender: GenderKey;
   solarDate: string;
   lunarDate: string;
   chineseDate: string;
@@ -271,7 +272,9 @@ export function extractPersonInfo(astrolabe: IFunctionalAstrolabe, name: string)
 
   return {
     name,
-    gender: astrolabe.gender === 'male' || astrolabe.gender === '男' ? '乾造 (男)' : '坤造 (女)',
+    // extractPersonInfo 一律吃 getCanonicalAstrolabe 的產物 (zh-TW 排盤)，
+    // 但仍走 toGenderKey 以免日後傳入其他顯示語言的 astrolabe 時失準。
+    gender: toGenderKey(astrolabe.gender, 'zh-TW') ?? 'male',
     solarDate: astrolabe.solarDate,
     lunarDate: astrolabe.lunarDate,
     chineseDate: astrolabe.chineseDate || `${yearStem}${yearBranch}年`,

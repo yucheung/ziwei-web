@@ -72,8 +72,8 @@ describe('Ziwei Match Engine (src/lib/match.ts)', () => {
     // Verify Person Info
     expect(result.personA.name).toBe('男方 (甲)');
     expect(result.personB.name).toBe('女方 (乙)');
-    expect(result.personA.gender).toContain('乾造');
-    expect(result.personB.gender).toContain('坤造');
+    expect(result.personA.gender).toBe('male');
+    expect(result.personB.gender).toBe('female');
     expect(result.personA.mingMajorStars.length).toBeGreaterThan(0);
     expect(result.personB.mingMajorStars.length).toBeGreaterThan(0);
 
