@@ -8,7 +8,7 @@ const translations: Record<Locale, Record<string, string>> = {
   'zh-CN': zhCN,
 };
 
-interface I18nContextValue {
+export interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   t: (key: TranslationKey, params?: Record<string, string>) => string;
@@ -28,7 +28,7 @@ export function translate(locale: Locale, key: TranslationKey, params?: Record<s
   return text;
 }
 
-const I18nContext = createContext<I18nContextValue | null>(null);
+export const I18nContext = createContext<I18nContextValue | null>(null);
 
 interface I18nProviderProps {
   children: ReactNode;

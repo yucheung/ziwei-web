@@ -89,7 +89,7 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
       case 'wealth':
         return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500 text-slate-950 shadow-md">{t('chart.wealthBadge')}</span>;
       case 'anhe':
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 shadow-md">{t('chart.anhe')}</span>;
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 shadow-md">{t('chart.anheBadge')}</span>;
       default:
         return null;
     }

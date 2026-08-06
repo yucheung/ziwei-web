@@ -82,6 +82,7 @@ export const zhTW = {
   'chart.targetBadge': '本宮',
   'chart.careerBadge': '事業位',
   'chart.wealthBadge': '財帛位',
+  'chart.anheBadge': '暗合宮',
   'chart.detailPanel': '詳情面板',
   'chart.bodyPalace': '身宮',
   'chart.originPalace': '來因宮',

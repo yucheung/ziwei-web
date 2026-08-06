@@ -92,6 +92,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'chart.targetBadge': '本宫',
   'chart.careerBadge': '事业位',
   'chart.wealthBadge': '财帛位',
+  'chart.anheBadge': '暗合宫',
   'chart.detailPanel': '详情面板',
   'chart.bodyPalace': '身宫',
   'chart.originPalace': '来因宫',

@@ -412,14 +412,16 @@ describe('ReadingPanel Component Test Suite', () => {
       });
 
       const userPrompt = capturedMessages!.find((m) => m.role === 'user')!.content;
-      // 簡體字形不得殘留在 prompt 中；一律還原為 zh-TW canonical 命理詞彙
+      // 命盤資料本身（宮位/星曜/四化 canonical key）不得因顯示語言簡化；一律還原為
+      // zh-TW canonical 命理詞彙。B1 之後，解讀指令與 UI 標籤才會依 locale 改為簡體
+      // 散文（例如「財帛宮」寫成「财帛宫」），因此不能再斷言整段 prompt 完全不含
+      // 任何簡體「宮」部件，只針對具體資料值（星曜名／四化前綴）做精確比對。
       expect(userPrompt).toContain('命宮');
-      expect(userPrompt).not.toContain('命宫');
       expect(userPrompt).not.toContain('巨门');
       expect(userPrompt).not.toContain('生年禄');
     });
 
-    it('produces the same user prompt regardless of whether the source astrolabe was rendered in zh-TW or zh-CN', async () => {
+    it('keeps chart data (palace/star canonical key) identical across UI locales while the reading instructions/labels follow the UI locale (B1)', async () => {
       const zhChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'zh-TW' });
       const cnChart = getChart({ date: '2000-08-16', timeIndex: 1, gender: 'male', language: 'zh-CN' });
 
@@ -449,8 +451,20 @@ describe('ReadingPanel Component Test Suite', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盘解读/i }));
       await waitFor(() => expect(capturedUserPrompt).not.toBe(''));
+      const cnSourcedPrompt = capturedUserPrompt;
 
-      expect(capturedUserPrompt).toBe(zhSourcedPrompt);
+      // 命盤資料本身（宮位/星曜/四化 canonical key）不受顯示語言影響，兩者皆為 zh-TW
+      // 字形；解讀指令與 UI 標籤散文則可依 locale 改為簡體，因此不斷言整段 prompt
+      // 完全不含簡體「宮」部件，只針對具體資料值做精確比對（見上一測試的說明）。
+      expect(zhSourcedPrompt).toContain('命宮');
+      expect(cnSourcedPrompt).toContain('命宮');
+      expect(cnSourcedPrompt).not.toContain('巨门');
+      expect(cnSourcedPrompt).not.toContain('生年禄');
+
+      // 但解讀指令與 UI 標籤的語言，B1 修正後應跟隨當下顯示語言而非恆為繁體
+      expect(zhSourcedPrompt).toContain('【解讀重點：');
+      expect(cnSourcedPrompt).toContain('【解读重点：');
+      expect(cnSourcedPrompt).not.toBe(zhSourcedPrompt);
     });
   });
 });

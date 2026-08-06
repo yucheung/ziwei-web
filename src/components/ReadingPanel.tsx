@@ -161,6 +161,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       type: readingType,
       customInstructions,
       focusPalace: focusPalace || undefined,
+      locale: appLocale,
     });
 
     const messages: ChatMessage[] = [
