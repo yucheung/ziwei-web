@@ -81,15 +81,15 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
   const getRoleBadge = () => {
     switch (role) {
       case 'target':
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-slate-950 shadow-md">本宮</span>;
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-slate-950 shadow-md">{t('chart.targetBadge')}</span>;
       case 'opposite':
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white shadow-md">對宮</span>;
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white shadow-md">{t('chart.opposite')}</span>;
       case 'career':
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-500 text-slate-950 shadow-md">事業位</span>;
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-500 text-slate-950 shadow-md">{t('chart.careerBadge')}</span>;
       case 'wealth':
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500 text-slate-950 shadow-md">財帛位</span>;
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500 text-slate-950 shadow-md">{t('chart.wealthBadge')}</span>;
       case 'anhe':
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 shadow-md">暗合宮</span>;
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 shadow-md">{t('chart.anhe')}</span>;
       default:
         return null;
     }

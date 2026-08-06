@@ -119,6 +119,14 @@ describe('llm.ts - OpenAI Compatible LLM Client & Settings', () => {
     expect(validateBaseUrl('http://127.0.0.1:11434/v1').secure).toBe(true);
   });
 
+  it('should flag non-https base URLs as insecure with an English message when locale is en', () => {
+    const result = validateBaseUrl('http://api.example.com/v1', 'en');
+    expect(result.valid).toBe(true);
+    expect(result.secure).toBe(false);
+    expect(result.message).toContain('https');
+    expect(result.message).not.toMatch(/[一-鿿]/);
+  });
+
   it('should reject malformed base URLs', () => {
     const result = validateBaseUrl('not a url');
     expect(result.valid).toBe(false);

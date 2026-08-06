@@ -77,7 +77,7 @@ export function generateChartCsv(astrolabe: ExportAstrolabe, locale: Locale = 'z
   const lines: string[] = [];
 
   // UTF-8 BOM
-  const bom = '﻿';
+  const bom = '\uFEFF';
 
   // 基本資訊段落
   lines.push(tr('export.csvBasicHeader'));

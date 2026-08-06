@@ -201,6 +201,27 @@ describe('ReadingPanel Component Test Suite', () => {
     expect(apiKeyInput).toHaveValue('');
   });
 
+  it('toggles API key visibility between masked and plain text', () => {
+    render(<ReadingPanel chart={mockChart} />);
+
+    const configBtn = screen.getByRole('button', { name: /API 與模型設定/i });
+    fireEvent.click(configBtn);
+
+    const apiKeyInput = screen.getByPlaceholderText('sk-...') as HTMLInputElement;
+    expect(apiKeyInput.type).toBe('password');
+
+    const showBtn = screen.getByRole('button', { name: '顯示 API Key' });
+    fireEvent.click(showBtn);
+
+    expect(apiKeyInput.type).toBe('text');
+    expect(apiKeyInput).toHaveValue('test-api-key-123');
+
+    const hideBtn = screen.getByRole('button', { name: '隱藏 API Key' });
+    fireEvent.click(hideBtn);
+
+    expect(apiKeyInput.type).toBe('password');
+  });
+
   it('does not clear the API key when user cancels the confirm dialog', () => {
     const confirmSpy = vi.fn().mockReturnValue(false);
     window.confirm = confirmSpy;

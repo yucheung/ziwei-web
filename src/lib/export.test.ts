@@ -67,6 +67,17 @@ describe('src/lib/export.ts', () => {
       expect(csv).toContain('天同');
       expect(csv).toContain('巨门');
     });
+
+    it('generates English-locale CSV with translated headers and values', () => {
+      const csv = generateChartCsv(sampleAstrolabe, 'en');
+
+      expect(csv.startsWith('﻿')).toBe(true);
+      expect(csv).not.toContain('=== 紫微斗數命盤基本資料 ===');
+      expect(csv).toContain('Gender');
+      expect(csv).toContain('"male"');
+      expect(csv).toContain('Palace Name');
+      expect(csv).toContain('general');
+    });
   });
 
   describe('generateChartSummaryText', () => {

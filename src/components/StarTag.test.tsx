@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StarTag } from './StarTag';
+import { I18nProvider } from '../i18n';
 
 describe('StarTag Component', () => {
   it('renders major star name correctly in vertical mode', () => {
@@ -23,6 +24,20 @@ describe('StarTag Component', () => {
     expect(screen.getByText('天馬')).toBeInTheDocument();
     expect(screen.queryByText('廟')).not.toBeInTheDocument();
     expect(screen.queryByText('祿')).not.toBeInTheDocument();
+  });
+
+  describe('English locale rendering', () => {
+    it('renders translated star name and brightness in English locale', () => {
+      render(
+        <I18nProvider defaultLocale="en">
+          <StarTag name="紫微" brightness="廟" mutagen="權" vertical={false} />
+        </I18nProvider>
+      );
+      expect(screen.getByText('emperor')).toBeInTheDocument();
+      expect(screen.getByText('[+3]')).toBeInTheDocument();
+      expect(screen.getByText('B')).toBeInTheDocument();
+      expect(screen.queryByText('紫微')).not.toBeInTheDocument();
+    });
   });
 
   describe('brightness display and color differentiation', () => {

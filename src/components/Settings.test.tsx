@@ -89,10 +89,11 @@ describe('Settings Component', () => {
     // setConfig receives an updater function; verify it spreads and sets dayDivide
     const updater = setConfig.mock.calls[0][0];
     expect(typeof updater).toBe('function');
-    const result = updater({ algorithm: 'zhongzhou', dayDivide: 'current' });
+    const input = { algorithm: 'zhongzhou', dayDivide: 'current' };
+    const result = updater(input);
     expect(result).toEqual(expect.objectContaining({ algorithm: 'zhongzhou' }));
     // The updater should produce a new object (spread copy)
-    expect(result).not.toBe({ algorithm: 'zhongzhou', dayDivide: 'current' });
+    expect(result).not.toBe(input);
   });
 
   it('year boundary select: changing value calls setConfig', () => {
@@ -103,8 +104,9 @@ describe('Settings Component', () => {
     expect(setConfig).toHaveBeenCalled();
     const updater = setConfig.mock.calls[0][0];
     expect(typeof updater).toBe('function');
-    const result = updater({ algorithm: 'zhongzhou', yearDivide: 'normal' });
+    const input = { algorithm: 'zhongzhou', yearDivide: 'normal' };
+    const result = updater(input);
     expect(result).toEqual(expect.objectContaining({ algorithm: 'zhongzhou' }));
-    expect(result).not.toBe({ algorithm: 'zhongzhou', yearDivide: 'normal' });
+    expect(result).not.toBe(input);
   });
 });
