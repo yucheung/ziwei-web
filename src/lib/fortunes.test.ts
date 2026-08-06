@@ -244,6 +244,85 @@ describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
     expect(summaryZi.hourly.stemBranch).not.toBe(summaryWu.hourly.stemBranch);
   });
 
+  it('produces pure zh-CN output even after iztro global language leaks to zh-TW (根因 C4 regression, setLanguage 行程全域洩漏)', () => {
+    // 模擬 App 以 zh-CN 建盤
+    const astrolabeCN = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-CN',
+    });
+
+    // 模擬 MatchPanel 的 getCanonicalAstrolabe 稍後以 zh-TW 呼叫 getChart()，
+    // 導致 iztro 全域 i18next 語系被改為 zh-TW (astro.js:144 setLanguage 為行程全域狀態)
+    getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    const summary = getHoroscopeSummary(astrolabeCN, '2026-08-04', 'zh-CN');
+
+    // 大限/流年命宮名稱與四化應為簡體，不受全域語系洩漏影響
+    expect(summary.yearly.name).toBe('命宫');
+    expect(summary.decadal.mutagen.lu).toBe('廉贞');
+    expect(summary.decadal.mutagen.ji).toBe('太阳');
+    expect(summary.yearly.mutagen.ji).toBe('廉贞');
+
+    // 大限/流年重新排名的 12 宮位名稱也應為簡體
+    expect(summary.decadal.palaceNames).toContain('命宫');
+    expect(summary.decadal.palaceNames).toContain('财帛');
+    expect(summary.decadal.palaceNames).not.toContain('命宮');
+    expect(summary.decadal.palaceNames).not.toContain('財帛');
+
+    // 各宮流曜/神煞應全為簡體字形，不應混入繁體字形
+    const allStars = Object.values(summary.palaceScopeStars).flatMap((p) => [
+      ...p.decadalStars,
+      ...p.yearlyStars,
+      ...(p.monthlyStars || []),
+      ...(p.dailyStars || []),
+      ...(p.hourlyStars || []),
+      ...(p.suiqianStar ? [p.suiqianStar] : []),
+      ...(p.jiangqianStar ? [p.jiangqianStar] : []),
+    ]);
+    const joined = allStars.join('');
+    expect(joined).toContain('禄'); // 簡體「運祿/流祿」等
+    // 繁體專屬字形不應殘留 (祿/馬/鸞/鉞/龍/歲/喪/貫/將/奏/飛 為對應簡體 禄/马/鸾/钺/龙/岁/丧/贯/将/奏/飞 的繁體字形)
+    expect(joined).not.toMatch(/[祿馬鸞鉞龍歲喪貫]/);
+  });
+
+  it('keeps pure zh-TW output even after iztro global language leaks to zh-CN (reverse-direction regression protection)', () => {
+    const astrolabeTW = getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-TW',
+    });
+
+    // 模擬全域語系被其他呼叫翻成 zh-CN
+    getChart({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      language: 'zh-CN',
+    });
+
+    const summary = getHoroscopeSummary(astrolabeTW, '2026-08-04', 'zh-TW');
+
+    expect(summary.yearly.name).toBe('命宮');
+    expect(summary.decadal.mutagen.lu).toBe('廉貞');
+    expect(summary.decadal.mutagen.ji).toBe('太陽');
+
+    const allStars = Object.values(summary.palaceScopeStars).flatMap((p) => [
+      ...p.decadalStars,
+      ...p.yearlyStars,
+    ]);
+    const joined = allStars.join('');
+    expect(joined).toContain('祿');
+    expect(joined).not.toMatch(/[马鸾钺龙岁丧贯]/);
+  });
+
   it('leaves 流時 (hourly) result unchanged when timeIndex is omitted (regression protection)', () => {
     const astrolabe = getChart({
       date: '2000-08-16',

@@ -6,6 +6,7 @@ import {
   buildReadingPrompt,
   sanitizeUserInput,
   DEFAULT_SYSTEM_PROMPT,
+  SYSTEM_PROMPT_ZH_CN,
 } from './prompts';
 
 describe('prompts.ts - Astrolabe Prompt Generator', () => {
@@ -232,6 +233,34 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
       expect(cnSummary).not.toContain('命宫');
       expect(cnSummary).not.toContain('巨门');
       expect(cnSummary).not.toContain('生年禄');
+    });
+  });
+
+  // --- B1 回歸守衛：防止 getSystemPrompt / summarizeAstrolabe 被還原為恆回 zh-TW ---
+
+  describe('B1: zh-CN 語系守衛（防還原回歸）', () => {
+    it('buildReadingPrompt locale=zh-CN 的 systemPrompt 應為簡體版且不同於 zh-TW 版', () => {
+      const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+
+      const cn = buildReadingPrompt(chart, { type: 'overall', locale: 'zh-CN' });
+      const tw = buildReadingPrompt(chart, { type: 'overall', locale: 'zh-TW' });
+
+      expect(cn.systemPrompt.startsWith(SYSTEM_PROMPT_ZH_CN)).toBe(true);
+      expect(cn.systemPrompt).toContain('简体中文');
+      expect(cn.systemPrompt).not.toContain('繁體');
+      expect(cn.systemPrompt).not.toBe(tw.systemPrompt);
+      expect(tw.systemPrompt.startsWith(DEFAULT_SYSTEM_PROMPT)).toBe(true);
+    });
+
+    it('summarizeAstrolabe locale=zh-CN 應輸出簡體 UI 標籤，且不同於 zh-TW 版摘要', () => {
+      const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+
+      const cnSummary = summarizeAstrolabe(chart, 'zh-CN');
+      const twSummary = summarizeAstrolabe(chart, 'zh-TW');
+
+      expect(cnSummary).toContain('# 命盘基本信息');
+      expect(cnSummary).not.toContain('# 命盤基本資訊');
+      expect(cnSummary).not.toBe(twSummary);
     });
   });
 });

@@ -30,7 +30,7 @@ export type AppLocale = 'zh-TW' | 'zh-CN';
 type MutagenKey = '祿' | '權' | '科' | '忌';
 
 /** 可翻譯的分類 */
-type TranslationCategory =
+export type TranslationCategory =
   | 'palace'
   | 'star'
   | 'mutagen'

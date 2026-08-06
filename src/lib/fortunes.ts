@@ -1,4 +1,4 @@
-import type { AppLocale, IFunctionalAstrolabe } from './chartModel';
+import type { AppLocale, IFunctionalAstrolabe, TranslationCategory } from './chartModel';
 import { toCanonicalKey, translateKey } from './chartModel';
 import type { IFunctionalHoroscope } from 'iztro/lib/astro/FunctionalHoroscope';
 
@@ -235,10 +235,18 @@ export function getHoroscopeSummary(
   const h: IFunctionalHoroscope =
     typeof timeIndex === 'number' ? astrolabe.horoscope(dateStr, timeIndex) : astrolabe.horoscope(dateStr);
 
+  // 根因 C4 修復：iztro 的 setLanguage 為行程全域狀態 (見 astro.js:144)。
+  // 若在本次呼叫之前，行程內其他地方 (例如 MatchPanel 的 getCanonicalAstrolabe)
+  // 曾以不同 language 呼叫過 getChart()，全域語系會被改變，導致 h.horoscope()
+  // 內部產生的流曜/神煞/宮名字串語系與傳入的 astrolabe 顯示語言不一致。
+  // 透過「反查回 zh-TW canonical key 再轉回 locale」，使輸出與該全域狀態徹底無關。
+  const normalizeScopeText = (display: string, category: TranslationCategory): string =>
+    translateKey(toCanonicalKey(display, category, 'zh-CN'), category, locale);
+
   const nominalAge = h.age.nominalAge ?? 0;
 
   // 大限四化
-  const decadalMutagenArr: string[] = h.decadal.mutagen || [];
+  const decadalMutagenArr: string[] = (h.decadal.mutagen || []).map((s) => normalizeScopeText(s, 'star'));
   const decadalMutagenObj = {
     lu: decadalMutagenArr[0] || getMutagensByStemForLocale(h.decadal.heavenlyStem, locale).lu,
     quan: decadalMutagenArr[1] || getMutagensByStemForLocale(h.decadal.heavenlyStem, locale).quan,
@@ -247,7 +255,7 @@ export function getHoroscopeSummary(
   };
 
   // 流年四化
-  const yearlyMutagenArr: string[] = h.yearly.mutagen || [];
+  const yearlyMutagenArr: string[] = (h.yearly.mutagen || []).map((s) => normalizeScopeText(s, 'star'));
   const yearlyMutagenObj = {
     lu: yearlyMutagenArr[0] || getMutagensByStemForLocale(h.yearly.heavenlyStem, locale).lu,
     quan: yearlyMutagenArr[1] || getMutagensByStemForLocale(h.yearly.heavenlyStem, locale).quan,
@@ -256,7 +264,7 @@ export function getHoroscopeSummary(
   };
 
   // 流月四化
-  const monthlyMutagenArr: string[] = h.monthly.mutagen || [];
+  const monthlyMutagenArr: string[] = (h.monthly.mutagen || []).map((s) => normalizeScopeText(s, 'star'));
   const monthlyMutagenObj = {
     lu: monthlyMutagenArr[0] || getMutagensByStemForLocale(h.monthly.heavenlyStem, locale).lu,
     quan: monthlyMutagenArr[1] || getMutagensByStemForLocale(h.monthly.heavenlyStem, locale).quan,
@@ -265,7 +273,7 @@ export function getHoroscopeSummary(
   };
 
   // 流日四化
-  const dailyMutagenArr: string[] = h.daily.mutagen || [];
+  const dailyMutagenArr: string[] = (h.daily.mutagen || []).map((s) => normalizeScopeText(s, 'star'));
   const dailyMutagenObj = {
     lu: dailyMutagenArr[0] || getMutagensByStemForLocale(h.daily.heavenlyStem, locale).lu,
     quan: dailyMutagenArr[1] || getMutagensByStemForLocale(h.daily.heavenlyStem, locale).quan,
@@ -274,7 +282,7 @@ export function getHoroscopeSummary(
   };
 
   // 流時四化
-  const hourlyMutagenArr: string[] = h.hourly.mutagen || [];
+  const hourlyMutagenArr: string[] = (h.hourly.mutagen || []).map((s) => normalizeScopeText(s, 'star'));
   const hourlyMutagenObj = {
     lu: hourlyMutagenArr[0] || getMutagensByStemForLocale(h.hourly.heavenlyStem, locale).lu,
     quan: hourlyMutagenArr[1] || getMutagensByStemForLocale(h.hourly.heavenlyStem, locale).quan,
@@ -282,20 +290,22 @@ export function getHoroscopeSummary(
     ji: hourlyMutagenArr[3] || getMutagensByStemForLocale(h.hourly.heavenlyStem, locale).ji,
   };
 
-  // 大限/流年命宮名稱
-  const decadalPalaceName = astrolabe.palaces[h.decadal.index]?.name || '';
-  const yearlyPalaceName = astrolabe.palaces[h.yearly.index]?.name || '';
+  // 大限/流年命宮名稱 (astrolabe.palaces 為建盤時固化，語言與 astrolabe 一致，此處統一防禦正規化)
+  const decadalPalaceName = normalizeScopeText(astrolabe.palaces[h.decadal.index]?.name || '', 'palace');
+  const yearlyPalaceName = normalizeScopeText(astrolabe.palaces[h.yearly.index]?.name || '', 'palace');
 
   // 各宮位對應流曜與神煞
   const palaceScopeStars: Record<number, ScopeStars> = {};
   for (let i = 0; i < 12; i++) {
-    const decStars: string[] = (h.decadal.stars?.[i] || []).map((s) => s.name);
-    const yrStars: string[] = (h.yearly.stars?.[i] || []).map((s) => s.name);
-    const moStars: string[] = (h.monthly.stars?.[i] || []).map((s) => s.name);
-    const daStars: string[] = (h.daily.stars?.[i] || []).map((s) => s.name);
-    const hoStars: string[] = (h.hourly.stars?.[i] || []).map((s) => s.name);
-    const suiqian = h.yearly.yearlyDecStar.suiqian12?.[i];
-    const jiangqian = h.yearly.yearlyDecStar.jiangqian12?.[i];
+    const decStars: string[] = (h.decadal.stars?.[i] || []).map((s) => normalizeScopeText(s.name, 'star'));
+    const yrStars: string[] = (h.yearly.stars?.[i] || []).map((s) => normalizeScopeText(s.name, 'star'));
+    const moStars: string[] = (h.monthly.stars?.[i] || []).map((s) => normalizeScopeText(s.name, 'star'));
+    const daStars: string[] = (h.daily.stars?.[i] || []).map((s) => normalizeScopeText(s.name, 'star'));
+    const hoStars: string[] = (h.hourly.stars?.[i] || []).map((s) => normalizeScopeText(s.name, 'star'));
+    const suiqianRaw = h.yearly.yearlyDecStar.suiqian12?.[i];
+    const jiangqianRaw = h.yearly.yearlyDecStar.jiangqian12?.[i];
+    const suiqian = suiqianRaw ? normalizeScopeText(suiqianRaw, 'star') : suiqianRaw;
+    const jiangqian = jiangqianRaw ? normalizeScopeText(jiangqianRaw, 'star') : jiangqianRaw;
 
     palaceScopeStars[i] = {
       decadalStars: decStars,
@@ -320,35 +330,35 @@ export function getHoroscopeSummary(
       name: decadalPalaceName,
       stemBranch: `${h.decadal?.heavenlyStem || ''}${h.decadal?.earthlyBranch || ''}`,
       mutagen: decadalMutagenObj,
-      palaceNames: h.decadal?.palaceNames || [],
+      palaceNames: (h.decadal?.palaceNames || []).map((n) => normalizeScopeText(n, 'palace')),
     },
     yearly: {
       index: h.yearly?.index ?? 0,
       name: yearlyPalaceName,
       stemBranch: `${h.yearly?.heavenlyStem || ''}${h.yearly?.earthlyBranch || ''}`,
       mutagen: yearlyMutagenObj,
-      palaceNames: h.yearly?.palaceNames || [],
+      palaceNames: (h.yearly?.palaceNames || []).map((n) => normalizeScopeText(n, 'palace')),
     },
     monthly: {
       index: h.monthly?.index ?? 0,
       name: h.monthly?.name || '流月',
       stemBranch: `${h.monthly?.heavenlyStem || ''}${h.monthly?.earthlyBranch || ''}`,
       mutagen: monthlyMutagenObj,
-      palaceNames: h.monthly?.palaceNames || [],
+      palaceNames: (h.monthly?.palaceNames || []).map((n) => normalizeScopeText(n, 'palace')),
     },
     daily: {
       index: h.daily?.index ?? 0,
       name: h.daily?.name || '流日',
       stemBranch: `${h.daily?.heavenlyStem || ''}${h.daily?.earthlyBranch || ''}`,
       mutagen: dailyMutagenObj,
-      palaceNames: h.daily?.palaceNames || [],
+      palaceNames: (h.daily?.palaceNames || []).map((n) => normalizeScopeText(n, 'palace')),
     },
     hourly: {
       index: h.hourly?.index ?? 0,
       name: h.hourly?.name || '流時',
       stemBranch: `${h.hourly?.heavenlyStem || ''}${h.hourly?.earthlyBranch || ''}`,
       mutagen: hourlyMutagenObj,
-      palaceNames: h.hourly?.palaceNames || [],
+      palaceNames: (h.hourly?.palaceNames || []).map((n) => normalizeScopeText(n, 'palace')),
     },
     palaceScopeStars,
     decadalTable,

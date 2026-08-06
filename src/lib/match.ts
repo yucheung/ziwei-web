@@ -1,6 +1,6 @@
 import { astro } from 'iztro';
 import { GetChartOptions } from './astro';
-import { getCanonicalAstrolabe, toGenderKey, type GenderKey } from './chartModel';
+import { getCanonicalAstrolabe, toGenderKey, type AppLocale, type GenderKey } from './chartModel';
 
 export type IFunctionalAstrolabe = ReturnType<typeof astro.bySolar>;
 export type IFunctionalPalace = IFunctionalAstrolabe['palaces'][number];
@@ -15,6 +15,8 @@ export interface PersonMatchInput extends Partial<GetChartOptions> {
 export interface AnalyzeMatchOptions {
   personA: PersonMatchInput;
   personB: PersonMatchInput;
+  /** 合盤評語（ratingLabel / relationshipPoints 散文）輸出語言，預設 'zh-TW' */
+  locale?: AppLocale;
 }
 
 export interface PersonInfo {
@@ -290,11 +292,28 @@ export function extractPersonInfo(astrolabe: IFunctionalAstrolabe, name: string)
   };
 }
 
+/** ratingLabel 評語（星等區間 → 顯示文字），依 locale 輸出繁簡 */
+const RATING_LABELS: Record<AppLocale, { excellent: string; great: string; good: string; fair: string }> = {
+  'zh-TW': {
+    excellent: '天作之合 · 琴瑟和鳴',
+    great: '相輔相成 · 佳偶天成',
+    good: '互補磨合 · 越陳越香',
+    fair: '情深緣淺 · 需多心力',
+  },
+  'zh-CN': {
+    excellent: '天作之合 · 琴瑟和鸣',
+    great: '相辅相成 · 佳偶天成',
+    good: '互补磨合 · 越陈越香',
+    fair: '情深缘浅 · 需多心力',
+  },
+};
+
 /** 計算契合度分數 */
 export function calculateCompatibility(
   personA: PersonInfo,
   personB: PersonInfo,
-  crossGroups: CrossMutagenGroup[]
+  crossGroups: CrossMutagenGroup[],
+  locale: AppLocale = 'zh-TW'
 ): MatchCompatibility {
   let emotional = 78;
   let personality = 80;
@@ -346,11 +365,12 @@ export function calculateCompatibility(
 
   const overallScore = Math.round((emotional * 0.35 + personality * 0.25 + careerWealth * 0.2 + stability * 0.2));
 
+  const labels = RATING_LABELS[locale];
   let ratingLabel: string;
-  if (overallScore >= 90) ratingLabel = '天作之合 · 琴瑟和鳴';
-  else if (overallScore >= 82) ratingLabel = '相輔相成 · 佳偶天成';
-  else if (overallScore >= 72) ratingLabel = '互補磨合 · 越陳越香';
-  else ratingLabel = '情深緣淺 · 需多心力';
+  if (overallScore >= 90) ratingLabel = labels.excellent;
+  else if (overallScore >= 82) ratingLabel = labels.great;
+  else if (overallScore >= 72) ratingLabel = labels.good;
+  else ratingLabel = labels.fair;
 
   return {
     overallScore,
@@ -363,55 +383,113 @@ export function calculateCompatibility(
   };
 }
 
+/**
+ * 相處建議散文模板，依 locale 輸出繁簡措辭。
+ * 星曜/宮位名稱 (aStars/bStars/aFuqi/bFuqi/branchRelation/personA.name/personB.name)
+ * 一律沿用呼叫端傳入的 canonical zh-TW 命理字形，不隨 locale 轉換 (術語 canonical，僅散文措辭簡體化)。
+ */
+const RELATIONSHIP_TEMPLATES: Record<
+  AppLocale,
+  {
+    mingVsMingText: (a: string, aStars: string, b: string, bStars: string, branchRelation: string) => string;
+    mingVsFuQiText: (a: string, aFuqi: string, b: string, bStars: string, bFuqi: string, aStars: string) => string;
+    flyingMutagenIntro: string;
+    flyingMutagenLuPrefix: string;
+    flyingMutagenJiPrefix: string;
+    strengths: (a: string, b: string, branchRelation: string) => string[];
+    risks: string[];
+    advice: string[];
+  }
+> = {
+  'zh-TW': {
+    mingVsMingText: (a, aStars, b, bStars, branchRelation) =>
+      `${a}命宮坐【${aStars}】，${b}命宮坐【${bStars}】。兩位命宮地支關係為「${branchRelation}」。在性格表現上，${a}與${b}具備天然的對應與交流契機。`,
+    mingVsFuQiText: (a, aFuqi, b, bStars, bFuqi, aStars) =>
+      `${a}夫妻宮主星【${aFuqi}】，對照${b}命宮【${bStars}】；${b}夫妻宮主星【${bFuqi}】，對照${a}命宮【${aStars}】。雙方星曜相互投射，象徵著彼此符合對方心目中對另一半的潛意識期待。`,
+    flyingMutagenIntro: '雙方四化互飛氣場交融。',
+    flyingMutagenLuPrefix: '其中',
+    flyingMutagenJiPrefix: '同時需要留意',
+    strengths: (a, b, branchRelation) => [
+      `命宮地支呈現「${branchRelation}」，基礎感情磁場穩固。`,
+      `${a}的四化能量為${b}帶動正面氣場與成長機會。`,
+      `雙方夫妻宮與對方命宮主星有所呼應，相處時容易產生熟悉感與吸引力。`,
+      `事業與財運宮位互有助力，適合共同規劃長遠家庭或事業藍圖。`,
+    ],
+    risks: [
+      `化忌飛入相關宮位時，若遇爭執容易陷入固執己見，需及時溝通。`,
+      `當工作壓力大時，留意不要將情緒轉嫁到對方身上。`,
+      `雙方價值觀若有差異，宜以理性商討代替情緒化的言語碰撞。`,
+    ],
+    advice: [
+      `【保持傾聽】定期進行心靈溝通，分享彼此內心真實感受。`,
+      `【發揮優勢】利用四化化祿的宮位優勢，多共同參與能帶來成就感的事務。`,
+      `【化解磨合】遇有化忌飛入的領域，多給予對方包容與彈性空間。`,
+      `【共同目標】建立共同的理財與生活目標，讓情感隨時間越加深厚。`,
+    ],
+  },
+  'zh-CN': {
+    mingVsMingText: (a, aStars, b, bStars, branchRelation) =>
+      `${a}命宫坐【${aStars}】，${b}命宫坐【${bStars}】。两位命宫地支关系为「${branchRelation}」。在性格表现上，${a}与${b}具备天然的对应与交流契机。`,
+    mingVsFuQiText: (a, aFuqi, b, bStars, bFuqi, aStars) =>
+      `${a}夫妻宫主星【${aFuqi}】，对照${b}命宫【${bStars}】；${b}夫妻宫主星【${bFuqi}】，对照${a}命宫【${aStars}】。双方星曜相互投射，象征着彼此符合对方心目中对另一半的潜意识期待。`,
+    flyingMutagenIntro: '双方四化互飞气场交融。',
+    flyingMutagenLuPrefix: '其中',
+    flyingMutagenJiPrefix: '同时需要留意',
+    strengths: (a, b, branchRelation) => [
+      `命宫地支呈现「${branchRelation}」，基础感情磁场稳固。`,
+      `${a}的四化能量为${b}带动正面气场与成长机会。`,
+      `双方夫妻宫与对方命宫主星有所呼应，相处时容易产生熟悉感与吸引力。`,
+      `事业与财运宫位互有助力，适合共同规划长远家庭或事业蓝图。`,
+    ],
+    risks: [
+      `化忌飞入相关宫位时，若遇争执容易陷入固执己见，需及时沟通。`,
+      `当工作压力大时，留意不要将情绪转嫁到对方身上。`,
+      `双方价值观若有差异，宜以理性商讨代替情绪化的言语碰撞。`,
+    ],
+    advice: [
+      `【保持倾听】定期进行心灵沟通，分享彼此内心真实感受。`,
+      `【发挥优势】利用四化化禄的宫位优势，多共同参与能带来成就感的事务。`,
+      `【化解磨合】遇有化忌飞入的领域，多给予对方包容与弹性空间。`,
+      `【共同目标】建立共同的理财与生活目标，让情感随时间越加深厚。`,
+    ],
+  },
+};
+
 /** 產生關係重點與相處建議 */
 export function generateRelationshipPoints(
   personA: PersonInfo,
   personB: PersonInfo,
   crossGroups: CrossMutagenGroup[],
-  branchRelation: string
+  branchRelation: string,
+  locale: AppLocale = 'zh-TW'
 ): RelationshipKeyPoints {
+  const T = RELATIONSHIP_TEMPLATES[locale];
   const aStars = personA.mingMajorStars.join('、');
   const bStars = personB.mingMajorStars.join('、');
   const aFuqi = personA.fuqiMajorStars.join('、');
   const bFuqi = personB.fuqiMajorStars.join('、');
 
-  const mingVsMingText = `${personA.name}命宮坐【${aStars}】，${personB.name}命宮坐【${bStars}】。兩位命宮地支關係為「${branchRelation}」。在性格表現上，${personA.name}與${personB.name}具備天然的對應與交流契機。`;
+  const mingVsMingText = T.mingVsMingText(personA.name, aStars, personB.name, bStars, branchRelation);
 
-  const mingVsFuQiText = `${personA.name}夫妻宮主星【${aFuqi}】，對照${personB.name}命宮【${bStars}】；${personB.name}夫妻宮主星【${bFuqi}】，對照${personA.name}命宮【${aStars}】。雙方星曜相互投射，象徵著彼此符合對方心目中對另一半的潛意識期待。`;
+  const mingVsFuQiText = T.mingVsFuQiText(personA.name, aFuqi, personB.name, bStars, bFuqi, aStars);
 
   // 尋找特色四化
   const luHits = crossGroups.flatMap((g) => g.details.filter((d) => d.mutagen === '祿'));
   const jiHits = crossGroups.flatMap((g) => g.details.filter((d) => d.mutagen === '忌'));
 
-  let flyingMutagenText = '雙方四化互飛氣場交融。';
+  let flyingMutagenText = T.flyingMutagenIntro;
   if (luHits.length > 0) {
     const topLu = luHits[0];
-    flyingMutagenText += `其中${topLu.description} `;
+    flyingMutagenText += `${T.flyingMutagenLuPrefix}${topLu.description} `;
   }
   if (jiHits.length > 0) {
     const topJi = jiHits[0];
-    flyingMutagenText += `同時需要留意${topJi.description}`;
+    flyingMutagenText += `${T.flyingMutagenJiPrefix}${topJi.description}`;
   }
 
-  const strengths: string[] = [
-    `命宮地支呈現「${branchRelation}」，基礎感情磁場穩固。`,
-    `${personA.name}的四化能量為${personB.name}帶動正面氣場與成長機會。`,
-    `雙方夫妻宮與對方命宮主星有所呼應，相處時容易產生熟悉感與吸引力。`,
-    `事業與財運宮位互有助力，適合共同規劃長遠家庭或事業藍圖。`,
-  ];
-
-  const risks: string[] = [
-    `化忌飛入相關宮位時，若遇爭執容易陷入固執己見，需及時溝通。`,
-    `當工作壓力大時，留意不要將情緒轉嫁到對方身上。`,
-    `雙方價值觀若有差異，宜以理性商討代替情緒化的言語碰撞。`,
-  ];
-
-  const advice: string[] = [
-    `【保持傾聽】定期進行心靈溝通，分享彼此內心真實感受。`,
-    `【發揮優勢】利用四化化祿的宮位優勢，多共同參與能帶來成就感的事務。`,
-    `【化解磨合】遇有化忌飛入的領域，多給予對方包容與彈性空間。`,
-    `【共同目標】建立共同的理財與生活目標，讓情感隨時間越加深厚。`,
-  ];
+  const strengths = T.strengths(personA.name, personB.name, branchRelation);
+  const risks = T.risks;
+  const advice = T.advice;
 
   return {
     mingVsMingText,
@@ -449,8 +527,9 @@ export function analyzeMatch(options: AnalyzeMatchOptions): MatchResult {
 
   const crossMutagens = [cross1, cross2, cross3, cross4];
 
-  const compatibility = calculateCompatibility(infoA, infoB, crossMutagens);
-  const relationshipPoints = generateRelationshipPoints(infoA, infoB, crossMutagens, compatibility.branchRelation);
+  const locale = options.locale ?? 'zh-TW';
+  const compatibility = calculateCompatibility(infoA, infoB, crossMutagens, locale);
+  const relationshipPoints = generateRelationshipPoints(infoA, infoB, crossMutagens, compatibility.branchRelation, locale);
 
   return {
     personA: infoA,

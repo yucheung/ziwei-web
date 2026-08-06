@@ -97,4 +97,46 @@ describe('Ziwei Match Engine (src/lib/match.ts)', () => {
     expect(result.chartA).toBeDefined();
     expect(result.chartB).toBeDefined();
   });
+
+  it('defaults to zh-TW ratingLabel and relationshipPoints prose when locale is omitted', () => {
+    const result = analyzeMatch({
+      personA: { name: '男方 (甲)', date: '2000-08-16', timeIndex: 2, gender: 'male' },
+      personB: { name: '女方 (乙)', date: '2002-05-20', timeIndex: 6, gender: 'female' },
+    });
+
+    expect(result.compatibility.ratingLabel).toMatch(/[琴瑟鳴輔陳緣]/);
+    expect(result.relationshipPoints.mingVsMingText).toContain('命宮');
+    expect(result.relationshipPoints.mingVsMingText).toContain('兩位命宮地支關係為');
+  });
+
+  it('outputs zh-CN ratingLabel and relationshipPoints prose when locale is zh-CN', () => {
+    const result = analyzeMatch({
+      personA: { name: '男方 (甲)', date: '2000-08-16', timeIndex: 2, gender: 'male' },
+      personB: { name: '女方 (乙)', date: '2002-05-20', timeIndex: 6, gender: 'female' },
+      locale: 'zh-CN',
+    });
+
+    // 簡體措辭 (鸣/辅/陈/缘 為簡體字形，繁體版對應為 鳴/輔/陳/緣)
+    expect(result.compatibility.ratingLabel).toMatch(/[鸣辅陈缘]/);
+    expect(result.relationshipPoints.mingVsMingText).toContain('两位命宫地支关系为');
+    expect(result.relationshipPoints.mingVsFuQiText).toContain('对照');
+    expect(result.relationshipPoints.strengths.some((s) => s.includes('稳固'))).toBe(true);
+    expect(result.relationshipPoints.risks.some((s) => s.includes('沟通'))).toBe(true);
+    expect(result.relationshipPoints.advice.some((s) => s.includes('倾听'))).toBe(true);
+
+    // match.ts 為顯示層（使用者看到的報告），zh-CN 下散文中「命宫坐」等措辭與簡體 UI 一致
+    expect(result.relationshipPoints.mingVsMingText).toContain('命宫坐');
+    expect(result.relationshipPoints.mingVsMingText).not.toContain('命宮坐');
+  });
+
+  it('keeps zh-TW relationshipPoints prose unaffected when locale is explicitly zh-TW', () => {
+    const result = analyzeMatch({
+      personA: { name: '男方 (甲)', date: '2000-08-16', timeIndex: 2, gender: 'male' },
+      personB: { name: '女方 (乙)', date: '2002-05-20', timeIndex: 6, gender: 'female' },
+      locale: 'zh-TW',
+    });
+
+    expect(result.relationshipPoints.mingVsMingText).toContain('兩位命宮地支關係為');
+    expect(result.relationshipPoints.advice.some((s) => s.includes('傾聽'))).toBe(true);
+  });
 });

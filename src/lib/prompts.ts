@@ -16,7 +16,7 @@
  *
  * 語系參數化 (B1)：
  * 解讀指令、UI 標籤與語言指示則依 `locale` 參數化（zh-TW / zh-CN），確保 zh-CN
- * 使用者收到的是簡體输出，而非被寫死的繁體系統提示詞覆蓋。
+ * 使用者收到的是簡體輸出，而非被寫死的繁體系統提示詞覆蓋。
  */
 import { type ReadingAstrolabeLike, type ReadingStarLike } from './chartModel';
 import type { Locale } from '../i18n/locale';
@@ -156,7 +156,7 @@ const SUMMARY_LABELS: Record<Locale, SummaryLabels> = {
     bodyPalaceTag: '【身宮】',
     decadal: '大限',
     age: '岁',
-    unknownPalace: '未知宮',
+    unknownPalace: '未知宫',
     majorStars: '主星',
     noMajorStars: '无主星（借对宫）',
     minorStars: '辅星/吉凶曜',

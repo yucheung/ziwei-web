@@ -78,12 +78,13 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           timeIndex: parseInt(timeB, 10),
           gender: genderB,
         },
+        locale: appLocale,
       });
     } catch (err) {
       console.error('Match analysis error:', err);
       return null;
     }
-  }, [nameA, dateA, timeA, genderA, nameB, dateB, timeB, genderB]);
+  }, [nameA, dateA, timeA, genderA, nameB, dateB, timeB, genderB, appLocale]);
 
   const loadPresetPair = (pairType: 1 | 2) => {
     if (pairType === 1) {
