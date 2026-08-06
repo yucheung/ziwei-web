@@ -18,14 +18,17 @@ const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => 
 const ReadingPanel = lazy(() => import('./components/ReadingPanel').then((m) => ({ default: m.ReadingPanel })));
 const MatchPanel = lazy(() => import('./components/MatchPanel').then((m) => ({ default: m.MatchPanel })));
 
-const LoadingFallback = () => (
-  <div className="glass-panel p-12 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center text-center text-slate-500 dark:text-slate-400 min-h-[300px]">
-    <div className="flex items-center gap-3">
-      <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-      <span className="text-sm font-medium">載入中... / Loading...</span>
+const LoadingFallback = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="glass-panel p-12 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center text-center text-slate-500 dark:text-slate-400 min-h-[300px]">
+      <div className="flex items-center gap-3">
+        <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm font-medium">{t('app.loading')}</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function App() {
   const { locale, t } = useTranslation();

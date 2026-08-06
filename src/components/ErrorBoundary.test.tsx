@@ -26,7 +26,7 @@ describe('ErrorBoundary Component', () => {
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('頁面載入異常 / Component Load Error')).toBeInTheDocument();
+    expect(screen.getByText('頁面載入異常')).toBeInTheDocument();
     expect(screen.getByText('Test error in chunk load')).toBeInTheDocument();
 
     spy.mockRestore();

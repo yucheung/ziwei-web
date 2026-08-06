@@ -29,7 +29,6 @@ import {
   callLLMStream,
   testLLMConnection,
   validateBaseUrl,
-  API_KEY_SECURITY_WARNING,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '../lib/llm';
 import { buildReadingPrompt, ReadingType } from '../lib/prompts';
@@ -575,7 +574,7 @@ const LLMConfigModal: React.FC<ModalProps> = ({ config, onClose, onSave }) => {
               </button>
             </div>
             <p className="mt-1.5 text-[11px] text-amber-700/90 dark:text-amber-400/90 leading-relaxed">
-              {API_KEY_SECURITY_WARNING}
+              {t('llm.apiKeySecurityWarning')}
             </p>
             {clearedMsg && (
               <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400">{clearedMsg}</p>

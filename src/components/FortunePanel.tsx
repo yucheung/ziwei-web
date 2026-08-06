@@ -515,7 +515,7 @@ export function FortunePanel({
 
                 {/* Overlap Roles */}
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 space-x-2 font-mono">
-                  <span>限:{decadalPalaceName}</span>
+                  <span>{t('fortune.overlapLimit')}:{decadalPalaceName}</span>
                   <span>{t(FORTUNE_LEVEL_KEYS[fortuneLevel].labelKey)}:{levelPalaceName}</span>
                 </div>
 
@@ -558,10 +558,10 @@ export function FortunePanel({
                   {(scopeStars.suiqianStar || scopeStars.jiangqianStar) && (
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
                       {scopeStars.suiqianStar && (
-                        <span className="text-slate-500 dark:text-slate-400">歲:{scopeStars.suiqianStar}</span>
+                        <span className="text-slate-500 dark:text-slate-400">{t('fortune.suiqianShort')}:{scopeStars.suiqianStar}</span>
                       )}
                       {scopeStars.jiangqianStar && (
-                        <span className="text-slate-500 dark:text-slate-400">將:{scopeStars.jiangqianStar}</span>
+                        <span className="text-slate-500 dark:text-slate-400">{t('fortune.jiangqianShort')}:{scopeStars.jiangqianStar}</span>
                       )}
                     </div>
                   )}

@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { translate } from '../i18n';
 
 interface Props {
   children: ReactNode;
@@ -11,6 +12,11 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Class component rendered outside I18nProvider (wraps Suspense boundaries
+ * that may fail before the provider tree mounts), so it uses the
+ * context-free `translate()` helper rather than the `useTranslation()` hook.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -41,9 +47,9 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertTriangle className="w-8 h-8" aria-hidden="true" />
           </div>
           <div className="space-y-2 max-w-md">
-            <h3 className="text-base font-bold">頁面載入異常 / Component Load Error</h3>
+            <h3 className="text-base font-bold">{translate('zh-TW', 'error.boundary.title')}</h3>
             <p className="text-xs text-rose-700 dark:text-rose-300">
-              {this.state.error?.message || '模組載入失敗，可能是應用程式已更新。請嘗試重新整理頁面。'}
+              {this.state.error?.message || translate('zh-TW', 'error.boundary.msg')}
             </p>
           </div>
           <button
@@ -52,7 +58,7 @@ export class ErrorBoundary extends Component<Props, State> {
             className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
           >
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
-            重新載入頁面 / Reload Page
+            {translate('zh-TW', 'error.boundary.reload')}
           </button>
         </div>
       );

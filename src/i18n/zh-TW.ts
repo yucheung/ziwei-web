@@ -100,6 +100,8 @@ export const zhTW = {
   'chart.flyOut': '飛出 (本宮四化飛入)',
   'chart.flyIn': '飛入 (從其他宮位飛來)',
   'chart.hua': '化',
+  'chart.flyingBadgeFlyIn': '(飛入自{palace})',
+  'chart.flyingBadgeHost': '(本宮)',
 
   // ─── Fortune Panel ───
   'fortune.empty': '未載入星盤資料',
@@ -140,6 +142,9 @@ export const zhTW = {
   'fortune.flowStarsSub': '大限流曜',
   'fortune.levelFlow': '流曜',
   'fortune.suiqian': '歲前將前神',
+  'fortune.overlapLimit': '限',
+  'fortune.suiqianShort': '歲',
+  'fortune.jiangqianShort': '將',
 
   // Fortune level labels
   'fortune.yearly': '流年',
@@ -219,6 +224,9 @@ export const zhTW = {
   'llm.clearKey': '清除 API Key',
   'llm.clearKeyConfirm': '確定要清除已儲存的 API Key 與 LLM 設定嗎？此操作無法復原。',
   'llm.clearKeyDone': 'API Key 已清除',
+  'llm.apiKeySecurityWarning':
+    '⚠️ 安全提醒：API Key 僅暫存於本瀏覽器分頁（sessionStorage），關閉分頁即自動清除。' +
+    '即便如此，前端儲存 API Key 仍有 XSS 風險，建議僅在可信網路環境使用，並定期輪換 Key。',
 
   // ─── Match Panel ───
   'match.title': '雙人紫微命盤合盤 (Astrolabe Match)',
@@ -360,6 +368,14 @@ export const zhTW = {
   'a11y.closeModal': '關閉設定視窗',
   'a11y.calendarType': '切換曆法類型',
   'a11y.gender': '選擇性別',
+
+  // ─── Error Boundary ───
+  'error.boundary.title': '頁面載入異常',
+  'error.boundary.msg': '模組載入失敗，可能是應用程式已更新。請嘗試重新整理頁面。',
+  'error.boundary.reload': '重新載入頁面',
+
+  // ─── App Loading ───
+  'app.loading': '載入中... / Loading...',
 } as const;
 
 export type TranslationKey = keyof typeof zhTW;

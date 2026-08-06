@@ -216,7 +216,11 @@ export const PalaceCell = React.forwardRef<HTMLButtonElement, PalaceCellProps>((
               <span
                 key={`fly-${i}`}
                 className={`px-1 py-0.5 rounded text-[9px] font-bold border ${getFlyingBadgeStyle(badge.type, badge.source)}`}
-                title={`${badge.star}化${badge.type}${badge.source === 'flying' ? ` (飛入自${badge.fromPalace})` : ' (本宮)'}`}
+                title={`${badge.star}${t('chart.hua')}${badge.type}${
+                  badge.source === 'flying'
+                    ? ` ${t('chart.flyingBadgeFlyIn', { palace: badge.fromPalace ?? '' })}`
+                    : ` ${t('chart.flyingBadgeHost')}`
+                }`}
               >
                 {badge.star.slice(0, 1)}{badge.type}
               </span>

@@ -110,6 +110,8 @@ export const zhCN: Record<TranslationKey, string> = {
   'chart.flyOut': '飞出 (本宫四化飞入)',
   'chart.flyIn': '飞入 (从其他宫位飞来)',
   'chart.hua': '化',
+  'chart.flyingBadgeFlyIn': '(飞入自{palace})',
+  'chart.flyingBadgeHost': '(本宫)',
 
   // ─── Fortune Panel ───
   'fortune.empty': '未加载星盘数据',
@@ -150,6 +152,9 @@ export const zhCN: Record<TranslationKey, string> = {
   'fortune.flowStarsSub': '大限流曜',
   'fortune.levelFlow': '流曜',
   'fortune.suiqian': '岁前将前神',
+  'fortune.overlapLimit': '限',
+  'fortune.suiqianShort': '岁',
+  'fortune.jiangqianShort': '将',
 
   // Fortune level labels
   'fortune.yearly': '流年',
@@ -229,6 +234,9 @@ export const zhCN: Record<TranslationKey, string> = {
   'llm.clearKey': '清除 API Key',
   'llm.clearKeyConfirm': '确定要清除已保存的 API Key 与 LLM 设置吗？此操作无法撤销。',
   'llm.clearKeyDone': 'API Key 已清除',
+  'llm.apiKeySecurityWarning':
+    '⚠️ 安全提醒：API Key 仅暂存于本浏览器标签页（sessionStorage），关闭标签页即自动清除。' +
+    '即便如此，前端存储 API Key 仍有 XSS 风险，建议仅在可信网络环境使用，并定期轮换 Key。',
 
   // ─── Match Panel ───
   'match.title': '双人紫微命盘合盘 (Astrolabe Match)',
@@ -370,4 +378,12 @@ export const zhCN: Record<TranslationKey, string> = {
   'a11y.closeModal': '关闭设置窗口',
   'a11y.calendarType': '切换历法类型',
   'a11y.gender': '选择性别',
+
+  // ─── Error Boundary ───
+  'error.boundary.title': '页面加载异常',
+  'error.boundary.msg': '模块加载失败，可能是应用程序已更新。请尝试重新加载页面。',
+  'error.boundary.reload': '重新加载页面',
+
+  // ─── App Loading ───
+  'app.loading': '加载中... / Loading...',
 };
