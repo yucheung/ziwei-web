@@ -1,0 +1,407 @@
+[
+  {
+    "starName": "紫微",
+    "claims": [
+      {
+        "starName": "紫微",
+        "claim": "紫微星五行屬陰土（己土），乃中天之尊星、帝座，主掌造化樞機與人生主宰，具有統御諸星與消災解厄之基本性質。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "問紫微所主若何？答曰：紫微屬土，乃中天之尊星為帝座，主掌造化樞機，人生主宰。仗五行育萬物，以人命為之立定數。"
+        },
+        "paraphrase": "紫微星在斗數中為尊貴的帝王之星，統攝造化樞機與人生總體運勢。",
+        "school": "sanhe",
+        "applicableConditions": "無特殊條件限制",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "紫微",
+        "claim": "紫微星坐命宮者，外貌面色紫白或青白，體態腰背肥滿；性格忠厚老成、謙恭耿直、尊嚴自信。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷二·論命宮訣",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C",
+          "excerpt": "紫微土，南北斗化帝座，為官祿主。紫微面紫色或白青，腰背肥滿，為人忠厚老成，謙恭耿直。"
+        },
+        "paraphrase": "紫微守命者外貌端莊肥滿，性格忠厚老成、自尊穩重。",
+        "school": "sanhe",
+        "applicableConditions": "紫微星獨守或為主星坐命宮",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "紫微",
+        "claim": "紫微星具有強大解厄制煞能力，居諸宮皆能降福消百惡，並能降伏七殺之肅殺為權柄，制化火星與鈴星之凶威轉為善。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "諸宮降福能消百惡...能降七殺為權，能制火鈴為善。"
+        },
+        "paraphrase": "紫微具強大解厄制煞能力，能化七殺之剛煞為威權，並制化火鈴威煞。",
+        "school": "sanhe",
+        "applicableConditions": "命宮或三方遇七殺、火星、鈴星時",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "紫微",
+        "claim": "紫微星坐命極極重輔佐，若命宮或三方四正無左輔、右弼等吉星會照，稱為「孤君」，主性格孤傲獨斷，雖有美好資質亦孤立無援。",
+        "source": {
+          "title": "紫微斗數講義",
+          "author": "陸斌兆",
+          "edition": "1980年代 現代三合派經典講義",
+          "chapter": "紫微星曜總論",
+          "page": null,
+          "url": null,
+          "excerpt": "紫微星守命，必須得左輔右弼、天魁天鉞、文昌文曲相佐。若無吉星輔佐，稱為孤君，主孤立無援、自負獨斷。"
+        },
+        "paraphrase": "紫微坐命若缺乏左右輔弼等吉星會照，易流於孤單自負、獨斷專行。",
+        "school": "sanhe",
+        "applicableConditions": "紫微獨坐命宮且三方四正無左輔、右弼等輔佐吉星",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "紫微",
+        "claim": "紫微坐命若無吉星相扶，反而會合擎羊、陀羅、火星、鈴星四煞，主性格易流於奸詐、辛勞奔波，甚者主孤刑或壽不長。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷二·諸星入命宮諸吉凶",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C",
+          "excerpt": "若與羊陀火鈴會合，雖亦發財，多為常人；若紫微守命，逢二殺且無吉星，主壽不長，主孤刑。"
+        },
+        "paraphrase": "紫微逢煞無吉，會削減尊貴性，轉為辛勞孤克或性格偏極。",
+        "school": "sanhe",
+        "applicableConditions": "紫微坐命，會照擎羊、陀羅、火星、鈴星且無吉星解化",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "紫微",
+        "claim": "古典古籍（《紫微斗數全書》）主張紫微星坐命無輔弼即為孤君且易為清閒僧道；現代三合派（如王亭之中州派/陸斌兆系統）則細分「在野孤君」（無吉有煞）與「空郡之主」（無吉無煞），強調空郡之主僅主志大才疏或懷才不遇，並非絕對出家。",
+        "source": {
+          "title": "中州派紫微斗數深造講義",
+          "author": "王亭之",
+          "edition": "現代三合/中州派著作",
+          "chapter": "紫微星獨坐命宮論",
+          "page": null,
+          "url": null,
+          "excerpt": "紫微無吉星相會，古人云宜為僧道。然現代推斷，無吉無煞者為空郡之主，僅主空有抱負、志大才疏；無吉而見煞者方為在野孤君，性格孤僻偏激。"
+        },
+        "paraphrase": "古籍對紫微無輔直言宜僧道或孤刑，現代三合派則將無吉有煞與無吉無煞做出細致層次區分。",
+        "school": "sanhe",
+        "applicableConditions": "紫微坐命無輔佐吉星",
+        "conflictingClaims": [
+          "古籍斷定紫微無輔易為僧道或孤刑",
+          "現代三合派區分空郡之主與在野孤君，強調抱負難伸而非必然出家"
+        ],
+        "confidence": "medium",
+        "sourceStatus": "disputed",
+        "retrievalDate": "2026-08-07"
+      }
+    ],
+    "summary": {
+      "totalClaims": 6,
+      "verified": 5,
+      "partial": 0,
+      "unverified": 0,
+      "disputed": 1
+    }
+  },
+  {
+    "starName": "天機",
+    "claims": [
+      {
+        "starName": "天機",
+        "claim": "天機星五行屬陰木（乙木），為南斗第三星，化氣曰「善」，為益算之星，掌管智慧、籌劃、機謀與順逆解化。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "答曰：天機屬木，南斗第三益算之善星也。後化氣曰善，又得地合之行事，解諸星之順逆。"
+        },
+        "paraphrase": "天機星化氣為善，主智慧機謀與算術策劃，具調和解逆之能力。",
+        "school": "sanhe",
+        "applicableConditions": "無特殊條件限制",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "天機",
+        "claim": "天機星坐命宮者，外貌身材中等（不長不短），性情善良慈悲、敬重六親；心思縝密，具靈機應變與洞察人情（淵魚察見）之才能。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論 / 形性賦",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80",
+          "excerpt": "天機為不長不短之姿，情懷好善...無惡虐不仁之心，有靈機應變之志。淵魚察見，作事有方。"
+        },
+        "paraphrase": "天機坐命者本性慈悲善良，思維敏捷、機智靈活，善於察言觀色與籌劃行事。",
+        "school": "sanhe",
+        "applicableConditions": "天機星坐守命宮",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "天機",
+        "claim": "天機坐命若得諸吉星咸集，則萬事皆善；女性命宮逢天機主性情巧妙、內助賢惠有福氣，逢吉星會照更佳。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "定數於人命，逢諸吉咸集，則萬事皆善...女命遇之為福，逢吉為吉。"
+        },
+        "paraphrase": "天機得吉星會照事事順遂，女性坐命主靈巧福惠。",
+        "school": "sanhe",
+        "applicableConditions": "天機坐命且會照左輔、右弼、文昌、文曲等吉星",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "天機",
+        "claim": "天機星為動星與機謀之宿，心性較急躁多思；若落陷（如丑未宮）或遇煞星（羊陀火鈴化忌），易流於心思浮躁、過度焦慮、神經質或鑽牛角尖。",
+        "source": {
+          "title": "紫微斗數看人生",
+          "author": "慧心齋主",
+          "edition": "1980年代 現代三合派著作",
+          "chapter": "天機星篇",
+          "page": null,
+          "url": null,
+          "excerpt": "天機敏銳好動，若逢煞忌或落陷，易轉為性急浮躁、精神緊張與過度敏感鑽牛角尖。"
+        },
+        "paraphrase": "天機缺乏安定性，逢煞陷易產生過度焦慮、神經質與思慮浮躁。",
+        "school": "sanhe",
+        "applicableConditions": "天機落陷或命宮/三方會見羊陀火鈴化忌",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "天機",
+        "claim": "天機星性格偏向軍師幕僚與專業技術，適合擔任企劃、分析、教育或大眾服務等工作，欠缺商業創業之霸氣，故不宜直接經商創業。",
+        "source": {
+          "title": "中州派紫微斗數初級講義",
+          "author": "王亭之",
+          "edition": "現代三合/中州派著作",
+          "chapter": "天機星總論",
+          "page": null,
+          "url": null,
+          "excerpt": "天機為智囊幕僚之星，善籌劃而不善執行坐鎮，故宜出任公職、專業技術或企劃顧問，不宜商界獨資創業。"
+        },
+        "paraphrase": "天機偏向軍師幕僚性質，欠缺獨當一面的商業創業魄力，宜靠專業技術與智慧服務。",
+        "school": "sanhe",
+        "applicableConditions": "天機獨守或主導命宮",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "天機",
+        "claim": "《紫微斗數全書》古籍強調天機入廟主「身長肥胖」、落陷主「瘦長」且福分減輕；現代三合派視天機為心智機敏之星，認為體型胖瘦更多取決於疾厄宮與同度輔星（如太陰、巨門），不宜單憑廟陷定體型。",
+        "source": {
+          "title": "紫微斗數全書 vs 現代三合派講義",
+          "author": "陳希夷 / 現代三合學者",
+          "edition": "古籍與現代講義對比",
+          "chapter": "天機星坐命形貌論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C",
+          "excerpt": "古籍：天機入廟肥胖，落陷瘦長。現代派：天機木主瘦長靈活，縱入廟亦多為中等身材，肥胖多因加會太陰或同宮輔星所致。"
+        },
+        "paraphrase": "古籍以廟陷直接推定天機之胖瘦，現代三合派則修正為天機本質多瘦長靈活，體態受組合星曜影響更大。",
+        "school": "sanhe",
+        "applicableConditions": "天機坐命於不同宮位廟陷狀態",
+        "conflictingClaims": [
+          "古籍主張天機入廟即主身材肥胖",
+          "現代三合派主張天機基本型態多瘦長，肥胖多源於同宮或會照之太陰等吉星"
+        ],
+        "confidence": "medium",
+        "sourceStatus": "disputed",
+        "retrievalDate": "2026-08-07"
+      }
+    ],
+    "summary": {
+      "totalClaims": 6,
+      "verified": 5,
+      "partial": 0,
+      "unverified": 0,
+      "disputed": 1
+    }
+  },
+  {
+    "starName": "七殺",
+    "claims": [
+      {
+        "starName": "七殺",
+        "claim": "七殺星五行屬陰金與陽火，為南斗第六星，在斗司斗柄，為斗中之上將，主風憲與肅殺之權，實為成敗之孤辰。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "答曰：七殺南斗第六星也，屬火金。乃斗中之上將，實成敗之孤辰。在斗司斗柄，主於風憲。"
+        },
+        "paraphrase": "七殺為將星與風憲之宿，兼具權威開創與成敗孤克之雙重性質。",
+        "school": "sanhe",
+        "applicableConditions": "無特殊條件限制",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "七殺",
+        "claim": "七殺星坐命宮者，面色青白或白潤，兩目大而眼神威嚴；性格性急剛烈、喜怒無常、敢作敢為、不喜受拘束。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷二·諸星入命宮諸吉凶 / 形性賦",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C",
+          "excerpt": "七殺金，南斗第六星，乃斗中上將...面青白色，目大，性急，喜怒無常，作事敢為。"
+        },
+        "paraphrase": "七殺坐命外貌眼神威嚴目大，性格急躁剛強、決斷力極強但易顯怒喜無常。",
+        "school": "sanhe",
+        "applicableConditions": "七殺星坐守命宮",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "七殺",
+        "claim": "七殺星最喜與紫微星相會或同宮，若得帝星紫微制化，能化其肅殺孤克之氣為威權，主權貴與大將之材。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "紫微...能降七殺為權...七殺合太陽巨門會帝旺之鄉則吉。"
+        },
+        "paraphrase": "七殺得帝星紫微制化後，可化凶煞為威權，成為權重一時之領袖或將才。",
+        "school": "sanhe",
+        "applicableConditions": "七殺坐命或三方會照紫微星",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "七殺",
+        "claim": "七殺屬孤克之星，主於身定歷艱辛、六親緣薄；若落陷（如巳亥等宮）且逢煞星（羊陀火鈴劫空刑忌），主殘疾、傷殘、甚至夭折傷亡。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷一·諸星問答論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96",
+          "excerpt": "主於身定歷艱辛...在命宮若限不扶夭折...逢刑忌殺於遷移疾厄，終身殘疾...蓋世英雄為殺制，此時一夢南柯。"
+        },
+        "paraphrase": "七殺獨坐身命一生多波折與孤克，陷地逢煞極易遭受意外傷殘或人生重大挫敗。",
+        "school": "sanhe",
+        "applicableConditions": "七殺落陷或命宮三方四正逢羊陀火鈴刑忌空劫等煞忌",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "七殺",
+        "claim": "七殺星在子、午二宮坐命，若得左輔、右弼、文曲等吉星加會，稱為「七殺朝斗」或「仰斗」之吉格，主富貴雙全。",
+        "source": {
+          "title": "紫微斗數全書",
+          "author": "陳希夷（託名）",
+          "edition": "維基文庫 / 中華書局校勘版",
+          "chapter": "卷二·定貴局",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C",
+          "excerpt": "七殺子午逢左右，文曲加之格最清。"
+        },
+        "paraphrase": "七殺在子午宮坐命且會照左右文曲，格局清奇高貴。",
+        "school": "sanhe",
+        "applicableConditions": "七殺在子宮或午宮坐命，且會照左輔、右弼、文曲",
+        "conflictingClaims": [],
+        "confidence": "high",
+        "sourceStatus": "verified",
+        "retrievalDate": "2026-08-07"
+      },
+      {
+        "starName": "七殺",
+        "claim": "古籍《定貴局》稱「七殺子午逢左右，文曲加之格最清」，肯定文曲吉化作用；現代三合派（如王亭之、陸斌兆）則認為七殺為肅殺武將，見昌曲易致「文武不調」、「氣質衝突」或「偽君子/性格矛盾」，故現代派認為七殺更喜魁鉞左右而非昌曲。",
+        "source": {
+          "title": "紫微斗數全書 vs 中州派/陸氏紫微斗數講義",
+          "author": "陳希夷 / 王亭之 / 陸斌兆",
+          "edition": "古典與現代三合派對比",
+          "chapter": "七殺星加會吉星論",
+          "page": null,
+          "url": "https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C",
+          "excerpt": "古籍：七殺子午逢左右，文曲加之格最清。現代派：七殺不宜見昌曲，見則文武不調，反主內心矛盾、虛偽或氣質不和。"
+        },
+        "paraphrase": "對於昌曲對七殺的作用，古籍肯定文曲加會之格，現代三合派則警惕昌曲與七殺剛柔衝突產生的性格矛盾。",
+        "school": "sanhe",
+        "applicableConditions": "七殺坐命會照文昌、文曲",
+        "conflictingClaims": [
+          "古籍認定七殺子午會文曲為最清之貴格",
+          "現代三合派認為七殺遇昌曲易致文武衝突、性格矛盾與虛偽"
+        ],
+        "confidence": "medium",
+        "sourceStatus": "disputed",
+        "retrievalDate": "2026-08-07"
+      }
+    ],
+    "summary": {
+      "totalClaims": 6,
+      "verified": 5,
+      "partial": 0,
+      "unverified": 0,
+      "disputed": 1
+    }
+  }
+]
