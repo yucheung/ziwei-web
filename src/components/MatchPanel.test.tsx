@@ -1,44 +1,118 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MatchPanel } from './MatchPanel';
+import { I18nProvider } from '../i18n';
+import { analyzeChart } from '../lib/chartAnalyzer';
+import { getCanonicalAstrolabe } from '../lib/chartModel';
+import { evaluateMatch } from '../lib/matchRules';
+import { applySensitivityBoundaries } from '../lib/matchRules/sensitivity';
+
+const PERSON_A = { name: '測試甲', date: '1996-03-15', timeIndex: 6, gender: 'male' as const };
+const PERSON_B = { name: '測試乙', date: '1998-11-20', timeIndex: 2, gender: 'female' as const };
+
+function getExpectedResults() {
+  const chartA = analyzeChart(getCanonicalAstrolabe(PERSON_A), 'zh-TW');
+  const chartB = analyzeChart(getCanonicalAstrolabe(PERSON_B), 'zh-TW');
+  return applySensitivityBoundaries(evaluateMatch(chartA, chartB));
+}
+
+function renderPanel(locale: 'zh-TW' | 'zh-CN' = 'zh-TW') {
+  return render(
+    <I18nProvider defaultLocale={locale}>
+      <MatchPanel initialPersonA={PERSON_A} initialPersonB={PERSON_B} />
+    </I18nProvider>,
+  );
+}
 
 describe('MatchPanel Component (src/components/MatchPanel.tsx)', () => {
-  it('renders dual birth inputs and match results overview', () => {
-    render(<MatchPanel />);
+  it('preserves the dual birth inputs and preset buttons', () => {
+    renderPanel();
 
-    // Check title and section titles
     expect(screen.getByText(/雙人紫微命盤合盤/i)).toBeInTheDocument();
     expect(screen.getByText(/甲方 \(Person A 生辰資料\)/i)).toBeInTheDocument();
     expect(screen.getByText(/乙方 \(Person B 生辰資料\)/i)).toBeInTheDocument();
 
-    // Check Score Gauge rendering
-    expect(screen.getByText(/Match Score/i)).toBeInTheDocument();
-    expect(screen.getByText(/多維度合盤契合指數/i)).toBeInTheDocument();
-
-    // Check Side-by-Side Dual Astrolabe section
-    expect(screen.getByText(/雙盤對照 · 命宮與夫妻宮星曜比對/i)).toBeInTheDocument();
-
-    // Check Cross Flying Mutagens section
-    expect(screen.getByText(/十干四化互飛氣場比對/i)).toBeInTheDocument();
-
-    // Check Relationship Key Points section
-    expect(screen.getByText(/關係重點與相處之道/i)).toBeInTheDocument();
-  });
-
-  it('switches preset pairs when preset buttons are clicked', () => {
-    render(<MatchPanel />);
-
-    const preset1Btn = screen.getByRole('button', { name: /預設合盤 1/i });
-    fireEvent.click(preset1Btn);
-
-    // Verify inputs updated
+    fireEvent.click(screen.getByRole('button', { name: /預設合盤 1/i }));
     expect(screen.getByDisplayValue('張先生 (甲)')).toBeInTheDocument();
     expect(screen.getByDisplayValue('林小姐 (乙)')).toBeInTheDocument();
 
-    const preset2Btn = screen.getByRole('button', { name: /預設合盤 2/i });
-    fireEvent.click(preset2Btn);
-
+    fireEvent.click(screen.getByRole('button', { name: /預設合盤 2/i }));
     expect(screen.getByDisplayValue('陳先生 (丙)')).toBeInTheDocument();
     expect(screen.getByDisplayValue('黃小姐 (丁)')).toBeInTheDocument();
+  });
+
+  it('renders real rule conclusions and every B5 evidence chain instead of legacy prose', () => {
+    const results = getExpectedResults();
+    const firstResult = results[0];
+    expect(firstResult).toBeDefined();
+
+    renderPanel();
+
+    expect(screen.getByText('合盤規則結果')).toBeInTheDocument();
+    expect(screen.getByText(firstResult!.ruleName)).toBeInTheDocument();
+    expect(screen.getAllByText('信心程度').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('證據鏈').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('知識 ID').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('來源').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('欄位').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('值').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('推理').length).toBeGreaterThan(0);
+
+    for (const result of results) {
+      for (const conclusion of result.conclusions) {
+        expect(screen.getAllByText(conclusion.description).length).toBeGreaterThan(0);
+      }
+      for (const evidence of result.evidence) {
+        expect(screen.getAllByText(evidence.knowledgeId).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.field).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.source).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.value).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.reasoning).length).toBeGreaterThan(0);
+      }
+    }
+
+    expect(screen.queryByText('Match Score')).not.toBeInTheDocument();
+    expect(screen.queryByText(/關係重點與相處之道/)).not.toBeInTheDocument();
+  });
+
+  it('renders the disclaimer from a real high-sensitivity wealth conclusion', () => {
+    const results = getExpectedResults();
+    const highConclusions = results.flatMap((result) => result.conclusions)
+      .filter((conclusion) => conclusion.sensitivity === 'high' && conclusion.disclaimer);
+
+    expect(highConclusions.length).toBeGreaterThan(0);
+    renderPanel();
+
+    expect(screen.getByText('高敏感度提醒')).toBeInTheDocument();
+    for (const conclusion of highConclusions) {
+      expect(screen.getByText(conclusion.disclaimer!)).toBeInTheDocument();
+    }
+  });
+
+  it('renders the simplified-Chinese labels for real rule and evidence output', () => {
+    const [firstResult] = getExpectedResults();
+    expect(firstResult).toBeDefined();
+
+    renderPanel('zh-CN');
+
+    expect(screen.getByText('合盘规则结果')).toBeInTheDocument();
+    expect(screen.getAllByText('置信度').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('结论').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('证据链').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('知识 ID').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('来源').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('字段').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('推理').length).toBeGreaterThan(0);
+    expect(screen.getByText(firstResult!.ruleName)).toBeInTheDocument();
+
+    for (const result of getExpectedResults()) {
+      for (const evidence of result.evidence) {
+        expect(screen.getAllByText(evidence.knowledgeId).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.field).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.source).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.value).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(evidence.reasoning).length).toBeGreaterThan(0);
+      }
+    }
   });
 });

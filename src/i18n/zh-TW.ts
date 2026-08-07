@@ -372,6 +372,18 @@ export const zhTW = {
   'match.stemTypeSpouse': '夫妻宮天干',
   'match.emptyPalaceStar': '空宮',
   'match.unknownPalace': '未知宮位',
+  'match.ruleResults': '合盤規則結果',
+  'match.ruleCount': '符合規則：{count}',
+  'match.confidence': '信心程度',
+  'match.conclusions': '結論',
+  'match.evidence': '證據鏈',
+  'match.evidenceKnowledgeId': '知識 ID',
+  'match.evidenceField': '欄位',
+  'match.evidenceSource': '來源',
+  'match.evidenceValue': '值',
+  'match.evidenceReasoning': '推理',
+  'match.noResults': '目前沒有符合的合盤規則。',
+  'match.sensitivityDisclaimer': '高敏感度提醒',
 
   // ─── Export (CSV / Summary Text) ───
   'export.palaceName': '宮位名稱',

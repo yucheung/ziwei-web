@@ -382,6 +382,18 @@ export const zhCN: Record<TranslationKey, string> = {
   'match.stemTypeSpouse': '夫妻宫天干',
   'match.emptyPalaceStar': '空宫',
   'match.unknownPalace': '未知宫位',
+  'match.ruleResults': '合盘规则结果',
+  'match.ruleCount': '符合规则：{count}',
+  'match.confidence': '置信度',
+  'match.conclusions': '结论',
+  'match.evidence': '证据链',
+  'match.evidenceKnowledgeId': '知识 ID',
+  'match.evidenceField': '字段',
+  'match.evidenceSource': '来源',
+  'match.evidenceValue': '值',
+  'match.evidenceReasoning': '推理',
+  'match.noResults': '目前没有符合的合盘规则。',
+  'match.sensitivityDisclaimer': '高敏感度提醒',
 
   // ─── Export (CSV / Summary Text) ───
   'export.palaceName': '宫位名称',
