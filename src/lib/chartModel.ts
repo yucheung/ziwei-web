@@ -277,9 +277,7 @@ function buildPalaceModel(palace: IFunctionalPalace): PalaceModel {
  * 與既有查表 (STEM_MUTAGENS / MUTAGEN_TABLE) 不相容。
  */
 export function buildChartModel(astrolabe: IFunctionalAstrolabe): ChartModel {
-  const chineseDateYearly = (astrolabe as unknown as {
-    rawDates?: { chineseDate?: { yearly?: [string, string] } };
-  }).rawDates?.chineseDate?.yearly;
+  const chineseDateYearly = astrolabe.rawDates?.chineseDate?.yearly;
 
   const yearStemKey = chineseDateYearly?.[0] ?? astrolabe.chineseDate?.[0] ?? '';
   const yearBranchKey = chineseDateYearly?.[1] ?? astrolabe.chineseDate?.[1] ?? '';
@@ -340,6 +338,11 @@ export interface SurroundedPalaces<T> {
  * 可套用在 canonical PalaceModel[]，也可套用在顯示語言的 palace 陣列 (例如
  * ChartGrid 目前使用的 PalaceData[])，取代對 astrolabe.surroundedPalaces()
  * instance method 的依賴 (消除耦合風險)。
+ *
+ * 注意與 iztro 原生 astrolabe.surroundedPalaces() 的行為差異：targetIndex 若超出
+ * 0..11 (例如 -1 或 12)，本函式會以 mod 12 正規化後查找 (與 fixIndex12 一致)，
+ * 而非拋出例外；只有當正規化後的索引仍找不到對應宮位 (palaces 陣列不完整)
+ * 才會拋錯。呼叫端若需要嚴格驗證外部輸入的合法範圍，應自行在呼叫前檢查。
  */
 export function pickSurroundedPalaces<T extends { index: number }>(
   palaces: T[],

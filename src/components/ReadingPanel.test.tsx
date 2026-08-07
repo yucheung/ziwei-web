@@ -433,6 +433,8 @@ describe('ReadingPanel Component Test Suite', () => {
       await waitFor(() => expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1));
 
       const [sentMessages] = vi.mocked(llmModule.callLLMStream).mock.calls[0];
+      const generatedAt = sentMessages[0].content.match(/"generatedAt": "([^"]+)"/)?.[1];
+      expect(generatedAt).toBeDefined();
 
       const canonicalChart = canonicalizeAstrolabeForReading(mockChart, 'zh-TW');
       const { systemPrompt, userPrompt } = buildReadingPrompt(canonicalChart, {
@@ -440,6 +442,7 @@ describe('ReadingPanel Component Test Suite', () => {
         customInstructions: '',
         focusPalace: undefined,
         locale: 'zh-TW',
+        generatedAt,
       });
 
       expect(sentMessages).toEqual([

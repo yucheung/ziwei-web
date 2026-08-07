@@ -18,8 +18,11 @@
  * 解讀指令、UI 標籤與語言指示則依 `locale` 參數化（zh-TW / zh-CN），確保 zh-CN
  * 使用者收到的是簡體輸出，而非被寫死的繁體系統提示詞覆蓋。
  */
-import { type ReadingAstrolabeLike, type ReadingStarLike } from './chartModel';
+import { analyzeChart, type AnalyzedChart, type AnalyzedStar } from './chartAnalyzer';
+import type { ReadingAstrolabeLike } from './chartModel';
 import type { Locale } from '../i18n/locale';
+
+export type { StructuredSummary } from './chartAnalyzer';
 
 export type ReadingType = 'overall' | 'palaces' | 'mutagens' | 'patterns' | 'comprehensive';
 
@@ -35,6 +38,8 @@ export interface PromptOptions {
   focusPalace?: string;
   /** 解讀輸出語言，預設 'zh-TW'（向後相容既有呼叫端） */
   locale?: Locale;
+  /** Optional generation time used to make repeated prompt construction byte-identical. */
+  generatedAt?: string;
 }
 
 /**
@@ -82,16 +87,16 @@ function getSystemPrompt(locale: Locale): string {
  * canonicalizeAstrolabeForReading() 處理過的 zh-TW canonical key），確保 LLM 讀到
  * 的是具語意的原始命理術語，不受顯示語言影響。
  */
-function formatStarName(star: ReadingStarLike): string {
-  if (!star || !star.name) return '';
+function formatStarName(star: AnalyzedStar): string {
+  if (!star || !star.starName) return '';
   const parts: string[] = [];
   if (star.brightness) parts.push(star.brightness);
   if (star.mutagen) parts.push(`生年${star.mutagen}`);
 
   if (parts.length > 0) {
-    return `${star.name}(${parts.join('·')})`;
+    return `${star.starName}(${parts.join('·')})`;
   }
-  return star.name;
+  return star.starName;
 }
 
 interface SummaryLabels {
@@ -172,6 +177,16 @@ const SUMMARY_LABELS: Record<Locale, SummaryLabels> = {
   },
 };
 
+const STRUCTURED_SUMMARY_LABELS: Record<Locale, string> = {
+  'zh-TW': '【結構化命盤摘要 JSON】',
+  'zh-CN': '【结构化命盘摘要 JSON】',
+};
+
+function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale, generatedAt?: string): string {
+  const summary: AnalyzedChart = analyzeChart(chart, locale, { generatedAt });
+  return `\n\n${STRUCTURED_SUMMARY_LABELS[locale]}\n\`\`\`json\n${JSON.stringify(summary, null, 2)}\n\`\`\``;
+}
+
 /**
  * 將 iztro 命盤物件整理成乾淨、無雜訊的 Markdown 命盤摘要
  *
@@ -201,12 +216,13 @@ export function summarizeAstrolabe(chart: AstrolabeSummaryLike | null, locale: L
 
   lines.push(`\n${L.palaceConfigHeader}`);
 
-  const palaces = chart.palaces || [];
+  const analyzed = analyzeChart(chart, locale);
+  const palaces = analyzed.palaces;
   palaces.forEach((palace) => {
     const pName = palace.name || L.unknownPalace;
     const stemBranch = `${palace.heavenlyStem || ''}${palace.earthlyBranch || ''}`;
     const isBody = palace.isBodyPalace ? L.bodyPalaceTag : '';
-    const decadal = palace.decadal ? ` (${L.decadal} ${palace.decadal.range?.[0] || ''}-${palace.decadal.range?.[1] || ''}${L.age})` : '';
+    const decadal = palace.decadal ? ` (${L.decadal} ${palace.decadal.range[0] || ''}-${palace.decadal.range[1] || ''}${L.age})` : '';
 
     lines.push(`\n### ${pName} [${stemBranch}]${isBody}${decadal}`);
 
@@ -218,7 +234,7 @@ export function summarizeAstrolabe(chart: AstrolabeSummaryLike | null, locale: L
       lines.push(`- **${L.minorStars}**: ${minors.join('、')}`);
     }
 
-    const adjectives = (palace.adjectiveStars || []).map((s) => s.name || String(s)).filter(Boolean);
+    const adjectives = (palace.adjectiveStars || []).map((s) => s.starName).filter(Boolean);
     if (adjectives.length > 0) {
       lines.push(`- **${L.adjectiveStars}**: ${adjectives.join('、')}`);
     }
@@ -376,6 +392,9 @@ export function buildReadingPrompt(chart: AstrolabeSummaryLike | null, options: 
   let typePrompt = buildTypePrompt(options.type, locale, options.focusPalace);
 
   let systemPrompt = getSystemPrompt(locale);
+  if (chart) {
+    systemPrompt += serializeStructuredSummary(chart, locale, options.generatedAt);
+  }
 
   if (options.customInstructions && options.customInstructions.trim()) {
     const sanitized = sanitizeUserInput(options.customInstructions);

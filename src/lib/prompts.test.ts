@@ -57,8 +57,33 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
 
     const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall' });
 
-    // No user input to delimit, so systemPrompt should be exactly the base prompt.
-    expect(systemPrompt).toBe(DEFAULT_SYSTEM_PROMPT);
+    // No user input to delimit, so the base prompt remains the prefix and no
+    // per-request delimiter is added.
+    expect(systemPrompt.startsWith(DEFAULT_SYSTEM_PROMPT)).toBe(true);
+    expect(systemPrompt).not.toContain('本次請求的實際定界標籤');
+  });
+
+  it.each([
+    ['zh-TW' as const, '結構化命盤摘要 JSON'],
+    ['zh-CN' as const, '结构化命盘摘要 JSON'],
+  ])('includes the structured summary JSON in the %s system prompt', (locale, label) => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale });
+
+    expect(systemPrompt).toContain(label);
+    expect(systemPrompt).toContain('"schemaVersion": "1.0"');
+    expect(systemPrompt).toContain('"palaces"');
+  });
+
+  it('uses an explicit generatedAt when building the structured summary', () => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const generatedAt = '2026-08-07T00:00:00.000Z';
+    const { systemPrompt } = buildReadingPrompt(chart, {
+      type: 'overall',
+      generatedAt,
+    });
+
+    expect(systemPrompt).toContain(`"generatedAt": "${generatedAt}"`);
   });
 
   it('should generate mutagens and special patterns prompts correctly', () => {
@@ -198,7 +223,8 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     // Whitespace-only input trims to '', so no user_input block should appear.
     expect(userPrompt).not.toContain('user_input_');
     expect(userPrompt).not.toContain('使用者補充問題');
-    expect(systemPrompt).toBe(DEFAULT_SYSTEM_PROMPT);
+    expect(systemPrompt.startsWith(DEFAULT_SYSTEM_PROMPT)).toBe(true);
+    expect(systemPrompt).not.toContain('本次請求的實際定界標籤');
   });
 
   // --- A-3: LLM ACL — 命盤一律以 zh-TW canonical 詞彙餵給 LLM ---

@@ -1,0 +1,534 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`chartAnalyzer.ts > is snapshot-stable when generation time is fixed 1`] = `
+{
+  "birthData": {
+    "date": "2000-8-16",
+    "gender": "male",
+    "timeIndex": 2,
+  },
+  "generatedAt": "2026-08-07T00:00:00.000Z",
+  "locale": "zh-TW",
+  "mutagens": {
+    "entries": [
+      {
+        "mutagen": "權",
+        "palaceIndex": 0,
+        "palaceName": "財帛",
+        "starName": "武曲",
+      },
+      {
+        "mutagen": "祿",
+        "palaceIndex": 1,
+        "palaceName": "子女",
+        "starName": "太陽",
+      },
+      {
+        "mutagen": "科",
+        "palaceIndex": 9,
+        "palaceName": "僕役",
+        "starName": "太陰",
+      },
+      {
+        "mutagen": "忌",
+        "palaceIndex": 11,
+        "palaceName": "疾厄",
+        "starName": "天同",
+      },
+    ],
+  },
+  "palaces": [
+    {
+      "adjectiveStars": [
+        {
+          "starName": "解神",
+        },
+        {
+          "starName": "三台",
+        },
+        {
+          "starName": "天壽",
+        },
+        {
+          "starName": "天巫",
+        },
+        {
+          "starName": "天廚",
+        },
+        {
+          "starName": "陰煞",
+        },
+        {
+          "starName": "天哭",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "寅",
+        "heavenlyStem": "戊",
+        "range": [
+          83,
+          92,
+        ],
+      },
+      "earthlyBranch": "寅",
+      "heavenlyStem": "戊",
+      "index": 0,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "得",
+          "mutagen": "權",
+          "starName": "武曲",
+        },
+        {
+          "brightness": "廟",
+          "starName": "天相",
+        },
+      ],
+      "minorStars": [
+        {
+          "starName": "天馬",
+        },
+      ],
+      "name": "財帛",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "天刑",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "卯",
+        "heavenlyStem": "己",
+        "range": [
+          93,
+          102,
+        ],
+      },
+      "earthlyBranch": "卯",
+      "heavenlyStem": "己",
+      "index": 1,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "廟",
+          "mutagen": "祿",
+          "starName": "太陽",
+        },
+        {
+          "brightness": "廟",
+          "starName": "天梁",
+        },
+      ],
+      "minorStars": [],
+      "name": "子女",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "封誥",
+        },
+        {
+          "starName": "華蓋",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "辰",
+        "heavenlyStem": "庚",
+        "range": [
+          103,
+          112,
+        ],
+      },
+      "earthlyBranch": "辰",
+      "heavenlyStem": "庚",
+      "index": 2,
+      "isBodyPalace": false,
+      "isOriginalPalace": true,
+      "majorStars": [
+        {
+          "brightness": "廟",
+          "starName": "七殺",
+        },
+      ],
+      "minorStars": [
+        {
+          "starName": "右弼",
+        },
+        {
+          "brightness": "陷",
+          "starName": "火星",
+        },
+      ],
+      "name": "夫妻",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "天喜",
+        },
+        {
+          "starName": "天空",
+        },
+        {
+          "starName": "劫殺",
+        },
+        {
+          "starName": "孤辰",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "巳",
+        "heavenlyStem": "辛",
+        "range": [
+          113,
+          122,
+        ],
+      },
+      "earthlyBranch": "巳",
+      "heavenlyStem": "辛",
+      "index": 3,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "平",
+          "starName": "天機",
+        },
+      ],
+      "minorStars": [],
+      "name": "兄弟",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "鳳閣",
+        },
+        {
+          "starName": "天福",
+        },
+        {
+          "starName": "截空",
+        },
+        {
+          "starName": "蜚廉",
+        },
+        {
+          "starName": "年解",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "午",
+        "heavenlyStem": "壬",
+        "range": [
+          3,
+          12,
+        ],
+      },
+      "earthlyBranch": "午",
+      "heavenlyStem": "壬",
+      "index": 4,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "廟",
+          "starName": "紫微",
+        },
+      ],
+      "minorStars": [
+        {
+          "brightness": "陷",
+          "starName": "文曲",
+        },
+      ],
+      "name": "命宮",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "天姚",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "未",
+        "heavenlyStem": "癸",
+        "range": [
+          13,
+          22,
+        ],
+      },
+      "earthlyBranch": "未",
+      "heavenlyStem": "癸",
+      "index": 5,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [],
+      "minorStars": [
+        {
+          "starName": "天鉞",
+        },
+        {
+          "brightness": "廟",
+          "starName": "陀羅",
+        },
+      ],
+      "name": "父母",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "龍池",
+        },
+        {
+          "starName": "台輔",
+        },
+        {
+          "starName": "旬空",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "申",
+        "heavenlyStem": "甲",
+        "range": [
+          23,
+          32,
+        ],
+      },
+      "earthlyBranch": "申",
+      "heavenlyStem": "甲",
+      "index": 6,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "得",
+          "starName": "破軍",
+        },
+      ],
+      "minorStars": [
+        {
+          "brightness": "得",
+          "starName": "文昌",
+        },
+        {
+          "starName": "祿存",
+        },
+      ],
+      "name": "福德",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "咸池",
+        },
+        {
+          "starName": "天貴",
+        },
+        {
+          "starName": "月德",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "酉",
+        "heavenlyStem": "乙",
+        "range": [
+          33,
+          42,
+        ],
+      },
+      "earthlyBranch": "酉",
+      "heavenlyStem": "乙",
+      "index": 7,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [],
+      "minorStars": [
+        {
+          "starName": "地空",
+        },
+        {
+          "brightness": "陷",
+          "starName": "擎羊",
+        },
+      ],
+      "name": "田宅",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "天才",
+        },
+        {
+          "starName": "天虛",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "戌",
+        "heavenlyStem": "丙",
+        "range": [
+          43,
+          52,
+        ],
+      },
+      "earthlyBranch": "戌",
+      "heavenlyStem": "丙",
+      "index": 8,
+      "isBodyPalace": true,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "利",
+          "starName": "廉貞",
+        },
+        {
+          "brightness": "廟",
+          "starName": "天府",
+        },
+      ],
+      "minorStars": [
+        {
+          "starName": "左輔",
+        },
+      ],
+      "name": "官祿",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "紅鸞",
+        },
+        {
+          "starName": "恩光",
+        },
+        {
+          "starName": "天官",
+        },
+        {
+          "starName": "天月",
+        },
+        {
+          "starName": "龍德",
+        },
+        {
+          "starName": "大耗",
+        },
+        {
+          "starName": "天傷",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "亥",
+        "heavenlyStem": "丁",
+        "range": [
+          53,
+          62,
+        ],
+      },
+      "earthlyBranch": "亥",
+      "heavenlyStem": "丁",
+      "index": 9,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "廟",
+          "mutagen": "科",
+          "starName": "太陰",
+        },
+      ],
+      "minorStars": [],
+      "name": "僕役",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "八座",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "子",
+        "heavenlyStem": "戊",
+        "range": [
+          63,
+          72,
+        ],
+      },
+      "earthlyBranch": "子",
+      "heavenlyStem": "戊",
+      "index": 10,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "旺",
+          "starName": "貪狼",
+        },
+      ],
+      "minorStars": [
+        {
+          "brightness": "陷",
+          "starName": "鈴星",
+        },
+      ],
+      "name": "遷移",
+    },
+    {
+      "adjectiveStars": [
+        {
+          "starName": "天德",
+        },
+        {
+          "starName": "寡宿",
+        },
+        {
+          "starName": "破碎",
+        },
+        {
+          "starName": "天使",
+        },
+      ],
+      "decadal": {
+        "earthlyBranch": "丑",
+        "heavenlyStem": "己",
+        "range": [
+          73,
+          82,
+        ],
+      },
+      "earthlyBranch": "丑",
+      "heavenlyStem": "己",
+      "index": 11,
+      "isBodyPalace": false,
+      "isOriginalPalace": false,
+      "majorStars": [
+        {
+          "brightness": "不",
+          "mutagen": "忌",
+          "starName": "天同",
+        },
+        {
+          "brightness": "不",
+          "starName": "巨門",
+        },
+      ],
+      "minorStars": [
+        {
+          "starName": "天魁",
+        },
+        {
+          "starName": "地劫",
+        },
+      ],
+      "name": "疾厄",
+    },
+  ],
+  "patterns": {
+    "patterns": [],
+  },
+  "schemaVersion": "1.0",
+}
+`;
