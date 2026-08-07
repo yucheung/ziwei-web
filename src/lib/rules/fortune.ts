@@ -1,26 +1,36 @@
-import type { Locale } from '../../i18n/locale';
-import { toCanonicalKey } from '../chartModel';
-import type { AnalyzedChart, AnalyzedPalace, AnalyzedStar } from '../chartAnalyzer';
-import { MUTAGEN_TABLE, type MutagenType } from '../flying';
+import type { AppLocale, IFunctionalAstrolabe } from '../chartModel';
 import {
+  getHoroscopeSummary,
+  type HoroscopeSummary,
+} from '../fortunes';
+import type { AnalyzedChart, AnalyzedPalace, AnalyzedStar } from '../chartAnalyzer';
+import { getStarKnowledge } from '../starKnowledge';
+import {
+  canonicalBranch,
   canonicalMutagen,
   canonicalPalaceName,
   canonicalStarName,
   createPalaceEvidence,
   dedupeEvidence,
-  getStarKnowledgeId,
+  findPalaceByIndex,
   type PalaceLocation,
 } from './chartFacts';
 import { evaluateFourTransformations } from './fourTransformations';
 import { evaluatePatterns } from './patterns';
 import type { Evidence, RuleResult } from './types';
 
+export type FortunePeriodType = 'decadal' | 'annual' | 'monthly';
+
 export interface FortunePeriod {
-  type: 'decadal' | 'annual' | 'monthly';
+  type: FortunePeriodType;
   palace: string;
   stars: string[];
   mutagens: string[];
   themes: string[];
+  /** Original `astrolabe.palaces` index supplied by HoroscopeSummary. */
+  palaceIndex?: number;
+  /** Scope-renamed palace names supplied by HoroscopeSummary. */
+  palaceNames?: string[];
   ageRange?: [number, number];
   year?: number;
   month?: string | number;
@@ -28,8 +38,15 @@ export interface FortunePeriod {
   earthlyBranch?: string;
 }
 
+export interface FortunePeriodOptions {
+  themes?: string[];
+  targetDate?: string | Date;
+  locale?: AppLocale;
+  timeIndex?: number;
+}
+
 export interface FortuneResult extends RuleResult {
-  periodType: FortunePeriod['type'];
+  periodType: FortunePeriodType;
   periodLabel: string;
   palace: string;
   stars: string[];
@@ -43,15 +60,92 @@ interface ParsedMutagen {
 }
 
 const MUTAGEN_SUFFIXES = ['祿', '禄', '權', '权', '科', '忌'] as const;
-const TRANSFORMATION_ORDER: MutagenType[] = ['祿', '權', '科', '忌'];
-const HEAVENLY_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const;
+const TRANSFORMATION_ORDER = ['祿', '權', '科', '忌'] as const;
 
-function canonicalBranch(chart: AnalyzedChart, value: string): string {
-  return toCanonicalKey(value, 'branch', chart.outputLocale as Locale);
+function summaryScope(summary: HoroscopeSummary, type: FortunePeriodType): HoroscopeSummary['decadal'] {
+  if (type === 'decadal') return summary.decadal;
+  if (type === 'annual') return summary.yearly;
+  return summary.monthly;
 }
 
-function canonicalStem(chart: AnalyzedChart, value: string): string {
-  return toCanonicalKey(value, 'stem', chart.outputLocale as Locale);
+function parseStemBranch(stemBranch: string): { heavenlyStem?: string; earthlyBranch?: string } {
+  if (!stemBranch) return {};
+  return {
+    heavenlyStem: stemBranch.slice(0, 1) || undefined,
+    earthlyBranch: stemBranch.slice(1) || undefined,
+  };
+}
+
+function summaryYear(summary: HoroscopeSummary): number | undefined {
+  const match = summary.solarDate.match(/^(\d{4})/u);
+  if (!match) return undefined;
+  return Number(match[1]);
+}
+
+/** Convert one authoritative HoroscopeSummary scope into a rule-engine period. */
+export function fortunePeriodFromHoroscopeSummary(
+  summary: HoroscopeSummary,
+  type: FortunePeriodType,
+  options: Pick<FortunePeriodOptions, 'themes'> = {},
+): FortunePeriod {
+  const scope = summaryScope(summary, type);
+  const { heavenlyStem, earthlyBranch } = parseStemBranch(scope.stemBranch);
+  const mutagenEntries = [
+    { star: scope.mutagen.lu, suffix: '祿' },
+    { star: scope.mutagen.quan, suffix: '權' },
+    { star: scope.mutagen.ke, suffix: '科' },
+    { star: scope.mutagen.ji, suffix: '忌' },
+  ].filter((entry) => entry.star && entry.star !== '-');
+  const ageRange = type === 'decadal'
+    ? summary.decadalTable.find((item) => item.index === scope.index)?.range
+    : undefined;
+
+  return {
+    type,
+    palace: scope.palaceNames[scope.index] ?? scope.name,
+    palaceIndex: scope.index,
+    palaceNames: scope.palaceNames,
+    stars: mutagenEntries.map((entry) => entry.star),
+    mutagens: mutagenEntries.map((entry) => `${entry.star}化${entry.suffix}`),
+    themes: [...(options.themes ?? [])],
+    ...(ageRange ? { ageRange: [ageRange[0], ageRange[1]] as [number, number] } : {}),
+    ...(type === 'annual' ? { year: summaryYear(summary) } : {}),
+    ...(type === 'monthly' ? { month: earthlyBranch } : {}),
+    heavenlyStem,
+    earthlyBranch,
+  };
+}
+
+/** Short alias for callers that prefer a `to*` adapter name. */
+export const toFortunePeriod = fortunePeriodFromHoroscopeSummary;
+
+function isHoroscopeSummary(source: HoroscopeSummary | IFunctionalAstrolabe): source is HoroscopeSummary {
+  return 'rawHoroscope' in source;
+}
+
+/**
+ * Build a FortunePeriod from either an existing summary or an astrolabe.
+ * The astrolabe path intentionally delegates all progression to getHoroscopeSummary.
+ */
+export function createFortunePeriod(
+  source: HoroscopeSummary,
+  type: FortunePeriodType,
+  options?: FortunePeriodOptions,
+): FortunePeriod;
+export function createFortunePeriod(
+  source: IFunctionalAstrolabe,
+  type: FortunePeriodType,
+  options?: FortunePeriodOptions,
+): FortunePeriod;
+export function createFortunePeriod(
+  source: HoroscopeSummary | IFunctionalAstrolabe,
+  type: FortunePeriodType,
+  options: FortunePeriodOptions = {},
+): FortunePeriod {
+  const summary = isHoroscopeSummary(source)
+    ? source
+    : getHoroscopeSummary(source, options.targetDate, options.locale ?? 'zh-TW', options.timeIndex);
+  return fortunePeriodFromHoroscopeSummary(summary, type, options);
 }
 
 function parseMutagen(chart: AnalyzedChart, value: string): ParsedMutagen | undefined {
@@ -59,7 +153,8 @@ function parseMutagen(chart: AnalyzedChart, value: string): ParsedMutagen | unde
   const suffix = MUTAGEN_SUFFIXES.find((candidate) => text.endsWith(candidate));
   if (!suffix) return undefined;
 
-  const mutagen = canonicalMutagen(chart, suffix);
+  const canonicalSuffix = suffix === '禄' ? '祿' : suffix === '权' ? '權' : suffix;
+  const mutagen = canonicalMutagen(chart, canonicalSuffix);
   if (!mutagen) return undefined;
 
   const prefix = text.slice(0, -suffix.length).replace(/化$/u, '').trim();
@@ -69,14 +164,10 @@ function parseMutagen(chart: AnalyzedChart, value: string): ParsedMutagen | unde
   };
 }
 
-function cloneStar(star: AnalyzedStar, mutagen?: string): AnalyzedStar {
-  return { ...star, ...(mutagen ? { mutagen } : {}) };
-}
-
 function findPalaceByName(chart: AnalyzedChart, name: string): PalaceLocation | undefined {
   const canonicalName = canonicalPalaceName(chart, name);
   const palacePosition = chart.palaces.findIndex(
-    (palace) => canonicalPalaceName(chart, palace.name) === canonicalName
+    (palace) => canonicalPalaceName(chart, palace.name) === canonicalName,
   );
   return palacePosition >= 0
     ? { palace: chart.palaces[palacePosition], palacePosition }
@@ -86,17 +177,7 @@ function findPalaceByName(chart: AnalyzedChart, name: string): PalaceLocation | 
 function findPalaceByBranch(chart: AnalyzedChart, branch: string): PalaceLocation | undefined {
   const canonicalValue = canonicalBranch(chart, branch);
   const palacePosition = chart.palaces.findIndex(
-    (palace) => canonicalBranch(chart, palace.earthlyBranch) === canonicalValue
-  );
-  return palacePosition >= 0
-    ? { palace: chart.palaces[palacePosition], palacePosition }
-    : undefined;
-}
-
-function findPalaceByStem(chart: AnalyzedChart, stem: string): PalaceLocation | undefined {
-  const canonicalValue = canonicalStem(chart, stem);
-  const palacePosition = chart.palaces.findIndex(
-    (palace) => canonicalStem(chart, palace.heavenlyStem) === canonicalValue
+    (palace) => canonicalBranch(chart, palace.earthlyBranch) === canonicalValue,
   );
   return palacePosition >= 0
     ? { palace: chart.palaces[palacePosition], palacePosition }
@@ -109,7 +190,7 @@ function sameRange(left: [number, number], right: [number, number]): boolean {
 
 function findPalaceByDecadalRange(chart: AnalyzedChart, range: [number, number]): PalaceLocation | undefined {
   const palacePosition = chart.palaces.findIndex(
-    (palace) => palace.decadal && sameRange(palace.decadal.range, range)
+    (palace) => palace.decadal && sameRange(palace.decadal.range, range),
   );
   return palacePosition >= 0
     ? { palace: chart.palaces[palacePosition], palacePosition }
@@ -117,6 +198,10 @@ function findPalaceByDecadalRange(chart: AnalyzedChart, range: [number, number])
 }
 
 function resolvePeriodPalace(chart: AnalyzedChart, period: FortunePeriod): PalaceLocation | undefined {
+  if (period.palaceIndex !== undefined) {
+    const byIndex = findPalaceByIndex(chart, period.palaceIndex);
+    if (byIndex) return byIndex;
+  }
   if (period.type === 'decadal' && period.ageRange) {
     const byRange = findPalaceByDecadalRange(chart, period.ageRange);
     if (byRange) return byRange;
@@ -125,13 +210,7 @@ function resolvePeriodPalace(chart: AnalyzedChart, period: FortunePeriod): Palac
     const byBranch = findPalaceByBranch(chart, period.earthlyBranch);
     if (byBranch) return byBranch;
   }
-  if (period.type === 'monthly' && period.heavenlyStem) {
-    const byStem = findPalaceByStem(chart, period.heavenlyStem);
-    if (byStem) return byStem;
-  }
-  return findPalaceByName(chart, period.palace)
-    ?? findPalaceByBranch(chart, period.palace)
-    ?? findPalaceByStem(chart, period.palace);
+  return findPalaceByName(chart, period.palace) ?? findPalaceByBranch(chart, period.palace);
 }
 
 function periodLabel(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): string {
@@ -149,19 +228,7 @@ function periodLabel(chart: AnalyzedChart, period: FortunePeriod, target: Palace
   return `流月 ${month}月`;
 }
 
-function inferPeriodStem(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): string | undefined {
-  if (period.heavenlyStem) return canonicalStem(chart, period.heavenlyStem);
-  if (period.type === 'decadal' && target.palace.decadal?.heavenlyStem) {
-    return canonicalStem(chart, target.palace.decadal.heavenlyStem);
-  }
-  if (period.type === 'annual' && period.year !== undefined) {
-    const index = ((period.year - 4) % HEAVENLY_STEMS.length + HEAVENLY_STEMS.length) % HEAVENLY_STEMS.length;
-    return HEAVENLY_STEMS[index];
-  }
-  return undefined;
-}
-
-function collectMutagens(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): Map<string, string> {
+function collectMutagens(chart: AnalyzedChart, period: FortunePeriod): Map<string, string> {
   const mutagens = new Map<string, string>();
   const unbound: string[] = [];
   const rawStarMutagens: string[] = [];
@@ -172,19 +239,15 @@ function collectMutagens(chart: AnalyzedChart, period: FortunePeriod, target: Pa
       mutagens.set(parsed.starName, parsed.mutagen);
       continue;
     }
-    const plainMutagen = canonicalMutagen(chart, value);
-    if (plainMutagen) {
-      unbound.push(plainMutagen);
+    if (canonicalMutagen(chart, value)) {
+      unbound.push(canonicalMutagen(chart, value)!);
       continue;
     }
     rawStarMutagens.push(canonicalStarName(chart, value));
   }
 
-  const stem = inferPeriodStem(chart, period, target);
-  const tableEntries = stem ? MUTAGEN_TABLE[stem] ?? [] : [];
   rawStarMutagens.forEach((starName, index) => {
-    const tableMutagen = tableEntries.find((entry) => entry.star === starName)?.type;
-    const inferredMutagen = tableMutagen ?? TRANSFORMATION_ORDER[index];
+    const inferredMutagen = TRANSFORMATION_ORDER[index];
     if (inferredMutagen) mutagens.set(starName, inferredMutagen);
   });
 
@@ -197,95 +260,85 @@ function collectMutagens(chart: AnalyzedChart, period: FortunePeriod, target: Pa
   return mutagens;
 }
 
-function buildPeriodChart(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): AnalyzedChart {
-  const periodMutagens = collectMutagens(chart, period, target);
-  const activeStars = new Set(period.stars.map((starName) => canonicalStarName(chart, starName)));
-  const palaces = chart.palaces.map((palace, palacePosition) => {
-    if (palacePosition !== target.palacePosition) {
-      return {
-        ...palace,
-        majorStars: palace.majorStars.map((star) => ({ ...star })),
-        minorStars: palace.minorStars.map((star) => ({ ...star })),
-        adjectiveStars: palace.adjectiveStars.map((star) => ({ ...star })),
-      };
-    }
+function scopedPalaceName(period: FortunePeriod, palace: AnalyzedPalace): string {
+  return period.palaceNames?.[palace.index] ?? palace.name;
+}
 
-    const groups: Array<keyof Pick<AnalyzedPalace, 'majorStars' | 'minorStars' | 'adjectiveStars'>> = [
-      'majorStars',
-      'minorStars',
-      'adjectiveStars',
-    ];
-    const copied = {
+function buildPeriodChart(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): AnalyzedChart {
+  const periodMutagens = collectMutagens(chart, period);
+  const palaces = chart.palaces.map((palace) => {
+    const copied: AnalyzedPalace = {
       ...palace,
-      majorStars: palace.majorStars.map((star) => cloneStar(star, periodMutagens.get(canonicalStarName(chart, star.starName)))),
-      minorStars: palace.minorStars.map((star) => cloneStar(star, periodMutagens.get(canonicalStarName(chart, star.starName)))),
-      adjectiveStars: palace.adjectiveStars.map((star) => cloneStar(star, periodMutagens.get(canonicalStarName(chart, star.starName)))),
+      name: scopedPalaceName(period, palace),
+      majorStars: palace.majorStars.map((star) => ({ ...star })),
+      minorStars: palace.minorStars.map((star) => ({ ...star })),
+      adjectiveStars: palace.adjectiveStars.map((star) => ({ ...star })),
     };
 
-    for (const starName of activeStars) {
-      const exists = groups.some((group) =>
-        copied[group].some((star) => canonicalStarName(chart, star.starName) === starName)
-      );
-      if (exists) continue;
-      copied.majorStars.push({ starName, mutagen: periodMutagens.get(starName) });
-    }
+    if (palace.index !== target.palace.index) return copied;
+
+    period.stars.forEach((starName, index) => {
+      const canonicalName = canonicalStarName(chart, starName);
+      const mutagen = periodMutagens.get(canonicalName);
+      const overlay: AnalyzedStar = {
+        starName: canonicalName,
+        evidenceField: `fortune.${period.type}.stars[${index}]`,
+        ...(mutagen ? { mutagen } : {}),
+      };
+      copied.majorStars.push(overlay);
+    });
 
     return copied;
   });
 
-  const periodEntries = [...periodMutagens.entries()].map(([starName, mutagen]) => ({
-    palaceIndex: target.palace.index,
-    palaceName: target.palace.name,
-    starName,
-    mutagen,
-  }));
-
-  return {
-    ...chart,
-    palaces,
-    mutagens: {
-      entries: [
-        ...chart.mutagens.entries.map((entry) => ({ ...entry })),
-        ...periodEntries,
-      ],
-    },
-  };
+  return { ...chart, palaces };
 }
 
-function buildPatternContext(chart: AnalyzedChart, target: PalaceLocation): AnalyzedChart {
-  if (canonicalPalaceName(chart, target.palace.name) === canonicalPalaceName(chart, '命宮')) return chart;
-
-  const originalMingName = '本命命宮';
-  return {
-    ...chart,
-    palaces: chart.palaces.map((palace) => {
-      if (palace.index === target.palace.index) return { ...palace, name: '命宮' };
-      if (canonicalPalaceName(chart, palace.name) === canonicalPalaceName(chart, '命宮')) {
-        return { ...palace, name: originalMingName };
-      }
-      return palace;
-    }),
-  };
+function targetScopeName(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): string {
+  return canonicalPalaceName(chart, scopedPalaceName(period, target.palace));
 }
 
-function contextEvidence(chart: AnalyzedChart, period: FortunePeriod, target: PalaceLocation): Evidence[] {
+function scopeReasoning(
+  chart: AnalyzedChart,
+  period: FortunePeriod,
+  target: PalaceLocation,
+  label: string,
+): string {
+  const targetName = targetScopeName(chart, period, target);
+  const scope = period.type === 'decadal'
+    ? `${label}歲期間`
+    : period.type === 'annual'
+      ? `${label}年期間`
+      : `${label}期間`;
+  return `${scope}，${targetName}`;
+}
+
+function contextEvidence(
+  chart: AnalyzedChart,
+  period: FortunePeriod,
+  target: PalaceLocation,
+  label: string,
+): Evidence[] {
+  const scope = scopeReasoning(chart, period, target, label);
   const evidence: Evidence[] = [
     createPalaceEvidence(
       chart,
       target,
-      `${period.type} 運限作用於${target.palace.name}。`,
-      canonicalPalaceName(chart, target.palace.name)
+      `${scope}；原始命盤宮位為${canonicalPalaceName(chart, target.palace.name)}。`,
+      canonicalPalaceName(chart, target.palace.name),
     ),
   ];
 
   period.stars.forEach((starName, index) => {
     const canonicalName = canonicalStarName(chart, starName);
+    const knowledge = getStarKnowledge(canonicalName);
+    if (!knowledge) return;
     evidence.push({
-      knowledgeId: getStarKnowledgeId(canonicalName),
+      knowledgeId: knowledge.knowledgeId,
       field: `fortune.${period.type}.stars[${index}]`,
       source: 'iztro-sanhe-v1',
       value: canonicalName,
-      reasoning: `${period.type} 運限啟用${canonicalName}。`,
+      reasoning: `${scope}；啟用${canonicalName}。`,
     });
   });
 
@@ -293,13 +346,13 @@ function contextEvidence(chart: AnalyzedChart, period: FortunePeriod, target: Pa
     const parsed = parseMutagen(chart, mutagen);
     const starName = parsed?.starName
       ?? (canonicalMutagen(chart, mutagen) ? undefined : canonicalStarName(chart, mutagen));
-    if (!starName) return;
+    if (!starName || !getStarKnowledge(starName)) return;
     evidence.push({
-      knowledgeId: getStarKnowledgeId(starName),
+      knowledgeId: getStarKnowledge(starName)!.knowledgeId,
       field: `fortune.${period.type}.mutagens[${index}]`,
       source: 'iztro-sanhe-v1',
       value: mutagen,
-      reasoning: `${period.type} 運限包含${mutagen}作用。`,
+      reasoning: `${scope}；包含${mutagen}作用。`,
     });
   });
 
@@ -311,17 +364,25 @@ function toFortuneResult(
   chart: AnalyzedChart,
   period: FortunePeriod,
   target: PalaceLocation,
-  label: string
+  label: string,
 ): FortuneResult {
+  const scope = scopeReasoning(chart, period, target, label);
+  const targetName = targetScopeName(chart, period, target);
   return {
     ...result,
     periodType: period.type,
     periodLabel: label,
-    palace: canonicalPalaceName(chart, target.palace.name),
+    palace: targetName,
     stars: [...period.stars],
     mutagens: [...period.mutagens],
     themes: [...period.themes],
-    evidence: dedupeEvidence([...contextEvidence(chart, period, target), ...result.evidence]),
+    evidence: dedupeEvidence([
+      ...contextEvidence(chart, period, target, label),
+      ...result.evidence.map((item) => ({
+        ...item,
+        reasoning: `${scope}；${item.reasoning}`,
+      })),
+    ]),
   };
 }
 
@@ -334,7 +395,7 @@ export function evaluateFortune(chart: AnalyzedChart, period: FortunePeriod): Fo
   const label = periodLabel(chart, period, target);
   const ruleResults = [
     ...evaluateFourTransformations(periodChart),
-    ...evaluatePatterns(buildPatternContext(periodChart, target)),
+    ...evaluatePatterns(periodChart),
   ];
 
   return ruleResults

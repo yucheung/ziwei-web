@@ -76,7 +76,7 @@ export function getStarLocations(chart: AnalyzedChart): StarLocation[] {
           starPosition,
           starGroup,
           starName: canonicalStarName(chart, star.starName),
-          field: `palaces[${palacePosition}].${starGroup}[${starPosition}]`,
+          field: star.evidenceField ?? `palaces[${palacePosition}].${starGroup}[${starPosition}]`,
         });
       });
     }

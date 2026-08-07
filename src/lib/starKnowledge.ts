@@ -60,6 +60,7 @@ const STAR_KNOWLEDGE: StarKnowledgeEntry[] = [
   createStarKnowledge('右弼', 'youbi', 'auspicious', '水', ['廟', '旺', '得', '利'], '六吉星'),
   createStarKnowledge('天魁', 'tiankui', 'auspicious', '火', ['廟', '旺', '得', '利'], '六吉星'),
   createStarKnowledge('天鉞', 'tianyue', 'auspicious', '火', ['廟', '旺', '得', '利'], '六吉星'),
+  createStarKnowledge('祿存', 'lucun', 'auspicious', '土', ['廟', '旺', '得', '平'], '六吉星'),
   createStarKnowledge('擎羊', 'qingyang', 'inauspicious', '金', ['廟', '陷'], '六煞星'),
   createStarKnowledge('陀羅', 'tuoluo', 'inauspicious', '金', ['廟', '陷'], '六煞星'),
   createStarKnowledge('火星', 'huoxing', 'inauspicious', '火', ['廟', '利', '得', '陷'], '六煞星'),

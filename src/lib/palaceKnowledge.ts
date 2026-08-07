@@ -132,7 +132,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   },
 ];
 
-const PALACE_ALIASES: Record<string, string> = { 交友: '僕役' };
+const PALACE_ALIASES: Record<string, string> = { 交友: '僕役', 本命命宮: '命宮' };
 const PALACE_KNOWLEDGE_BY_NAME = new Map(PALACE_KNOWLEDGE.map((entry) => [entry.palaceName, entry]));
 
 export function getPalaceKnowledge(palaceName: string): PalaceKnowledgeEntry | undefined {

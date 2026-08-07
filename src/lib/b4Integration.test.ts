@@ -25,13 +25,13 @@ describe('B4 citation integration', () => {
   it('has a knowledge entry for every star in the v1 knowledge set', () => {
     const entries = getAllStarKnowledge();
 
-    expect(entries).toHaveLength(26);
+    expect(entries).toHaveLength(27);
     for (const entry of entries) {
       expect(getStarKnowledge(entry.starName)).toEqual(entry);
     }
   });
 
-  it('traces all 26 known stars when they occur in structured summary data', () => {
+  it('traces all 27 known stars when they occur in structured summary data', () => {
     const entries = getAllStarKnowledge();
     const summary: AnalyzedChart = {
       schemaVersion: '1.0',

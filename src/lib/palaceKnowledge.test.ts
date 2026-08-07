@@ -35,6 +35,11 @@ describe('palaceKnowledge', () => {
     expect(getPalaceKnowledge('交友')).toEqual(getPalaceKnowledge('僕役'));
   });
 
+  it('accepts 本命命宮 as an alias for 命宮', () => {
+    expect(getPalaceKnowledge('本命命宮')).toEqual(getPalaceKnowledge('命宮'));
+    expect(getPalaceKnowledge('本命命宮')?.knowledgeId).toBe('palace-ming');
+  });
+
   it('returns undefined for an unknown palace', () => {
     expect(getPalaceKnowledge('不存在的宮位')).toBeUndefined();
   });

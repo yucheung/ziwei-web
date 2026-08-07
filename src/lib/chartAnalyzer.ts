@@ -23,6 +23,8 @@ export interface AnalyzedStar {
   starName: string;
   brightness?: string;
   mutagen?: string;
+  /** Internal evidence-field override used by scoped fortune overlays. */
+  evidenceField?: string;
 }
 
 export interface AnalyzedPalace {

@@ -128,12 +128,21 @@ const FIXTURES: GoldenFixture[] = [
     ],
   },
   {
-    name: 'four-transformations', date: '2024-05-15', timeIndex: 6, gender: 'male', config: NORMAL_CONFIG,
+    name: 'midday-2023', date: '2023-05-15', timeIndex: 6, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
-      'pattern-san-qi-jia-hui', 'four-transformation-lianzhen-huaLu', 'four-transformation-pojun-huaQuan',
-      'four-transformation-taiyang-huaJi', 'four-transformation-wuqu-huaKe', 'pattern-sha-po-lang',
-      'pattern-ziwei-pojun-same-palace', 'pattern-zuo-you-same-palace', 'pattern-tianfu-system-ming',
-      'pattern-tianfu-you', 'pattern-ziwei-system-ming', 'pattern-ziwei-wei',
+      'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
+      'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
+      'pattern-ziwei-tianfu-same-palace', 'pattern-tianfu-yin',
+      'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
+    ],
+  },
+  {
+    name: 'next-day-2023', date: '2023-05-16', timeIndex: 6, gender: 'male', config: NORMAL_CONFIG,
+    expectedRuleIds: [
+      'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
+      'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
+      'pattern-ziwei-tianfu-same-palace', 'pattern-tianfu-yin',
+      'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
     ],
   },
   {
@@ -238,6 +247,12 @@ const FIXTURES: GoldenFixture[] = [
 
 describe('rule golden v2', () => {
   it('matches deterministic rule IDs for 26 known chart configurations', () => {
+    const fixtureInputs = FIXTURES.map(({ name: _name, expectedRuleIds: _expectedRuleIds, ...input }) =>
+      JSON.stringify(input)
+    );
+    expect(FIXTURES).toHaveLength(26);
+    expect(new Set(fixtureInputs).size).toBe(26);
+
     const detectedPatternIds = new Set<string>();
 
     for (const fixture of FIXTURES) {
