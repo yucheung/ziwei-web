@@ -239,6 +239,18 @@ export const zhCN: Record<TranslationKey, string> = {
     '⚠️ 安全提醒：API Key 仅暂存于本浏览器标签页（sessionStorage），关闭标签页即自动清除。' +
     '即便如此，前端存储 API Key 仍有 XSS 风险，建议仅在可信网络环境使用，并定期轮换 Key。',
 
+  // ─── LLM Debug Panel（LLM 输入检视） ───
+  'llm.debug.showInput': '查看 LLM 输入',
+  'llm.debug.hideInput': '隐藏 LLM 输入',
+  'llm.debug.systemPrompt': 'System Prompt',
+  'llm.debug.userPrompt': 'User Prompt',
+  'llm.debug.noPromptYet': '尚未生成 Prompt，请先点击「生成 AI 命盘解读」',
+  'llm.debug.lastRequest': '最近请求',
+  'llm.debug.provider': 'Provider',
+  'llm.debug.model': 'Model',
+  'llm.debug.status': 'Status',
+  'llm.debug.latency': '延迟',
+
   // ─── Match Panel ───
   'match.title': '双人紫微命盘合盘 (Astrolabe Match)',
   'match.subtitle': '双盘并排对照 · 十干四化互飞气场 · 情感与性格契合度深度评估',

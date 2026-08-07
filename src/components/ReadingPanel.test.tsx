@@ -341,6 +341,83 @@ describe('ReadingPanel Component Test Suite', () => {
     expect(await screen.findByText(/已複製/)).toBeInTheDocument();
   });
 
+  describe('B1-3: LLM 輸入檢視（Debug 面板）', () => {
+    it('shows the exact systemPrompt sent to the LLM after clicking "查看 LLM 輸入"', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1));
+
+      fireEvent.click(screen.getByRole('button', { name: /查看 LLM 輸入/i }));
+
+      expect(screen.getByText(/紫微斗數（三合派）/)).toBeInTheDocument();
+    });
+
+    it('shows the exact userPrompt (including chart facts like 命宮) after expanding the debug panel', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1));
+
+      fireEvent.click(screen.getByRole('button', { name: /查看 LLM 輸入/i }));
+
+      const userPromptBlocks = screen.getAllByText(/命宮/);
+      expect(userPromptBlocks.length).toBeGreaterThan(0);
+    });
+
+    it('displays request meta (provider/model/status) after the stream finishes', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '命格分析結果' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1));
+
+      fireEvent.click(screen.getByRole('button', { name: /查看 LLM 輸入/i }));
+
+      expect(screen.getByText('最近請求')).toBeInTheDocument();
+      expect(screen.getByText('Google Gemini (OpenAI-compatible)')).toBeInTheDocument();
+      expect(screen.getByText('gemini-2.5-flash')).toBeInTheDocument();
+      expect(screen.getByText('completed')).toBeInTheDocument();
+    });
+
+    it('does not auto-expand the debug panel and does not affect the normal reading flow', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '命格分析結果' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+
+      expect(screen.queryByText('System Prompt')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('命格分析結果')).toBeInTheDocument();
+      });
+      // Debug panel remains collapsed even after a completed request
+      expect(screen.queryByText('System Prompt')).not.toBeInTheDocument();
+    });
+  });
+
   describe('A-1: aria-live status announcer (does not wrap the whole streaming output tree)', () => {
     it('keeps the output container aria-live="off" so streaming chunks are not spammed to screen readers', () => {
       const { container } = render(<ReadingPanel chart={mockChart} />);

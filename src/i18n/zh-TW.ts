@@ -229,6 +229,18 @@ export const zhTW = {
     '⚠️ 安全提醒：API Key 僅暫存於本瀏覽器分頁（sessionStorage），關閉分頁即自動清除。' +
     '即便如此，前端儲存 API Key 仍有 XSS 風險，建議僅在可信網路環境使用，並定期輪換 Key。',
 
+  // ─── LLM Debug Panel（LLM 輸入檢視） ───
+  'llm.debug.showInput': '查看 LLM 輸入',
+  'llm.debug.hideInput': '隱藏 LLM 輸入',
+  'llm.debug.systemPrompt': 'System Prompt',
+  'llm.debug.userPrompt': 'User Prompt',
+  'llm.debug.noPromptYet': '尚未產生 Prompt，請先點擊「生成 AI 命盤解讀」',
+  'llm.debug.lastRequest': '最近請求',
+  'llm.debug.provider': 'Provider',
+  'llm.debug.model': 'Model',
+  'llm.debug.status': 'Status',
+  'llm.debug.latency': '延遲',
+
   // ─── Match Panel ───
   'match.title': '雙人紫微命盤合盤 (Astrolabe Match)',
   'match.subtitle': '雙盤並排對照 · 十干四化互飛氣場 · 情感與性格契合度深度評估',

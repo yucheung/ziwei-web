@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Trash2,
   PlayCircle,
+  Terminal,
 } from 'lucide-react';
 import {
   LLMConfig,
@@ -63,6 +64,15 @@ const PALACE_OPTIONS: Array<{ id: string; key: TranslationKey }> = [
   { id: '\u7236\u6bcd\u5bae', key: 'palace.fumu' },
 ];
 
+/**
+ * 量測請求延遲用。獨立於元件之外，避免 react-hooks/purity 規則誤判
+ * `performance.now()`（本身確實不純，但只在事件處理器內呼叫，不影響 render）
+ * 是在渲染階段被呼叫。
+ */
+function nowMs(): number {
+  return performance.now();
+}
+
 export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const { t, locale } = useTranslation();
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
@@ -75,6 +85,14 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const [copied, setCopied] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [finishStatus, setFinishStatus] = useState<StreamFinishStatus | null>(null);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [debugPrompt, setDebugPrompt] = useState<{ systemPrompt: string; userPrompt: string } | null>(null);
+  const [lastRequestMeta, setLastRequestMeta] = useState<{
+    provider: string;
+    model: string;
+    status: StreamFinishStatus;
+    latencyMs: number;
+  } | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
@@ -112,6 +130,16 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
+    const requestStartedAt = nowMs();
+    const recordMeta = (status: StreamFinishStatus) => {
+      setLastRequestMeta({
+        provider: currentProviderName,
+        model: llmConfig.model,
+        status,
+        latencyMs: Math.round(nowMs() - requestStartedAt),
+      });
+    };
+
     try {
       await callLLMStream(messages, llmConfig, {
         signal: abortControllerRef.current.signal,
@@ -121,11 +149,13 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         onError: (err) => {
           setErrorMsg(`${t('reading.error.prefix')}: ${err.message || String(err)}`);
           setIsLoading(false);
+          recordMeta('error');
         },
         onFinish: (result) => {
           setReadingText(baseText + result.text);
           setIsLoading(false);
           setFinishStatus(result.status);
+          recordMeta(result.status);
         },
       }, DEFAULT_STREAM_IDLE_TIMEOUT_MS, locale);
     } catch (err: unknown) {
@@ -163,6 +193,8 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
       focusPalace: focusPalace || undefined,
       locale: appLocale,
     });
+
+    setDebugPrompt({ systemPrompt, userPrompt });
 
     const messages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -364,6 +396,58 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
               </>
             )}
           </button>
+        )}
+      </div>
+
+      {/* LLM Debug Panel: read-only view of the exact prompt sent + last request meta */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setShowDebugPanel((prev) => !prev)}
+          aria-expanded={showDebugPanel}
+          className="w-fit flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded"
+        >
+          <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
+          {showDebugPanel ? t('llm.debug.hideInput') : t('llm.debug.showInput')}
+        </button>
+
+        {showDebugPanel && (
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3 space-y-3 text-xs">
+            {debugPrompt ? (
+              <>
+                <div>
+                  <p className="font-semibold text-slate-600 dark:text-slate-400 mb-1">{t('llm.debug.systemPrompt')}</p>
+                  <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words font-mono text-[11px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2">
+                    {debugPrompt.systemPrompt}
+                  </pre>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-600 dark:text-slate-400 mb-1">{t('llm.debug.userPrompt')}</p>
+                  <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words font-mono text-[11px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2">
+                    {debugPrompt.userPrompt}
+                  </pre>
+                </div>
+              </>
+            ) : (
+              <p className="text-slate-500 dark:text-slate-500">{t('llm.debug.noPromptYet')}</p>
+            )}
+
+            {lastRequestMeta && (
+              <div>
+                <p className="font-semibold text-slate-600 dark:text-slate-400 mb-1">{t('llm.debug.lastRequest')}</p>
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.provider')}</dt>
+                  <dd>{lastRequestMeta.provider}</dd>
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.model')}</dt>
+                  <dd>{lastRequestMeta.model || t('reading.notSet')}</dd>
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.status')}</dt>
+                  <dd>{lastRequestMeta.status}</dd>
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.latency')}</dt>
+                  <dd>{lastRequestMeta.latencyMs} ms</dd>
+                </dl>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
