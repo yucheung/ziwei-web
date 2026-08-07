@@ -19,6 +19,7 @@
  * 使用者收到的是簡體輸出，而非被寫死的繁體系統提示詞覆蓋。
  */
 import { analyzeChart, type AnalyzedStar } from './chartAnalyzer';
+import { traceCitations } from './citationTracer';
 import type { ReadingAstrolabeLike } from './chartModel';
 import type { Locale } from '../i18n/locale';
 
@@ -182,7 +183,19 @@ const STRUCTURED_SUMMARY_LABELS: Record<Locale, string> = {
 
 function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale): string {
   const { generatedAt: _, ...summary } = analyzeChart(chart, locale);
-  return `\n\n${STRUCTURED_SUMMARY_LABELS[locale]}\n\`\`\`json\n${JSON.stringify(summary, null, 2)}\n\`\`\``;
+  const citations = traceCitations(summary);
+
+  let output = `\n\n${STRUCTURED_SUMMARY_LABELS[locale]}\n\`\`\`json\n${JSON.stringify(summary, null, 2)}\n\`\`\``;
+
+  if (citations.length > 0) {
+    const citationHeader = locale === 'zh-CN' ? '## 知识来源' : '## 知識來源';
+    output += `\n\n${citationHeader}\n`;
+    for (const citation of citations) {
+      output += `- [${citation.knowledgeId}] ${citation.source} — ${citation.field} (${citation.confidence})\n`;
+    }
+  }
+
+  return output;
 }
 
 /**

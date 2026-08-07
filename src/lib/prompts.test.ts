@@ -75,6 +75,25 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(systemPrompt).toContain('"palaces"');
   });
 
+  it.each([
+    ['zh-TW' as const, '## 知識來源'],
+    ['zh-CN' as const, '## 知识来源'],
+  ])('appends traceable citation lines to the %s system prompt', (locale, citationHeader) => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: locale });
+    const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale });
+
+    expect(systemPrompt).toContain(citationHeader);
+    expect(systemPrompt).toMatch(/- \[palace-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.name \(high\)/);
+    expect(systemPrompt).toMatch(/- \[star-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.majorStars\[\d+\] \(high\)/);
+  });
+
+  it('includes citations in the deterministic golden system prompt', () => {
+    const chart = getChart({ date: '1988-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
+    const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale: 'zh-TW' });
+
+    expect(systemPrompt).toMatchSnapshot();
+  });
+
   it('generatedAt 不在 prompt 中（避免 cache miss）', () => {
     const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
     const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall' });

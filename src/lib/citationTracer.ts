@@ -11,11 +11,13 @@ export interface Citation {
   confidence: CitationConfidence;
 }
 
+export type CitationSummary = Pick<AnalyzedChart, 'palaces' | 'mutagens'>;
+
 function addCitation(citations: Citation[], knowledgeId: string, source: string, field: string): void {
   citations.push({ knowledgeId, field, source, confidence: 'high' });
 }
 
-export function traceCitations(summary: AnalyzedChart): Citation[] {
+export function traceCitations(summary: CitationSummary): Citation[] {
   const citations: Citation[] = [];
 
   summary.palaces.forEach((palace, palaceIndex) => {
