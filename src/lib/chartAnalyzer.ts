@@ -56,7 +56,7 @@ export interface PatternSummary {
 export interface AnalyzedChart {
   schemaVersion: '1.0';
   generatedAt: string;
-  locale: Locale;
+  outputLocale: Locale;
   birthData: { date: string; timeIndex: number; gender: Gender };
   palaces: AnalyzedPalace[];
   mutagens: MutagenSummary;
@@ -196,7 +196,7 @@ export function analyzeChart(
   return {
     schemaVersion: '1.0',
     generatedAt: options.generatedAt ?? new Date().toISOString(),
-    locale,
+    outputLocale: locale,
     birthData: {
       date: astrolabe.solarDate || '',
       timeIndex: getTimeIndex(astrolabe),

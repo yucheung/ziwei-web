@@ -67,7 +67,7 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     ['zh-TW' as const, '結構化命盤摘要 JSON'],
     ['zh-CN' as const, '结构化命盘摘要 JSON'],
   ])('includes the structured summary JSON in the %s system prompt', (locale, label) => {
-    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: locale });
     const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale });
 
     expect(systemPrompt).toContain(label);
@@ -75,15 +75,10 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(systemPrompt).toContain('"palaces"');
   });
 
-  it('uses an explicit generatedAt when building the structured summary', () => {
-    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
-    const generatedAt = '2026-08-07T00:00:00.000Z';
-    const { systemPrompt } = buildReadingPrompt(chart, {
-      type: 'overall',
-      generatedAt,
-    });
-
-    expect(systemPrompt).toContain(`"generatedAt": "${generatedAt}"`);
+  it('generatedAt 不在 prompt 中（避免 cache miss）', () => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
+    const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall' });
+    expect(systemPrompt).not.toContain('generatedAt');
   });
 
   it('should generate mutagens and special patterns prompts correctly', () => {
@@ -186,7 +181,7 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
   });
 
   it('should not let sanitized user input contain the literal open tag used as the real delimiter', () => {
-    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
 
     const { userPrompt } = buildReadingPrompt(chart, {
       type: 'overall',

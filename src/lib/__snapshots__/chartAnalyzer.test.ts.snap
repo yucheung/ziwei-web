@@ -8,7 +8,6 @@ exports[`chartAnalyzer.ts > is snapshot-stable when generation time is fixed 1`]
     "timeIndex": 2,
   },
   "generatedAt": "2026-08-07T00:00:00.000Z",
-  "locale": "zh-TW",
   "mutagens": {
     "entries": [
       {
@@ -37,6 +36,7 @@ exports[`chartAnalyzer.ts > is snapshot-stable when generation time is fixed 1`]
       },
     ],
   },
+  "outputLocale": "zh-TW",
   "palaces": [
     {
       "adjectiveStars": [

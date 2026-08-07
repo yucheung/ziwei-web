@@ -18,7 +18,7 @@
  * 解讀指令、UI 標籤與語言指示則依 `locale` 參數化（zh-TW / zh-CN），確保 zh-CN
  * 使用者收到的是簡體輸出，而非被寫死的繁體系統提示詞覆蓋。
  */
-import { analyzeChart, type AnalyzedChart, type AnalyzedStar } from './chartAnalyzer';
+import { analyzeChart, type AnalyzedStar } from './chartAnalyzer';
 import type { ReadingAstrolabeLike } from './chartModel';
 import type { Locale } from '../i18n/locale';
 
@@ -38,8 +38,6 @@ export interface PromptOptions {
   focusPalace?: string;
   /** 解讀輸出語言，預設 'zh-TW'（向後相容既有呼叫端） */
   locale?: Locale;
-  /** Optional generation time used to make repeated prompt construction byte-identical. */
-  generatedAt?: string;
 }
 
 /**
@@ -182,8 +180,8 @@ const STRUCTURED_SUMMARY_LABELS: Record<Locale, string> = {
   'zh-CN': '【结构化命盘摘要 JSON】',
 };
 
-function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale, generatedAt?: string): string {
-  const summary: AnalyzedChart = analyzeChart(chart, locale, { generatedAt });
+function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale): string {
+  const { generatedAt: _, ...summary } = analyzeChart(chart, locale);
   return `\n\n${STRUCTURED_SUMMARY_LABELS[locale]}\n\`\`\`json\n${JSON.stringify(summary, null, 2)}\n\`\`\``;
 }
 
@@ -393,7 +391,7 @@ export function buildReadingPrompt(chart: AstrolabeSummaryLike | null, options: 
 
   let systemPrompt = getSystemPrompt(locale);
   if (chart) {
-    systemPrompt += serializeStructuredSummary(chart, locale, options.generatedAt);
+    systemPrompt += serializeStructuredSummary(chart, locale);
   }
 
   if (options.customInstructions && options.customInstructions.trim()) {

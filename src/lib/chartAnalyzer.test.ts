@@ -11,7 +11,7 @@ describe('chartAnalyzer.ts', () => {
 
     expect(result.schemaVersion).toBe('1.0');
     expect(result.generatedAt).toBe(generatedAt);
-    expect(result.locale).toBe('zh-TW');
+    expect(result.outputLocale).toBe('zh-TW');
     expect(result.birthData).toEqual({ date: '2000-8-16', timeIndex: 2, gender: 'male' });
     expect(result.palaces).toHaveLength(12);
 
@@ -49,7 +49,7 @@ describe('chartAnalyzer.ts', () => {
     const chart = getChart({ date: '1995-03-21', timeIndex: 6, gender, language: locale });
     const result = analyzeChart(chart, locale, { generatedAt });
 
-    expect(result.locale).toBe(locale);
+    expect(result.outputLocale).toBe(locale);
     expect(result.birthData.gender).toBe(gender);
     expect(result.palaces).toHaveLength(12);
   });
