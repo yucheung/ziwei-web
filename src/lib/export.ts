@@ -45,6 +45,10 @@ export interface ExportAstrolabe {
   earthlyBranchOfSoulPalace?: string;
   earthlyBranchOfBodyPalace?: string;
   palaces: ExportPalaceInfo[];
+  /** 排盤時辰索引 (若呼叫端有保留原始排盤參數) */
+  timeIndex?: number | string;
+  /** 排盤經度 (若呼叫端有保留原始排盤參數) */
+  longitude?: number | string;
 }
 
 /**
@@ -197,7 +201,99 @@ export function generateChartSummaryText(astrolabe: ExportAstrolabe, locale: Loc
 }
 
 /**
- * 3. 命盤分享卡 (html2canvas → PNG Base64 / Canvas)
+ * 3. 生成命盤 JSON 快照 (確定性：同一輸入兩次呼叫 JSON.stringify byte 相等)
+ * 不含任何時間戳 (generatedAt) 或隨機值，鍵順序固定。
+ */
+export interface ChartJsonSettings {
+  school?: string;
+  yearBoundary?: string;
+  trueSolarTime?: { enabled?: boolean; longitude?: number };
+  lateZiHandling?: string;
+  iztroVersion?: string;
+  [key: string]: unknown;
+}
+
+export interface ChartJsonHoroscope {
+  fiveDimensional?: Record<string, unknown>;
+  temporal?: Record<string, unknown>;
+}
+
+export interface GenerateChartJsonOptions {
+  locale?: AppLocale;
+  settings?: ChartJsonSettings;
+  /** 運限資料 (若呼叫端已計算，供 JSON 匯出保留；未提供則匯出時省略此鍵) */
+  horoscope?: ChartJsonHoroscope;
+}
+
+function starToJson(s: ExportStarInfo, appLocale: AppLocale): Record<string, unknown> {
+  const out: Record<string, unknown> = { name: translateKey(s.name, 'star', appLocale) };
+  if (s.type !== undefined) out.type = s.type;
+  if (s.brightness !== undefined) out.brightness = translateKey(s.brightness, 'brightness', appLocale);
+  if (s.mutagen !== undefined) out.mutagen = translateKey(s.mutagen, 'mutagen', appLocale);
+  return out;
+}
+
+export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateChartJsonOptions = {}): string {
+  const appLocale: AppLocale = options.locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
+
+  const palaces = Array.isArray(astrolabe.palaces) ? astrolabe.palaces : [];
+
+  const chartPalaces = palaces.map((p) => ({
+    name: translateKey(p.name, 'palace', appLocale),
+    heavenlyStem: translateKey(p.heavenlyStem || '', 'stem', appLocale),
+    earthlyBranch: translateKey(p.earthlyBranch || '', 'branch', appLocale),
+    isBodyPalace: !!p.isBodyPalace,
+    isOriginalPalace: !!p.isOriginalPalace,
+    majorStars: (p.majorStars || []).map((s) => starToJson(s, appLocale)),
+    minorStars: (p.minorStars || []).map((s) => starToJson(s, appLocale)),
+    adjectiveStars: (p.adjectiveStars || []).map((s) => translateKey(s.name, 'star', appLocale)),
+    changsheng12: translateKey(p.changsheng12 || '', 'star', appLocale),
+    boshi12: translateKey(p.boshi12 || '', 'star', appLocale),
+    suijian12: translateKey(p.suijian12 || '', 'star', appLocale),
+    jiangqian12: translateKey(p.jiangqian12 || '', 'star', appLocale),
+    decadal: {
+      range: p.decadal?.range ? [p.decadal.range[0], p.decadal.range[1]] : undefined,
+    },
+    ages: p.ages || [],
+  }));
+
+  const yearPillar = (astrolabe.chineseDate || '').split(' ')[0] || '';
+
+  const result: Record<string, unknown> = {
+    schemaVersion: 'zhChart-v1',
+  };
+
+  if (options.settings) {
+    result.settings = options.settings;
+  }
+
+  result.input = {
+    solarDate: astrolabe.solarDate,
+    timeIndex: astrolabe.timeIndex,
+    gender: translateKey(astrolabe.gender || '', 'gender', appLocale),
+    longitude: astrolabe.longitude,
+  };
+
+  result.chart = {
+    fiveElementsClass: translateKey(astrolabe.fiveElementsClass || '', 'fiveElementsClass', appLocale),
+    soulStar: translateKey(astrolabe.soul || '', 'star', appLocale),
+    bodyStar: translateKey(astrolabe.body || '', 'star', appLocale),
+    heavenlyStem: translateKey(yearPillar.charAt(0) || '', 'stem', appLocale),
+    earthlyBranch: translateKey(yearPillar.charAt(1) || '', 'branch', appLocale),
+    palaces: chartPalaces,
+  };
+
+  if (options.horoscope) {
+    result.horoscope = options.horoscope;
+  }
+
+  result.determinism = true;
+
+  return JSON.stringify(result);
+}
+
+/**
+ * 4. 命盤分享卡 (html2canvas → PNG Base64 / Canvas)
  */
 export interface ShareCardOptions {
   scale?: number;
@@ -234,7 +330,7 @@ export async function exportShareCardToDataUrl(
 }
 
 /**
- * 4. 觸發瀏覽器下載檔案 Helper
+ * 5. 觸發瀏覽器下載檔案 Helper
  */
 export function downloadFile(content: string | Blob, filename: string, mimeType: string = 'text/plain;charset=utf-8'): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -268,6 +364,18 @@ export function downloadChartSummaryText(astrolabe: ExportAstrolabe, filename?: 
   const summaryContent = generateChartSummaryText(astrolabe, locale);
   const fname = filename || `ziwei_summary_${astrolabe.solarDate || 'chart'}.txt`;
   downloadFile(summaryContent, fname, 'text/plain;charset=utf-8');
+}
+
+export function downloadChartJson(
+  astrolabe: ExportAstrolabe,
+  settings?: ChartJsonSettings,
+  filename?: string,
+  locale: Locale = 'zh-TW'
+): void {
+  const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
+  const jsonContent = generateChartJson(astrolabe, { locale: appLocale, settings });
+  const fname = filename || `ziwei_astrolabe_${astrolabe.solarDate || 'chart'}.json`;
+  downloadFile(jsonContent, fname, 'application/json;charset=utf-8');
 }
 
 export async function downloadShareCardImage(

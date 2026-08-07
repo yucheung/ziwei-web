@@ -3,11 +3,13 @@ import {
   escapeCsvField,
   generateChartCsv,
   generateChartSummaryText,
+  generateChartJson,
   exportElementToCanvas,
   exportShareCardToDataUrl,
   downloadFile,
   downloadChartCsv,
   downloadChartSummaryText,
+  downloadChartJson,
   ExportAstrolabe,
 } from './export';
 import { getChart } from './astro';
@@ -123,6 +125,61 @@ describe('src/lib/export.ts', () => {
     });
   });
 
+  describe('generateChartJson', () => {
+    it('is deterministic: same input produces byte-identical output across calls', () => {
+      const first = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
+      const second = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
+      expect(first).toBe(second);
+    });
+
+    it('produces a complete schema with fixed top-level keys and a palaces array', () => {
+      const json = generateChartJson(sampleAstrolabe, {
+        locale: 'zh-TW',
+        settings: { school: 'sanhe', iztroVersion: '2.x' },
+      });
+      const parsed = JSON.parse(json);
+
+      expect(Object.keys(parsed)).toEqual(['schemaVersion', 'settings', 'input', 'chart', 'determinism']);
+      expect(parsed.schemaVersion).toBe('zhChart-v1');
+      expect(parsed.settings).toEqual({ school: 'sanhe', iztroVersion: '2.x' });
+      expect(parsed.determinism).toBe(true);
+      expect(Array.isArray(parsed.chart.palaces)).toBe(true);
+      expect(parsed.chart.palaces.length).toBeGreaterThan(0);
+    });
+
+    it('omits the settings key entirely when not provided', () => {
+      const json = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
+      const parsed = JSON.parse(json);
+      expect(parsed).not.toHaveProperty('settings');
+      expect(Object.keys(parsed)).toEqual(['schemaVersion', 'input', 'chart', 'determinism']);
+    });
+
+    it('never includes a generatedAt timestamp', () => {
+      const json = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
+      expect(json).not.toContain('generatedAt');
+    });
+
+    it('translates palace/star names per locale, consistent with translateKey', () => {
+      const twAstrolabe = getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { algorithm: 'default' },
+      });
+
+      const twJson = generateChartJson(twAstrolabe, { locale: 'zh-TW' });
+      expect(twJson).toContain('遷移');
+      expect(twJson).not.toContain('迁移');
+
+      const cnJson = generateChartJson(twAstrolabe, { locale: 'zh-CN' });
+      expect(cnJson).toContain('迁移');
+      expect(cnJson).not.toContain('遷移');
+      expect(cnJson).toContain('巨门');
+      expect(cnJson).not.toContain('巨門');
+    });
+  });
+
   describe('Share Card Export (html2canvas integration)', () => {
     it('calls html2canvas with element and options', async () => {
       const fakeCanvas = {
@@ -172,6 +229,28 @@ describe('src/lib/export.ts', () => {
     it('downloadChartCsv and downloadChartSummaryText do not crash', () => {
       expect(() => downloadChartCsv(sampleAstrolabe)).not.toThrow();
       expect(() => downloadChartSummaryText(sampleAstrolabe)).not.toThrow();
+    });
+
+    it('downloadChartJson triggers a .json download via downloadFile', () => {
+      const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fakeurl');
+      const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      // NOTE: an earlier test in this file spies on document.body.appendChild without
+      // restoring it, so vi.spyOn here returns that same shared mock; clear it first
+      // so mock.calls only reflects this test's own call.
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      appendChildSpy.mockClear();
+
+      downloadChartJson(sampleAstrolabe, { school: 'sanhe' });
+
+      expect(createObjectURLSpy).toHaveBeenCalled();
+      const [blobArg] = createObjectURLSpy.mock.calls[0];
+      expect((blobArg as Blob).type).toBe('application/json;charset=utf-8');
+      expect(appendChildSpy).toHaveBeenCalled();
+      const link = appendChildSpy.mock.calls[0][0] as HTMLAnchorElement;
+      expect(link.download.endsWith('.json')).toBe(true);
+
+      createObjectURLSpy.mockRestore();
+      revokeObjectURLSpy.mockRestore();
     });
   });
 });
