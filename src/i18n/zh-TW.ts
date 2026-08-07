@@ -432,6 +432,29 @@ export const zhTW = {
   'error.boundary.msg': '模組載入失敗，可能是應用程式已更新。請嘗試重新整理頁面。',
   'error.boundary.reload': '重新載入頁面',
 
+  // ─── Reading History (解讀歷史) ───
+  'history.title': '解讀歷史',
+  'history.empty': '尚無歷史解讀紀錄',
+  'history.loading': '載入解讀歷史中...',
+  'history.rulesCount': '{count} 條規則',
+  'history.restore': '還原解讀',
+  'history.delete': '刪除紀錄',
+  'history.deleteConfirm': '確定要刪除此筆解讀歷史嗎？此操作無法復原。',
+  'history.exportJson': '匯出歷史 JSON',
+  'history.compare': '並排比較 ({count})',
+  'history.closeCompare': '關閉比較',
+  'history.readingA': '解讀 A (較舊)',
+  'history.readingB': '解讀 B (較新)',
+  'history.selectTwoToCompare': '請勾選 2 筆解讀進行並排比較',
+  'history.error': '讀取解讀歷史時發生錯誤',
+  'history.deleted': '已刪除解讀紀錄',
+  'history.summary': '解讀摘要',
+  'history.createdAt': '解讀日期',
+  'history.selectForCompare': '選擇比較',
+  'history.comparing': '歷史解讀並排比較',
+  'history.exported': '已匯出解讀歷史 JSON',
+  'print': '列印解讀',
+
   // ─── App Loading ───
   'app.loading': '載入中... / Loading...',
 } as const;

@@ -589,5 +589,31 @@ describe('ReadingPanel Component Test Suite', () => {
       expect(cnSourcedPrompt).toContain('【解读重点：');
       expect(cnSourcedPrompt).not.toBe(zhSourcedPrompt);
     });
+
+    it('triggers window.print when print button is clicked', async () => {
+      const printSpy = vi.fn();
+      vi.stubGlobal('print', printSpy);
+
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '測試解讀內文' };
+        callbacks.onChunk?.('測試解讀內文', '測試解讀內文');
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} />
+        </I18nProvider>,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(screen.getByText('列印解讀')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole('button', { name: '列印解讀' }));
+      expect(printSpy).toHaveBeenCalledTimes(1);
+
+      vi.unstubAllGlobals();
+    });
   });
 });

@@ -402,7 +402,14 @@ export default function App() {
                   )}
                   {activeTab === 'reading' && (
                     <div id="tabpanel-reading" role="tabpanel" aria-labelledby="tab-reading" tabIndex={0} className="focus:outline-none">
-                      <ReadingPanel chart={astrolabe} />
+                      <ReadingPanel
+                        chart={astrolabe}
+                        chartId={
+                          activeBirthData
+                            ? `${activeBirthData.calendarType}-${activeBirthData.solarDate || activeBirthData.lunarDate}-${activeBirthData.hour}-${activeBirthData.gender}`
+                            : 'default-chart'
+                        }
+                      />
                     </div>
                   )}
                 </section>

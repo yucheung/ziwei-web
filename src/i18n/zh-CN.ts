@@ -442,6 +442,29 @@ export const zhCN: Record<TranslationKey, string> = {
   'error.boundary.msg': '模块加载失败，可能是应用程序已更新。请尝试重新加载页面。',
   'error.boundary.reload': '重新加载页面',
 
+  // ─── Reading History (解读历史) ───
+  'history.title': '解读历史',
+  'history.empty': '尚无历史解读记录',
+  'history.loading': '加载解读历史中...',
+  'history.rulesCount': '{count} 条规则',
+  'history.restore': '还原解读',
+  'history.delete': '删除记录',
+  'history.deleteConfirm': '确定要删除此条解读历史吗？此操作无法复原。',
+  'history.exportJson': '导出历史 JSON',
+  'history.compare': '并排比较 ({count})',
+  'history.closeCompare': '关闭比较',
+  'history.readingA': '解读 A (较旧)',
+  'history.readingB': '解读 B (较新)',
+  'history.selectTwoToCompare': '请勾选 2 条解读进行并排比较',
+  'history.error': '读取解读历史时发生错误',
+  'history.deleted': '已删除解读记录',
+  'history.summary': '解读摘要',
+  'history.createdAt': '解读日期',
+  'history.selectForCompare': '选择比较',
+  'history.comparing': '历史解读并排比较',
+  'history.exported': '已导出解读历史 JSON',
+  'print': '打印解读',
+
   // ─── App Loading ───
   'app.loading': '加载中... / Loading...',
 };

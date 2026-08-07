@@ -18,6 +18,7 @@ import {
   Trash2,
   PlayCircle,
   Terminal,
+  Printer,
 } from 'lucide-react';
 import {
   LLMConfig,
@@ -36,9 +37,13 @@ import { buildReadingPrompt, ReadingType, PROMPT_VERSION, RULE_SET_VERSION } fro
 import { canonicalizeAstrolabeForReading, type AppLocale, type IFunctionalAstrolabe } from '../lib/chartModel';
 import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
+import { saveReading, type StoredReading } from '../lib/storage';
+import { HistoryPanel } from './HistoryPanel';
 
-interface ReadingPanelProps {
+export interface ReadingPanelProps {
   chart: IFunctionalAstrolabe | null;
+  chartId?: string;
+  onSelectReading?: (reading: StoredReading) => void;
 }
 
 const READING_TYPES: Array<{ id: ReadingType; labelKey: TranslationKey }> = [
@@ -103,7 +108,7 @@ function saveLastRequestMeta(meta: LastRequestMeta): void {
   }
 }
 
-export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
+export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, onSelectReading }) => {
   const { t, locale } = useTranslation();
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
   const [readingType, setReadingType] = useState<ReadingType>('overall');
@@ -118,6 +123,14 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [lastRequestMeta, setLastRequestMeta] = useState<LastRequestMeta | null>(loadLastRequestMeta);
   const [debugPrompt, setDebugPrompt] = useState<{ systemPrompt: string; userPrompt: string } | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
+
+  const handleSelectHistoryReading = (stored: StoredReading) => {
+    setReadingText(stored.reading);
+    if (onSelectReading) {
+      onSelectReading(stored);
+    }
+  };
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
@@ -189,6 +202,16 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           setIsLoading(false);
           setFinishStatus(result.status);
           recordMeta(result.status);
+
+          if (chartId && result.status === 'completed' && latestFullText.trim()) {
+            void saveReading({
+              id: globalThis.crypto.randomUUID(),
+              chartId,
+              reading: latestFullText,
+              rules: [],
+              createdAt: new Date().toISOString(),
+            }).then(() => setHistoryKey((k) => k + 1));
+          }
         },
       }, DEFAULT_STREAM_IDLE_TIMEOUT_MS, locale);
     } catch (err: unknown) {
@@ -414,21 +437,31 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         )}
 
         {readingText && (
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:border-slate-400 dark:hover:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" /> {t('reading.copied')}
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" /> {t('reading.copy')}
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:border-slate-400 dark:hover:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" /> {t('reading.copied')}
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" /> {t('reading.copy')}
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="no-print px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:border-slate-400 dark:hover:border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            >
+              <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+              {t('print')}
+            </button>
+          </div>
         )}
       </div>
 
@@ -544,6 +577,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
         )}
         <div ref={outputEndRef} />
       </div>
+
+      {chartId && (
+        <div className="mt-2 no-print">
+          <HistoryPanel key={historyKey} chartId={chartId} onSelectReading={handleSelectHistoryReading} />
+        </div>
+      )}
 
       {/* API Config Modal */}
       {isConfigOpen && (
