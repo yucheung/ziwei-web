@@ -283,6 +283,11 @@ describe('buildChartModel', () => {
         expect(m.majorStars.map((s) => s.brightnessKey)).toEqual(
           p.majorStars.map((s) => s.brightness || undefined),
         );
+        // minorStars 的 mutagenKey 也必須正確標記（native 四化來源）
+        expect(m.minorStars.map((s) => s.starKey)).toEqual(p.minorStars.map((s) => s.name));
+        expect(m.minorStars.map((s) => s.mutagenKey)).toEqual(
+          p.minorStars.map((s) => s.mutagen || undefined),
+        );
         if (p.decadal) {
           expect(m.decadeKey).toEqual({
             range: p.decadal.range,
@@ -338,7 +343,7 @@ describe('getSurroundingPalaces (三方四正 canonical adapter)', () => {
     });
   }
 
-  it('目標索引越界時拋出錯誤', () => {
+  it('負索引會正規化為 mod 12 而非拋錯 (與 iztro 原生 surroundedPalaces() 的拋錯行為不同，見 chartModel.ts 文件註記)', () => {
     const astrolabe = getCanonicalAstrolabe({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
     const model = buildChartModel(astrolabe);
     expect(() => getSurroundingPalaces(model, -1)).not.toThrow();

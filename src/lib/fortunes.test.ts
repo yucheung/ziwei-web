@@ -360,15 +360,6 @@ describe('B2 V1: 四化疊盤驗證 — iztro horoscope() mutagen vs STEM_MUTAGE
 
   const LAYERS = ['decadal', 'yearly', 'monthly', 'daily', 'hourly'] as const;
 
-  // 記錄每一層「iztro 是否原生附帶 mutagen」的觀測結果，供完成報告引用。
-  const nativeCoverage: Record<(typeof LAYERS)[number], boolean[]> = {
-    decadal: [],
-    yearly: [],
-    monthly: [],
-    daily: [],
-    hourly: [],
-  };
-
   for (const fixture of FIXTURES) {
     it(`生年天干 ${fixture.yearStem} (${fixture.date})：各層 mutagen 與查表一致且完整`, () => {
       const astrolabe = getChart({
@@ -386,12 +377,9 @@ describe('B2 V1: 四化疊盤驗證 — iztro horoscope() mutagen vs STEM_MUTAGE
         const expected = getMutagensByStem(stem);
         const rawMutagen = h[layer].mutagen || [];
 
-        // 標記 iztro 是否原生附帶該層 mutagen (長度 4 視為完整附帶)
-        nativeCoverage[layer].push(rawMutagen.length === 4);
-
-        if (rawMutagen.length === 4) {
-          expect(rawMutagen).toEqual([expected.lu, expected.quan, expected.ke, expected.ji]);
-        }
+        // iztro 原生 mutagen 必須與查表一致（無條件斷言，不再因缺資料跳過）
+        expect(rawMutagen).toHaveLength(4);
+        expect(rawMutagen).toEqual([expected.lu, expected.quan, expected.ke, expected.ji]);
 
         // 無論 iztro 是否原生附帶，getHoroscopeSummary 最終輸出必須與查表一致 (完整性)
         expect(summary[layer].mutagen).toEqual(expected);
@@ -403,10 +391,4 @@ describe('B2 V1: 四化疊盤驗證 — iztro horoscope() mutagen vs STEM_MUTAGE
     });
   }
 
-  it('觀測完成後：回報各層 iztro 原生附帶 mutagen 的覆蓋率 (供完成報告引用)', () => {
-    // 這個 it 只在前面所有 fixture 都跑過後才有意義；用來把 nativeCoverage 攤平成人類可讀的斷言。
-    for (const layer of LAYERS) {
-      expect(nativeCoverage[layer].length).toBe(FIXTURES.length);
-    }
-  });
 });
