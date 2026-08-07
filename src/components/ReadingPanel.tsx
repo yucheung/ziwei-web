@@ -481,6 +481,8 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
                   <dd>{lastRequestMeta.promptVersion}</dd>
                   <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.ruleSetVersion')}</dt>
                   <dd>{lastRequestMeta.ruleSetVersion}</dd>
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.summaryLength')}</dt>
+                  <dd>{lastRequestMeta.summaryLength}</dd>
                 </dl>
               </div>
             )}

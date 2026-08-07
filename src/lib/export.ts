@@ -224,8 +224,13 @@ export interface GenerateChartJsonOptions {
    * 呼叫端排盤時使用的原始 GetChartOptions，用於填充 `input` 欄位。
    * iztro 產出的 astrolabe 物件本身不含 timeIndex/longitude，這兩個欄位只能
    * 由呼叫端顯式帶入，否則 `input` 會靜默缺失決定性資訊。
+   *
+   * 不含 `date` / `gender`：`result.input` 的 solarDate 與 gender 一律直接取自
+   * astrolabe (見下方 generateChartJson)，因為那才是排盤實際採用、且已正規化
+   * 的權威值——呼叫端的 `date` 在 isLunar=true 時是農曆日期字串，直接當
+   * solarDate 顯示會誤導；`gender` 也已由 astrolabe 正規化為顯示字串。
    */
-  input?: Pick<GetChartOptions, 'date' | 'timeIndex' | 'gender' | 'isLunar' | 'longitude'>;
+  input?: Pick<GetChartOptions, 'timeIndex' | 'isLunar' | 'longitude'>;
 }
 
 function starToJson(s: ExportStarInfo, appLocale: AppLocale): Record<string, unknown> {
@@ -270,6 +275,8 @@ export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateC
     result.settings = options.settings;
   }
 
+  // solarDate/gender：取自 astrolabe (排盤結果的權威值)。
+  // timeIndex/isLunar/longitude：astrolabe 不保留這些原始輸入，只能取自呼叫端。
   result.input = {
     solarDate: astrolabe.solarDate,
     timeIndex: options.input?.timeIndex,

@@ -146,7 +146,7 @@ describe('src/lib/export.ts', () => {
     it('fills input.timeIndex/longitude/isLunar from the passed GetChartOptions, not from the astrolabe object', () => {
       const json = generateChartJson(sampleAstrolabe, {
         locale: 'zh-TW',
-        input: { date: '2000-08-16', timeIndex: 1, gender: 'male', isLunar: false, longitude: 121.56 },
+        input: { timeIndex: 1, isLunar: false, longitude: 121.56 },
       });
       const parsed = JSON.parse(json);
 

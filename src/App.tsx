@@ -58,38 +58,44 @@ export default function App() {
 
   const iztroLanguage = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
+  // 排盤參數建構：初始化 / 語言同步 / 手動排盤共用同一份邏輯，
+  // 確保每次呼叫 getChart 產生的 astrolabe 與凍結下來的 lastChartOptions 對應同一組參數。
+  const buildChartOptions = (language: string): GetChartOptions => ({
+    date: solarDate,
+    timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
+    gender,
+    isLunar: calendarType === 'lunar',
+    language,
+    config,
+    astroType,
+    ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
+  });
+
   // 初始化星盤資料
   const [astrolabe, setAstrolabe] = useState(() => {
     try {
-      return getChart({
-        date: '2000-08-16',
-        timeIndex: 2,
-        gender: 'male',
-        language: iztroLanguage,
-        config: DEFAULT_CONFIG,
-        astroType: 'heaven',
-      });
+      return getChart(buildChartOptions(iztroLanguage));
     } catch {
       return null;
     }
   });
+
+  // 產生目前 astrolabe 時實際使用的 GetChartOptions (凍結快照)。
+  // 供匯出等「必須與畫面上命盤完全對應」的功能使用，避免表單已變動但尚未
+  // 重新排盤時，誤讀即時表單 state 而產生與實際命盤矛盾的輸出。
+  const [lastChartOptions, setLastChartOptions] = useState<GetChartOptions | null>(() =>
+    astrolabe ? buildChartOptions(iztroLanguage) : null
+  );
 
   // 當語言變更時，自動更新星盤語言
   const [prevLocale, setPrevLocale] = useState(locale);
   if (locale !== prevLocale) {
     setPrevLocale(locale);
     try {
-      const chart = getChart({
-        date: solarDate,
-        timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
-        gender,
-        isLunar: calendarType === 'lunar',
-        language: iztroLanguage,
-        config,
-        astroType,
-        ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
-      });
+      const options = buildChartOptions(iztroLanguage);
+      const chart = getChart(options);
       setAstrolabe(chart);
+      setLastChartOptions(options);
     } catch {
       // 保留原有星盤
     }
@@ -133,26 +139,19 @@ export default function App() {
 
   const handleExportJson = () => {
     if (!astrolabe) return;
-    const chartOptions: GetChartOptions = {
-      date: solarDate,
-      timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
-      gender,
-      isLunar: calendarType === 'lunar',
-      language: iztroLanguage,
-      config,
-      astroType,
-      ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
-    };
+    // 讀取「產生目前這張命盤時」凍結下來的參數，而非即時表單 state，
+    // 避免表單已改動但尚未重新排盤時，匯出與畫面上命盤矛盾的 input。
+    const options = lastChartOptions;
     downloadChartJson(
       astrolabe as unknown as ExportAstrolabe,
       {
-        input: {
-          date: chartOptions.date,
-          timeIndex: chartOptions.timeIndex,
-          gender: chartOptions.gender,
-          isLunar: chartOptions.isLunar,
-          longitude: chartOptions.longitude,
-        },
+        input: options
+          ? {
+              timeIndex: options.timeIndex,
+              isLunar: options.isLunar,
+              longitude: options.longitude,
+            }
+          : undefined,
         settings: {
           school: config.algorithm ?? 'default',
           yearBoundary: config.yearDivide ?? 'normal',
@@ -168,17 +167,10 @@ export default function App() {
   const handleGenerateChart = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     try {
-      const chart = getChart({
-        date: solarDate,
-        timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
-        gender,
-        isLunar: calendarType === 'lunar',
-        language: iztroLanguage,
-        config,
-        astroType,
-        ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
-      });
+      const options = buildChartOptions(iztroLanguage);
+      const chart = getChart(options);
       setAstrolabe(chart);
+      setLastChartOptions(options);
     } catch (err) {
       alert(err instanceof Error ? err.message : t('app.chartError'));
     }

@@ -242,6 +242,7 @@ export const zhTW = {
   'llm.debug.latency': '延遲',
   'llm.debug.promptVersion': 'Prompt 版本',
   'llm.debug.ruleSetVersion': '規則集版本',
+  'llm.debug.summaryLength': '摘要長度',
 
   // ─── Match Panel ───
   'match.title': '雙人紫微命盤合盤 (Astrolabe Match)',

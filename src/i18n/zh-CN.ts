@@ -252,6 +252,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'llm.debug.latency': '延迟',
   'llm.debug.promptVersion': 'Prompt 版本',
   'llm.debug.ruleSetVersion': '规则集版本',
+  'llm.debug.summaryLength': '摘要长度',
 
   // ─── Match Panel ───
   'match.title': '双人紫微命盘合盘 (Astrolabe Match)',
