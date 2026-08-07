@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
+    "idb": "^7.1.1",
     "iztro": "^2.5.8",
     "lucide-react": "^1.28.0",
     "lunar-typescript": "^1.8.6",
+    "lz-string": "^1.5.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

@@ -10,6 +10,7 @@ import { RuleInfoPanel } from './components/RuleInfoPanel';
 import { getChart } from './lib/astro';
 import type { Config, AstroType, GetChartOptions } from './lib/astro';
 import { DEFAULT_CONFIG } from './lib/astro';
+import { chartConfigToGetChartOptions, type ChartConfig } from './lib/chartConfig';
 import { buildFourPillarsFromGanZhi } from './lib/bazi';
 import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage, downloadChartJson } from './lib/export';
 import type { ExportAstrolabe } from './lib/export';
@@ -19,6 +20,7 @@ const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ def
 const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => ({ default: m.FortunePanel })));
 const ReadingPanel = lazy(() => import('./components/ReadingPanel').then((m) => ({ default: m.ReadingPanel })));
 const MatchPanel = lazy(() => import('./components/MatchPanel').then((m) => ({ default: m.MatchPanel })));
+const CollectionPanel = lazy(() => import('./components/CollectionPanel').then((m) => ({ default: m.CollectionPanel })));
 
 const LoadingFallback = () => {
   const { t } = useTranslation();
@@ -58,15 +60,15 @@ export default function App() {
 
   const iztroLanguage = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
-  // 排盤參數建構：初始化 / 語言同步 / 手動排盤共用同一份邏輯，
-  // 確保每次呼叫 getChart 產生的 astrolabe 與凍結下來的 lastChartOptions 對應同一組參數。
-  const buildChartOptions = (language: string): GetChartOptions => ({
-    date: solarDate,
-    timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
+  const buildBirthData = (): ChartConfig => ({
+    ...(calendarType === 'lunar' ? { lunarDate: solarDate } : { solarDate }),
+    calendarType,
+    isLeapMonth: false,
+    hour: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
     gender,
-    isLunar: calendarType === 'lunar',
-    language,
-    config,
+    algorithm: config.algorithm ?? 'zhongzhou',
+    yearDivide: config.yearDivide ?? 'normal',
+    dayDivide: config.dayDivide ?? 'forward',
     astroType,
     ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
   });
@@ -74,30 +76,38 @@ export default function App() {
   // 初始化星盤資料
   const [astrolabe, setAstrolabe] = useState(() => {
     try {
-      return getChart(buildChartOptions(iztroLanguage));
+      return getChart(chartConfigToGetChartOptions(buildBirthData(), iztroLanguage));
     } catch {
       return null;
     }
   });
 
+  // Form fields can change before regeneration, so the displayed astrolabe keeps
+  // a separate snapshot for exports, persistence, and locale-driven rerenders.
+  const [activeBirthData, setActiveBirthData] = useState<ChartConfig | null>(() =>
+    astrolabe ? buildBirthData() : null
+  );
+
   // 產生目前 astrolabe 時實際使用的 GetChartOptions (凍結快照)。
   // 供匯出等「必須與畫面上命盤完全對應」的功能使用，避免表單已變動但尚未
   // 重新排盤時，誤讀即時表單 state 而產生與實際命盤矛盾的輸出。
   const [lastChartOptions, setLastChartOptions] = useState<GetChartOptions | null>(() =>
-    astrolabe ? buildChartOptions(iztroLanguage) : null
+    activeBirthData ? chartConfigToGetChartOptions(activeBirthData, iztroLanguage) : null
   );
 
   // 當語言變更時，自動更新星盤語言
   const [prevLocale, setPrevLocale] = useState(locale);
   if (locale !== prevLocale) {
     setPrevLocale(locale);
-    try {
-      const options = buildChartOptions(iztroLanguage);
-      const chart = getChart(options);
-      setAstrolabe(chart);
-      setLastChartOptions(options);
-    } catch {
-      // 保留原有星盤
+    if (activeBirthData) {
+      try {
+        const options = chartConfigToGetChartOptions(activeBirthData, iztroLanguage);
+        const chart = getChart(options);
+        setAstrolabe(chart);
+        setLastChartOptions(options);
+      } catch {
+        // 保留原有星盤
+      }
     }
   }
 
@@ -169,12 +179,48 @@ export default function App() {
     );
   };
 
+  const handleLoadChart = (birthData: ChartConfig) => {
+    try {
+      const options = chartConfigToGetChartOptions(birthData, iztroLanguage);
+      const chart = getChart(options);
+
+      const birthDate = birthData.calendarType === 'lunar' ? birthData.lunarDate : birthData.solarDate;
+      if (!birthDate) throw new Error(t('app.chartError'));
+
+      setSolarDate(birthDate);
+      setCalendarType(birthData.calendarType);
+      setGender(birthData.gender);
+      setConfig({
+        algorithm: birthData.algorithm,
+        yearDivide: birthData.yearDivide,
+        dayDivide: birthData.dayDivide,
+      });
+      setAstroType(birthData.astroType);
+      if (typeof birthData.hour === 'string') {
+        setTimeIndex('0');
+        setPreciseTime(birthData.hour);
+        setLongitude(birthData.longitude === undefined ? '' : String(birthData.longitude));
+      } else {
+        setTimeIndex(String(birthData.hour));
+        setPreciseTime('');
+        setLongitude('');
+      }
+      setAstrolabe(chart);
+      setActiveBirthData(birthData);
+      setLastChartOptions(options);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : t('app.chartError'));
+    }
+  };
+
   const handleGenerateChart = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     try {
-      const options = buildChartOptions(iztroLanguage);
+      const birthData = buildBirthData();
+      const options = chartConfigToGetChartOptions(birthData, iztroLanguage);
       const chart = getChart(options);
       setAstrolabe(chart);
+      setActiveBirthData(birthData);
       setLastChartOptions(options);
     } catch (err) {
       alert(err instanceof Error ? err.message : t('app.chartError'));
@@ -228,6 +274,7 @@ export default function App() {
                     solarTimeActive={solarTimeActive}
                     onSubmit={handleGenerateChart}
                   />
+                  <CollectionPanel currentBirthData={activeBirthData} onLoad={handleLoadChart} />
                 </aside>
 
                 {/* Right / Center Astrolabe Grid & Reading Panel */}

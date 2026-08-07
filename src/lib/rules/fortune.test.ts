@@ -36,12 +36,24 @@ function makeChart(): AnalyzedChart {
   };
 }
 
+function starCount(chart: AnalyzedChart): number {
+  return chart.palaces.reduce(
+    (total, palace) => total + palace.majorStars.length + palace.minorStars.length + palace.adjectiveStars.length,
+    0,
+  );
+}
+
 describe('fortune period rule evaluation', () => {
   it('evaluates decadal transformations and patterns in the period context', () => {
     const chart = makeChart();
+    chart.palaces[0].majorStars = [makeStar('廉貞'), makeStar('紫微'), makeStar('天府')];
+    const before = JSON.stringify(chart);
+    const beforeStarCount = starCount(chart);
     const period: FortunePeriod = {
       type: 'decadal',
       palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
       ageRange: [44, 53],
       stars: ['廉貞', '紫微', '天府'],
       mutagens: ['廉貞化祿'],
@@ -64,7 +76,8 @@ describe('fortune period rule evaluation', () => {
       expect.objectContaining({ ruleId: 'pattern-ziwei-tianfu-same-palace' }),
     ]));
     expect(result.every((item) => item.evidence.every((evidence) => evidence.reasoning.length > 0))).toBe(true);
-    expect(chart.palaces.every((palace) => palace.majorStars.length === 0)).toBe(true);
+    expect(starCount(chart)).toBe(beforeStarCount);
+    expect(JSON.stringify(chart)).toBe(before);
   });
 
   it('uses an annual earthly branch and a monthly heavenly stem to label contexts', () => {
@@ -73,6 +86,8 @@ describe('fortune period rule evaluation', () => {
     const annual: FortunePeriod = {
       type: 'annual',
       palace: '遷移',
+      palaceIndex: 6,
+      palaceNames: PALACE_NAMES,
       earthlyBranch: '午',
       year: 2026,
       stars: ['太陽'],
@@ -92,9 +107,12 @@ describe('fortune period rule evaluation', () => {
     ]));
 
     const monthlyChart = makeChart();
+    monthlyChart.palaces[0].majorStars = [makeStar('廉貞')];
     const monthly: FortunePeriod = {
       type: 'monthly',
       palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
       heavenlyStem: '甲',
       month: '辰',
       stars: ['廉貞'],
@@ -118,6 +136,8 @@ describe('fortune period rule evaluation', () => {
     const period: FortunePeriod = {
       type: 'annual',
       palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
       year: 2026,
       stars: [],
       mutagens: [],
@@ -130,9 +150,12 @@ describe('fortune period rule evaluation', () => {
 
   it('maps iztro-style annual mutagen star arrays to the four transformations', () => {
     const chart = makeChart();
+    chart.palaces[6].majorStars = [makeStar('廉貞'), makeStar('破軍'), makeStar('武曲'), makeStar('太陽')];
     const period: FortunePeriod = {
       type: 'annual',
       palace: '遷移',
+      palaceIndex: 6,
+      palaceNames: PALACE_NAMES,
       earthlyBranch: '午',
       year: 2024,
       stars: ['廉貞', '破軍', '武曲', '太陽'],
@@ -193,6 +216,7 @@ describe('fortune period rule evaluation', () => {
 
   it('uses the adapted monthly index even when its heavenly stem matches another natal palace', () => {
     const chart = makeChart();
+    chart.palaces[6].majorStars = [makeStar('廉貞')];
     const period: FortunePeriod = {
       type: 'monthly',
       palace: '遷移',
@@ -214,8 +238,78 @@ describe('fortune period rule evaluation', () => {
     ]));
   });
 
+  it('does not add an absent period star to a copied palace', () => {
+    const chart = makeChart();
+    chart.palaces[0].majorStars = [makeStar('廉貞')];
+    const before = JSON.stringify(chart);
+    const beforeStarCount = starCount(chart);
+    const period: FortunePeriod = {
+      type: 'annual',
+      palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
+      year: 2026,
+      stars: ['紫微', '天府'],
+      mutagens: [],
+      themes: [],
+    };
+
+    const results = evaluateFortune(chart, period);
+
+    expect(results.map((item) => item.ruleId)).not.toContain('pattern-ziwei-tianfu-same-palace');
+    expect(starCount(chart)).toBe(beforeStarCount);
+    expect(JSON.stringify(chart)).toBe(before);
+  });
+
+  it('marks an existing mutagen star when the period does not list it', () => {
+    const chart = makeChart();
+    chart.palaces[0].majorStars = [makeStar('廉貞')];
+    const before = JSON.stringify(chart);
+    const beforeStarCount = starCount(chart);
+    const period: FortunePeriod = {
+      type: 'annual',
+      palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
+      year: 2026,
+      stars: [],
+      mutagens: ['廉貞化祿'],
+      themes: [],
+    };
+
+    expect(evaluateFortune(chart, period)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ ruleId: 'four-transformation-lianzhen-huaLu' }),
+    ]));
+    expect(starCount(chart)).toBe(beforeStarCount);
+    expect(JSON.stringify(chart)).toBe(before);
+  });
+
+  it('marks an existing mutagen star outside the target palace', () => {
+    const chart = makeChart();
+    chart.palaces[6].majorStars = [makeStar('廉貞')];
+    const before = JSON.stringify(chart);
+    const beforeStarCount = starCount(chart);
+    const period: FortunePeriod = {
+      type: 'annual',
+      palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
+      year: 2026,
+      stars: [],
+      mutagens: ['廉貞化忌'],
+      themes: [],
+    };
+
+    expect(evaluateFortune(chart, period)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ ruleId: 'four-transformation-lianzhen-huaJi' }),
+    ]));
+    expect(starCount(chart)).toBe(beforeStarCount);
+    expect(JSON.stringify(chart)).toBe(before);
+  });
+
   it('keeps period-star evidence in the fortune namespace and includes scope reasoning', () => {
     const chart = makeChart();
+    chart.palaces[0].majorStars = [makeStar('廉貞'), makeStar('紫微'), makeStar('天府')];
     const period: FortunePeriod = {
       type: 'decadal',
       palace: '命宮',

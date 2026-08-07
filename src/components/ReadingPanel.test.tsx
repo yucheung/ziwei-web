@@ -264,6 +264,21 @@ describe('ReadingPanel Component Test Suite', () => {
     expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1);
   });
 
+  it('renders completed streamed reading text', async () => {
+    vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+      const result = { status: 'completed' as const, text: '可分享的解讀內容' };
+      callbacks.onFinish?.(result);
+      return result;
+    });
+
+    render(<ReadingPanel chart={mockChart} />);
+    fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('可分享的解讀內容')).toBeInTheDocument();
+    });
+  });
+
   it('handles stream error gracefully and displays error message', async () => {
     vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
       callbacks.onError?.(new Error('Network Timeout'));

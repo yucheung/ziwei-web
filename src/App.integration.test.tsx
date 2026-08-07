@@ -4,6 +4,9 @@ import { Suspense } from 'react';
 import App from './App';
 import { I18nProvider } from './i18n';
 import * as exportLib from './lib/export';
+import * as llmModule from './lib/llm';
+import * as localeModule from './i18n/locale';
+import { clearAll, saveChart } from './lib/storage';
 
 // Mock locale to always return zh-TW
 vi.mock('./i18n/locale', () => ({
@@ -28,12 +31,14 @@ vi.mock('./lib/llm', async () => {
       temperature: 0.7,
     }),
     callLLMStream: vi.fn(),
+    saveLLMConfig: vi.fn(),
+    clearLLMConfig: vi.fn(),
   };
 });
 
-function renderApp() {
+function renderApp(defaultLocale?: 'zh-TW' | 'zh-CN') {
   return render(
-    <I18nProvider>
+    <I18nProvider defaultLocale={defaultLocale}>
       <Suspense fallback={<div>Loading...</div>}>
         <App />
       </Suspense>
@@ -44,6 +49,7 @@ function renderApp() {
 describe('App Integration Test Suite', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState({}, '', '/');
   });
 
   it('renders initial App state with header, form inputs, and default astrolabe chart', async () => {
@@ -286,6 +292,69 @@ describe('App Integration Test Suite', () => {
     expect(localeArg).toBe('zh-TW');
 
     jsonSpy.mockRestore();
+  });
+
+  it('copies the generated reading for the active chart', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    vi.mocked(llmModule.callLLMStream).mockImplementation(async (_messages, _config, callbacks) => {
+      const result = { status: 'completed' as const, text: '這是可分享的命盤解讀。' };
+      callbacks.onFinish?.(result);
+      return result;
+    });
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    fireEvent.change(document.getElementById('birth-time-select')!, { target: { value: '6' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成紫微命盤' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'AI 智能命盤解讀' }));
+    fireEvent.click(await screen.findByRole('button', { name: '生成 AI 命盤解讀' }));
+
+    await screen.findByText('這是可分享的命盤解讀。');
+    fireEvent.click(await screen.findByRole('button', { name: '複製解讀' }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('這是可分享的命盤解讀。'));
+  });
+
+  it('loads a saved chart in the current locale without changing LLM settings', async () => {
+    await clearAll();
+    await saveChart({
+      id: 'app-integration-chart',
+      name: '待載入命盤',
+      birthData: {
+        solarDate: '1995-10-15',
+        calendarType: 'solar',
+        isLeapMonth: false,
+        hour: 6,
+        gender: 'female',
+        algorithm: 'zhongzhou',
+        yearDivide: 'exact',
+        dayDivide: 'current',
+        astroType: 'human',
+      },
+      createdAt: '2026-08-07T12:00:00.000Z',
+    });
+    const confirmSpy = vi.mocked(window.confirm);
+    confirmSpy.mockReturnValue(true);
+
+    renderApp('zh-CN');
+
+    expect(await screen.findByText('紫微斗数 Web 专业版')).toBeInTheDocument();
+    expect(await screen.findByText('待載入命盤')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '加载' }));
+    await waitFor(() => {
+      expect((document.querySelector('input[type="date"]') as HTMLInputElement).value).toBe('1995-10-15');
+    });
+    expect(localeModule.saveLocale).not.toHaveBeenCalled();
+    expect(llmModule.saveLLMConfig).not.toHaveBeenCalled();
+    expect(llmModule.clearLLMConfig).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '删除' }));
+    expect(confirmSpy).toHaveBeenCalledWith('确定要删除“待載入命盤”吗？此操作无法恢复。');
+    await waitFor(() => expect(screen.queryByText('待載入命盤')).not.toBeInTheDocument());
+    await clearAll();
   });
 
   it('uses the frozen chart options (not live form state) when exporting JSON without regenerating (N1)', async () => {
