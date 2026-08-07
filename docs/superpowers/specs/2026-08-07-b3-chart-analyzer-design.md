@@ -17,7 +17,7 @@ Add `src/lib/chartAnalyzer.ts` as a pure adapter around the astrolabe-shaped inp
 
 `AnalyzedChart` contains only the B3 contract: schema version, generation metadata, locale, birth data, analyzed palaces, mutagen records, and an empty pattern summary. `generatedAt` is injectable through an optional analyzer option so deterministic tests and callers that need reproducible JSON can provide a fixed value; normal callers receive the current ISO timestamp.
 
-`summarizeAstrolabe()` will call the analyzer and format its analyzed palace data back into the existing Markdown labels and layout. The basic-information lines continue to read from the original astrolabe so existing output remains byte-compatible. `buildReadingPrompt()` will use the analyzer result to append a localized JSON code block to the system prompt, while retaining the current text summary and user-input delimiter behavior. `PromptOptions.generatedAt` passes through to the analyzer so a caller that reconstructs a prompt can reuse the exact generation timestamp and preserve byte-identical messages.
+`summarizeAstrolabe()` will call the analyzer and format its analyzed palace data back into the existing Markdown labels and layout. The basic-information lines continue to read from the original astrolabe so existing output remains byte-compatible. `buildReadingPrompt()` will use the analyzer result to append a localized JSON code block to the system prompt, while retaining the current text summary and user-input delimiter behavior. `PromptOptions (generatedAt removed)` passes through to the analyzer so a caller that reconstructs a prompt can reuse the exact generation timestamp and preserve byte-identical messages.
 
 ## Data contract
 

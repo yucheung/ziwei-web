@@ -255,6 +255,16 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
       expect(cnSummary).not.toContain('巨门');
       expect(cnSummary).not.toContain('生年禄');
     });
+
+    it('summarizeAstrolabe zh-TW golden snapshot', () => {
+      const chart = getChart({ date: '1988-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
+      expect(summarizeAstrolabe(chart, 'zh-TW')).toMatchSnapshot();
+    });
+
+    it('summarizeAstrolabe zh-CN golden snapshot', () => {
+      const chart = getChart({ date: '1988-08-16', timeIndex: 2, gender: 'male', language: 'zh-CN' });
+      expect(summarizeAstrolabe(chart, 'zh-CN')).toMatchSnapshot();
+    });
   });
 
   // --- B1 回歸守衛：防止 getSystemPrompt / summarizeAstrolabe 被還原為恆回 zh-TW ---

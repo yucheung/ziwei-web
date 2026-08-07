@@ -34,22 +34,22 @@
 
 - [ ] **Step 1: Write the failing analyzer tests**
 
-Create real chart fixtures and fix `generatedAt` so the tests do not depend on wall-clock time:
+Create real chart fixtures and fix `passthrough removed` so the tests do not depend on wall-clock time:
 
 ```ts
 import { describe, expect, it } from 'vitest';
 import { getChart } from './astro';
 import { analyzeChart } from './chartAnalyzer';
 
-const generatedAt = '2026-08-07T00:00:00.000Z';
+const passthrough removed = '2026-08-07T00:00:00.000Z';
 
 describe('chartAnalyzer.ts', () => {
   it('emits the v1 schema with twelve analyzed palaces and non-empty starName values', () => {
     const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
-    const result = analyzeChart(chart, 'zh-TW', { generatedAt });
+    const result = analyzeChart(chart, 'zh-TW', { passthrough removed });
 
     expect(result.schemaVersion).toBe('1.0');
-    expect(result.generatedAt).toBe(generatedAt);
+    expect(result.passthrough removed).toBe(passthrough removed);
     expect(result.locale).toBe('zh-TW');
     expect(result.birthData).toEqual({ date: '2000-8-16', timeIndex: 2, gender: 'male' });
     expect(result.palaces).toHaveLength(12);
@@ -65,7 +65,7 @@ describe('chartAnalyzer.ts', () => {
 
   it('collects only source star mutagens and leaves pattern rules empty', () => {
     const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
-    const result = analyzeChart(chart, 'zh-TW', { generatedAt });
+    const result = analyzeChart(chart, 'zh-TW', { passthrough removed });
     const sourceMarkers = chart.palaces.flatMap((palace) =>
       [...palace.majorStars, ...palace.minorStars, ...palace.adjectiveStars]
         .filter((star) => star.mutagen)
@@ -86,7 +86,7 @@ describe('chartAnalyzer.ts', () => {
     ['zh-CN' as const, 'female' as const],
   ])('supports locale %s and normalized gender %s', (locale, gender) => {
     const chart = getChart({ date: '1995-03-21', timeIndex: 6, gender, language: locale });
-    const result = analyzeChart(chart, locale, { generatedAt });
+    const result = analyzeChart(chart, locale, { passthrough removed });
 
     expect(result.locale).toBe(locale);
     expect(result.birthData.gender).toBe(gender);
@@ -97,12 +97,12 @@ describe('chartAnalyzer.ts', () => {
     const early = analyzeChart(
       getChart({ date: '2000-08-16', timeIndex: 0, gender: 'male' }),
       'zh-TW',
-      { generatedAt }
+      { passthrough removed }
     );
     const late = analyzeChart(
       getChart({ date: '2000-08-16', timeIndex: 12, gender: 'male' }),
       'zh-TW',
-      { generatedAt }
+      { passthrough removed }
     );
 
     expect(early.birthData.timeIndex).toBe(0);
@@ -111,7 +111,7 @@ describe('chartAnalyzer.ts', () => {
 
   it('is snapshot-stable when generation time is fixed', () => {
     const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
-    const result = analyzeChart(chart, 'zh-TW', { generatedAt });
+    const result = analyzeChart(chart, 'zh-TW', { passthrough removed });
 
     expect(result).toMatchSnapshot();
   });
@@ -169,8 +169,8 @@ export interface PatternSummary {
 
 export interface AnalyzedChart {
   schemaVersion: '1.0';
-  generatedAt: string;
-  locale: Locale;
+  passthrough removed: string;
+  outputLocale: Locale;
   birthData: { date: string; timeIndex: number; gender: 'male' | 'female' };
   palaces: AnalyzedPalace[];
   mutagens: MutagenSummary;
@@ -180,7 +180,7 @@ export interface AnalyzedChart {
 export type StructuredSummary = AnalyzedChart;
 ```
 
-Project the three star arrays in source order. Add a mutagen entry only when the source star has a non-empty `mutagen`; do not derive markers from heavenly stems. Resolve time index from an optional numeric astrolabe field first, then normalized `timeRange`, then early/late Zi and the remaining `time` names, with `0` as the defensive fallback. Normalize gender with `normalizeGender` and pass `new Date().toISOString()` only when `options.generatedAt` is absent.
+Project the three star arrays in source order. Add a mutagen entry only when the source star has a non-empty `mutagen`; do not derive markers from heavenly stems. Resolve time index from an optional numeric astrolabe field first, then normalized `timeRange`, then early/late Zi and the remaining `time` names, with `0` as the defensive fallback. Normalize gender with `normalizeGender` and pass `new Date().toISOString()` only when `options.passthrough removed` is absent.
 
 - [ ] **Step 4: Run the focused tests and verify GREEN**
 
@@ -252,13 +252,13 @@ const STRUCTURED_SUMMARY_LABELS: Record<Locale, string> = {
   'zh-CN': '【结构化命盘摘要 JSON】',
 };
 
-function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale): string {
+function serializeStructuredSummary(chart: AstrolabeSummaryLike, outputLocale: Locale): string {
   const summary: AnalyzedChart = analyzeChart(chart, locale);
   return `\n\n${STRUCTURED_SUMMARY_LABELS[locale]}\n\`\`\`json\n${JSON.stringify(summary, null, 2)}\n\`\`\``;
 }
 ```
 
-Append that fragment to the locale-selected base system prompt when a chart exists, before the existing custom-instruction delimiter extension. Pass `options.generatedAt` into `analyzeChart()` so callers can reconstruct a byte-identical prompt; leave it optional for normal runtime calls. Re-export `StructuredSummary` from `prompts.ts` as a type alias to `AnalyzedChart` for consumers that use the prompt module as the schema entrypoint.
+Append that fragment to the locale-selected base system prompt when a chart exists, before the existing custom-instruction delimiter extension. Pass `options.passthrough removed` into `analyzeChart()` so callers can reconstruct a byte-identical prompt; leave it optional for normal runtime calls. Re-export `StructuredSummary` from `prompts.ts` as a type alias to `AnalyzedChart` for consumers that use the prompt module as the schema entrypoint.
 
 - [ ] **Step 4: Run prompt tests and verify GREEN**
 
