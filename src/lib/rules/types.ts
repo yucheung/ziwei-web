@@ -1,4 +1,5 @@
 import type { AnalyzedChart } from '../chartAnalyzer';
+import type { AppLocale } from '../chartModel';
 
 export type TransformationKey = 'huaLu' | 'huaQuan' | 'huaKe' | 'huaJi';
 
@@ -55,3 +56,29 @@ export interface RuleResult {
 export type PatternResult = RuleResult;
 
 export type ChartRuleEvaluator = (chart: AnalyzedChart) => RuleResult[];
+
+export type FortunePeriodType = 'decadal' | 'annual' | 'monthly';
+
+export interface FortunePeriodOptions {
+  themes?: string[];
+  targetDate?: string | Date;
+  locale?: AppLocale;
+  timeIndex?: number;
+}
+
+export interface FortunePeriod {
+  type: FortunePeriodType;
+  palace: string;
+  stars: string[];
+  mutagens: string[];
+  themes: string[];
+  /** Original `astrolabe.palaces` index supplied by HoroscopeSummary. */
+  palaceIndex: number;
+  /** Scope-renamed palace names supplied by HoroscopeSummary. */
+  palaceNames: string[];
+  ageRange?: [number, number];
+  year?: number;
+  month?: string | number;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+}

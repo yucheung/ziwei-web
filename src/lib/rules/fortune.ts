@@ -1,4 +1,4 @@
-import type { AppLocale, IFunctionalAstrolabe } from '../chartModel';
+import type { IFunctionalAstrolabe } from '../chartModel';
 import {
   getHoroscopeSummary,
   type HoroscopeSummary,
@@ -17,33 +17,15 @@ import {
 } from './chartFacts';
 import { evaluateFourTransformations } from './fourTransformations';
 import { evaluatePatterns } from './patterns';
-import type { Evidence, RuleResult } from './types';
+import type {
+  Evidence,
+  FortunePeriod,
+  FortunePeriodOptions,
+  FortunePeriodType,
+  RuleResult,
+} from './types';
 
-export type FortunePeriodType = 'decadal' | 'annual' | 'monthly';
-
-export interface FortunePeriod {
-  type: FortunePeriodType;
-  palace: string;
-  stars: string[];
-  mutagens: string[];
-  themes: string[];
-  /** Original `astrolabe.palaces` index supplied by HoroscopeSummary. */
-  palaceIndex: number;
-  /** Scope-renamed palace names supplied by HoroscopeSummary. */
-  palaceNames: string[];
-  ageRange?: [number, number];
-  year?: number;
-  month?: string | number;
-  heavenlyStem?: string;
-  earthlyBranch?: string;
-}
-
-export interface FortunePeriodOptions {
-  themes?: string[];
-  targetDate?: string | Date;
-  locale?: AppLocale;
-  timeIndex?: number;
-}
+export type { FortunePeriod, FortunePeriodOptions, FortunePeriodType } from './types';
 
 export interface FortuneResult extends RuleResult {
   periodType: FortunePeriodType;

@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef, lazy, Suspense } from 'react';
-import { Layers, Bot, TrendingUp, Download } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
+import { Layers, Bot, TrendingUp, Download, Share2 } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { useTheme } from './hooks/useTheme';
 import { Header } from './components/Header';
@@ -14,6 +14,7 @@ import { chartConfigToGetChartOptions, type ChartConfig } from './lib/chartConfi
 import { buildFourPillarsFromGanZhi } from './lib/bazi';
 import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage, downloadChartJson } from './lib/export';
 import type { ExportAstrolabe } from './lib/export';
+import { createShareUrl, decodeShareUrl } from './lib/shareUrl';
 import { IZTRO_VERSION } from './components/RuleInfoPanel';
 
 const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ default: m.ChartGrid })));
@@ -126,6 +127,8 @@ export default function App() {
   // 匯出 / 分享
   const chartCaptureRef = useRef<HTMLDivElement>(null);
   const [imageExportError, setImageExportError] = useState(false);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const hasCheckedShareUrlRef = useRef(false);
 
   const handleExportCsv = () => {
     if (!astrolabe) return;
@@ -179,7 +182,19 @@ export default function App() {
     );
   };
 
-  const handleLoadChart = (birthData: ChartConfig) => {
+  const handleShare = async () => {
+    if (!activeBirthData || !window.confirm(t('share.privacyWarning'))) return;
+
+    try {
+      const shareUrl = createShareUrl(activeBirthData, '');
+      await navigator.clipboard.writeText(shareUrl);
+      setShareStatus(t('share.copySuccess'));
+    } catch {
+      setShareStatus(t('share.copyError'));
+    }
+  };
+
+  const handleLoadChart = useCallback((birthData: ChartConfig) => {
     try {
       const options = chartConfigToGetChartOptions(birthData, iztroLanguage);
       const chart = getChart(options);
@@ -211,7 +226,27 @@ export default function App() {
     } catch (err) {
       alert(err instanceof Error ? err.message : t('app.chartError'));
     }
-  };
+  }, [iztroLanguage, t]);
+
+  useEffect(() => {
+    if (hasCheckedShareUrlRef.current) return;
+
+    if (!new URLSearchParams(window.location.search).has('s')) {
+      hasCheckedShareUrlRef.current = true;
+      return;
+    }
+
+    const sharedUrl = window.location.href;
+    const restoreTimer = window.setTimeout(() => {
+      hasCheckedShareUrlRef.current = true;
+      const payload = decodeShareUrl(sharedUrl);
+      if (payload && window.confirm(t('share.restoreConfirm'))) {
+        handleLoadChart(payload.birthData);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(restoreTimer);
+  }, [handleLoadChart, t]);
 
   const handleGenerateChart = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -353,7 +388,7 @@ export default function App() {
                       </div>
 
                       {astrolabe && (
-                        <div className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                        <div className="no-print glass-panel p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
                           <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                             <Download className="w-3.5 h-3.5" aria-hidden="true" />
                             {t('chart.exportSection')}
@@ -387,10 +422,19 @@ export default function App() {
                             >
                               {t('chart.exportJson')}
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleShare()}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            >
+                              <Share2 className="w-3.5 h-3.5 inline-block mr-1" aria-hidden="true" />
+                              {t('share.button')}
+                            </button>
                           </div>
                           {imageExportError && (
                             <p className="text-xs text-rose-500 dark:text-rose-400">{t('chart.exportImageError')}</p>
                           )}
+                          {shareStatus && <p className="text-xs text-emerald-700 dark:text-emerald-300" role="status">{shareStatus}</p>}
                         </div>
                       )}
                     </div>

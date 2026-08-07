@@ -3,10 +3,14 @@ import { getChart } from '../astro';
 import { analyzeChart, type AnalyzedChart, type AnalyzedPalace, type AnalyzedStar } from '../chartAnalyzer';
 import { getHoroscopeSummary } from '../fortunes';
 import { createFortunePeriod, evaluateFortune, type FortunePeriod } from './fortune';
+import type { FortunePeriod as SharedFortunePeriod } from './types';
 
 const PALACE_NAMES = ['命宮', '兄弟', '夫妻', '子女', '財帛', '疾厄', '遷移', '僕役', '官祿', '田宅', '福德', '父母'];
 const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+type RequiredKeys<T> = {
+  [K in keyof T]-?: Pick<T, K> extends Required<Pick<T, K>> ? K : never
+}[keyof T];
 
 function makeStar(starName: string, mutagen?: string): AnalyzedStar {
   return mutagen ? { starName, mutagen } : { starName };
@@ -44,6 +48,22 @@ function starCount(chart: AnalyzedChart): number {
 }
 
 describe('fortune period rule evaluation', () => {
+  it('exports the shared FortunePeriod contract with required palace names', () => {
+    const palaceNamesAreRequired: 'palaceNames' extends RequiredKeys<SharedFortunePeriod> ? true : false = true;
+    const period: SharedFortunePeriod = {
+      type: 'annual',
+      palace: '命宮',
+      palaceIndex: 0,
+      palaceNames: PALACE_NAMES,
+      stars: [],
+      mutagens: [],
+      themes: [],
+    };
+
+    expect(palaceNamesAreRequired).toBe(true);
+    expect(period.palaceNames).toBe(PALACE_NAMES);
+  });
+
   it('evaluates decadal transformations and patterns in the period context', () => {
     const chart = makeChart();
     chart.palaces[0].majorStars = [makeStar('廉貞'), makeStar('紫微'), makeStar('天府')];

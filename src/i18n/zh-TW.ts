@@ -281,6 +281,13 @@ export const zhTW = {
   'chart.exportJson': '匯出命盤 JSON',
   'chart.rulesInfo': '排盤規則',
 
+  // ─── URL Share ───
+  'share.button': '分享',
+  'share.copySuccess': '已複製分享連結',
+  'share.copyError': '複製分享連結失敗，請確認瀏覽器權限',
+  'share.privacyWarning': '此 URL 包含出生資料，請確認後再分享',
+  'share.restoreConfirm': '偵測到分享連結，是否載入？',
+
   // ─── Chart Collection ───
   'collection.title': '命盤收藏',
   'collection.name': '命盤名稱',

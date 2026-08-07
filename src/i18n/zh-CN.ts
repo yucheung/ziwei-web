@@ -291,6 +291,13 @@ export const zhCN: Record<TranslationKey, string> = {
   'chart.exportJson': '导出命盘 JSON',
   'chart.rulesInfo': '排盘规则',
 
+  // ─── URL 分享 ───
+  'share.button': '分享',
+  'share.copySuccess': '已复制分享链接',
+  'share.copyError': '复制分享链接失败，请确认浏览器权限',
+  'share.privacyWarning': '此 URL 包含出生资料，请确认后再分享',
+  'share.restoreConfirm': '检测到分享链接，是否加载？',
+
   // ─── Chart Collection ───
   'collection.title': '命盘收藏',
   'collection.name': '命盘名称',

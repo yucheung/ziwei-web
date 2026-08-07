@@ -1,11 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Suspense } from 'react';
+import { StrictMode, Suspense } from 'react';
 import App from './App';
 import { I18nProvider } from './i18n';
 import * as exportLib from './lib/export';
 import * as llmModule from './lib/llm';
 import * as localeModule from './i18n/locale';
+import { createShareUrl, decodeShareUrl } from './lib/shareUrl';
+import type { ChartConfig } from './lib/chartConfig';
 import { clearAll, saveChart } from './lib/storage';
 
 // Mock locale to always return zh-TW
@@ -43,6 +45,18 @@ function renderApp(defaultLocale?: 'zh-TW' | 'zh-CN') {
         <App />
       </Suspense>
     </I18nProvider>,
+  );
+}
+
+function renderStrictApp(defaultLocale?: 'zh-TW' | 'zh-CN') {
+  return render(
+    <StrictMode>
+      <I18nProvider defaultLocale={defaultLocale}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <App />
+        </Suspense>
+      </I18nProvider>
+    </StrictMode>,
   );
 }
 
@@ -187,7 +201,7 @@ describe('App Integration Test Suite', () => {
   });
 
   it('applies true solar time correction once longitude and precise time are entered (H1)', async () => {
-    renderApp();
+    renderStrictApp();
     await screen.findByText('生辰資料輸入');
 
     // No correction active by default
@@ -292,6 +306,71 @@ describe('App Integration Test Suite', () => {
     expect(localeArg).toBe('zh-TW');
 
     jsonSpy.mockRestore();
+  });
+
+  it('copies a consented chart share URL to the clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    const confirmSpy = vi.mocked(window.confirm).mockReturnValue(true);
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    fireEvent.click(await screen.findByRole('button', { name: '分享' }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const copiedUrl = writeText.mock.calls[0][0] as string;
+    expect(decodeShareUrl(copiedUrl)).toEqual({
+      version: 1,
+      birthData: {
+        solarDate: '2000-08-16',
+        calendarType: 'solar',
+        isLeapMonth: false,
+        hour: 2,
+        gender: 'male',
+        algorithm: 'zhongzhou',
+        yearDivide: 'normal',
+        dayDivide: 'forward',
+        astroType: 'heaven',
+      },
+      reading: '',
+    });
+    expect(confirmSpy).toHaveBeenCalledWith('此 URL 包含出生資料，請確認後再分享');
+    expect(await screen.findByRole('status')).toHaveTextContent('已複製分享連結');
+  });
+
+  it('detects a shared URL and restores the chart after confirmation', async () => {
+    const sharedBirthData: ChartConfig = {
+      solarDate: '1995-10-15',
+      calendarType: 'solar',
+      isLeapMonth: false,
+      hour: 6,
+      gender: 'female',
+      algorithm: 'zhongzhou',
+      yearDivide: 'exact',
+      dayDivide: 'current',
+      astroType: 'human',
+    };
+    const sharedUrl = new URL(createShareUrl(sharedBirthData, '', 'http://localhost/?source=test'));
+    window.history.replaceState({}, '', `${sharedUrl.pathname}${sharedUrl.search}`);
+    const confirmSpy = vi.mocked(window.confirm).mockReturnValue(true);
+
+    renderStrictApp();
+    await screen.findByText('生辰資料輸入');
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalledWith('偵測到分享連結，是否載入？');
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect((document.querySelector('input[type="date"]') as HTMLInputElement).value).toBe('1995-10-15');
+      expect((document.getElementById('birth-time-select') as HTMLSelectElement).value).toBe('6');
+      expect(screen.getByRole('radio', { name: '坤造 (女)' })).toBeChecked();
+    });
+    await waitFor(() => {
+      const centerInfo = screen.getByText('紫微斗數命盤中樞').nextElementSibling;
+      expect(centerInfo?.textContent).toMatch(/坤造/);
+    });
   });
 
   it('copies the generated reading for the active chart', async () => {
