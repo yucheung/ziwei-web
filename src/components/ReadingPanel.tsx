@@ -32,7 +32,7 @@ import {
   validateBaseUrl,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '../lib/llm';
-import { buildReadingPrompt, ReadingType } from '../lib/prompts';
+import { buildReadingPrompt, ReadingType, PROMPT_VERSION, RULE_SET_VERSION } from '../lib/prompts';
 import { canonicalizeAstrolabeForReading, type AppLocale, type IFunctionalAstrolabe } from '../lib/chartModel';
 import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
@@ -73,6 +73,36 @@ function nowMs(): number {
   return performance.now();
 }
 
+interface LastRequestMeta {
+  provider: string;
+  model: string;
+  status: StreamFinishStatus;
+  latencyMs: number;
+  promptVersion: string;
+  ruleSetVersion: string;
+  summaryLength: number;
+}
+
+/** 橫向記錄最後一筆 LLM 請求 meta，重整頁面後仍可在 Debug 面板看到上次請求的紀錄 */
+const LAST_REQUEST_STORAGE_KEY = 'ziwei_last_llm_request';
+
+function loadLastRequestMeta(): LastRequestMeta | null {
+  try {
+    const raw = localStorage.getItem(LAST_REQUEST_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as LastRequestMeta) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLastRequestMeta(meta: LastRequestMeta): void {
+  try {
+    localStorage.setItem(LAST_REQUEST_STORAGE_KEY, JSON.stringify(meta));
+  } catch {
+    // localStorage 不可用時（隱私模式、儲存已滿等）不影響核心解讀功能
+  }
+}
+
 export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const { t, locale } = useTranslation();
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
@@ -86,13 +116,8 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [finishStatus, setFinishStatus] = useState<StreamFinishStatus | null>(null);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [lastRequestMeta, setLastRequestMeta] = useState<LastRequestMeta | null>(loadLastRequestMeta);
   const [debugPrompt, setDebugPrompt] = useState<{ systemPrompt: string; userPrompt: string } | null>(null);
-  const [lastRequestMeta, setLastRequestMeta] = useState<{
-    provider: string;
-    model: string;
-    status: StreamFinishStatus;
-    latencyMs: number;
-  } | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
@@ -131,20 +156,27 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
     abortControllerRef.current = new AbortController();
 
     const requestStartedAt = nowMs();
+    let latestFullText = baseText;
     const recordMeta = (status: StreamFinishStatus) => {
-      setLastRequestMeta({
+      const meta: LastRequestMeta = {
         provider: currentProviderName,
         model: llmConfig.model,
         status,
         latencyMs: Math.round(nowMs() - requestStartedAt),
-      });
+        promptVersion: PROMPT_VERSION,
+        ruleSetVersion: RULE_SET_VERSION,
+        summaryLength: latestFullText.length,
+      };
+      setLastRequestMeta(meta);
+      saveLastRequestMeta(meta);
     };
 
     try {
       await callLLMStream(messages, llmConfig, {
         signal: abortControllerRef.current.signal,
         onChunk: (_chunk, fullText) => {
-          setReadingText(baseText + fullText);
+          latestFullText = baseText + fullText;
+          setReadingText(latestFullText);
         },
         onError: (err) => {
           setErrorMsg(`${t('reading.error.prefix')}: ${err.message || String(err)}`);
@@ -152,7 +184,8 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
           recordMeta('error');
         },
         onFinish: (result) => {
-          setReadingText(baseText + result.text);
+          latestFullText = baseText + result.text;
+          setReadingText(latestFullText);
           setIsLoading(false);
           setFinishStatus(result.status);
           recordMeta(result.status);
@@ -444,6 +477,10 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart }) => {
                   <dd>{lastRequestMeta.status}</dd>
                   <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.latency')}</dt>
                   <dd>{lastRequestMeta.latencyMs} ms</dd>
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.promptVersion')}</dt>
+                  <dd>{lastRequestMeta.promptVersion}</dd>
+                  <dt className="text-slate-500 dark:text-slate-500">{t('llm.debug.ruleSetVersion')}</dt>
+                  <dd>{lastRequestMeta.ruleSetVersion}</dd>
                 </dl>
               </div>
             )}

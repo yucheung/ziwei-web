@@ -2,6 +2,7 @@ import html2canvas from 'html2canvas';
 import { translate } from '../i18n';
 import type { Locale, TranslationKey } from '../i18n';
 import { translateKey, type AppLocale } from './chartModel';
+import type { GetChartOptions } from './astro';
 
 /**
  * iztro 星盤與宮位資料型別定義 (相容 iztro FunctionalAstrolabe)
@@ -45,10 +46,6 @@ export interface ExportAstrolabe {
   earthlyBranchOfSoulPalace?: string;
   earthlyBranchOfBodyPalace?: string;
   palaces: ExportPalaceInfo[];
-  /** 排盤時辰索引 (若呼叫端有保留原始排盤參數) */
-  timeIndex?: number | string;
-  /** 排盤經度 (若呼叫端有保留原始排盤參數) */
-  longitude?: number | string;
 }
 
 /**
@@ -223,6 +220,12 @@ export interface GenerateChartJsonOptions {
   settings?: ChartJsonSettings;
   /** 運限資料 (若呼叫端已計算，供 JSON 匯出保留；未提供則匯出時省略此鍵) */
   horoscope?: ChartJsonHoroscope;
+  /**
+   * 呼叫端排盤時使用的原始 GetChartOptions，用於填充 `input` 欄位。
+   * iztro 產出的 astrolabe 物件本身不含 timeIndex/longitude，這兩個欄位只能
+   * 由呼叫端顯式帶入，否則 `input` 會靜默缺失決定性資訊。
+   */
+  input?: Pick<GetChartOptions, 'date' | 'timeIndex' | 'gender' | 'isLunar' | 'longitude'>;
 }
 
 function starToJson(s: ExportStarInfo, appLocale: AppLocale): Record<string, unknown> {
@@ -269,9 +272,10 @@ export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateC
 
   result.input = {
     solarDate: astrolabe.solarDate,
-    timeIndex: astrolabe.timeIndex,
+    timeIndex: options.input?.timeIndex,
     gender: translateKey(astrolabe.gender || '', 'gender', appLocale),
-    longitude: astrolabe.longitude,
+    isLunar: options.input?.isLunar ?? false,
+    longitude: options.input?.longitude,
   };
 
   result.chart = {
@@ -366,15 +370,26 @@ export function downloadChartSummaryText(astrolabe: ExportAstrolabe, filename?: 
   downloadFile(summaryContent, fname, 'text/plain;charset=utf-8');
 }
 
+export interface DownloadChartJsonOptions {
+  settings?: ChartJsonSettings;
+  input?: GenerateChartJsonOptions['input'];
+  horoscope?: ChartJsonHoroscope;
+  filename?: string;
+}
+
 export function downloadChartJson(
   astrolabe: ExportAstrolabe,
-  settings?: ChartJsonSettings,
-  filename?: string,
+  options: DownloadChartJsonOptions = {},
   locale: Locale = 'zh-TW'
 ): void {
   const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
-  const jsonContent = generateChartJson(astrolabe, { locale: appLocale, settings });
-  const fname = filename || `ziwei_astrolabe_${astrolabe.solarDate || 'chart'}.json`;
+  const jsonContent = generateChartJson(astrolabe, {
+    locale: appLocale,
+    settings: options.settings,
+    input: options.input,
+    horoscope: options.horoscope,
+  });
+  const fname = options.filename || `ziwei_astrolabe_${astrolabe.solarDate || 'chart'}.json`;
   downloadFile(jsonContent, fname, 'application/json;charset=utf-8');
 }
 

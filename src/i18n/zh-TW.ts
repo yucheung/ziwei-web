@@ -240,6 +240,8 @@ export const zhTW = {
   'llm.debug.model': 'Model',
   'llm.debug.status': 'Status',
   'llm.debug.latency': '延遲',
+  'llm.debug.promptVersion': 'Prompt 版本',
+  'llm.debug.ruleSetVersion': '規則集版本',
 
   // ─── Match Panel ───
   'match.title': '雙人紫微命盤合盤 (Astrolabe Match)',
@@ -275,9 +277,12 @@ export const zhTW = {
   'chart.exportSummary': '下載命盤摘要',
   'chart.exportImage': '下載分享卡',
   'chart.exportImageError': '圖片匯出失敗，請稍後再試',
+  'chart.exportJson': '匯出命盤 JSON',
   'chart.rulesInfo': '排盤規則',
 
   // ─── Rule Info Panel (B1-1) ───
+  'rulesInfo.algorithm': '排盤演算法',
+  'rulesInfo.ruleSet': '解讀規則集',
   'rulesInfo.school': '流派',
   'rulesInfo.schoolValue': '三合派',
   'rulesInfo.astroType': '星盤類型',

@@ -266,4 +266,27 @@ describe('App Integration Test Suite', () => {
     summarySpy.mockRestore();
     imageSpy.mockRestore();
   });
+
+  it('wires up the "匯出命盤 JSON" button to downloadChartJson with the actual chart options (H1)', async () => {
+    const jsonSpy = vi.spyOn(exportLib, 'downloadChartJson').mockImplementation(() => {});
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    fireEvent.click(await screen.findByRole('button', { name: '匯出命盤 JSON' }));
+
+    expect(jsonSpy).toHaveBeenCalledTimes(1);
+    const [astrolabeArg, optionsArg, localeArg] = jsonSpy.mock.calls[0];
+    expect(astrolabeArg).toBeTruthy();
+    expect(optionsArg?.input).toEqual({
+      date: '2000-08-16',
+      timeIndex: 2,
+      gender: 'male',
+      isLunar: false,
+      longitude: undefined,
+    });
+    expect(localeArg).toBe('zh-TW');
+
+    jsonSpy.mockRestore();
+  });
 });

@@ -31,6 +31,7 @@ describe('RuleInfoPanel', () => {
     });
 
     expect(screen.getByText('排盤規則')).toBeInTheDocument();
+    expect(screen.getByText('中州派')).toBeInTheDocument();
     expect(screen.getByText('三合派 (sanhe-v1)')).toBeInTheDocument();
     expect(screen.getByText('地盤')).toBeInTheDocument();
     expect(screen.getByText('立春 (exact)')).toBeInTheDocument();
@@ -51,9 +52,29 @@ describe('RuleInfoPanel', () => {
     expect(screen.getByText('晚子時算當日 (current)')).toBeInTheDocument();
   });
 
+  it('switches the algorithm row when config.algorithm changes (Settings 流派切換同步)', () => {
+    const { rerender } = renderPanel({ config: { algorithm: 'default' } as Config });
+    expect(screen.getByText('通行版')).toBeInTheDocument();
+    expect(screen.queryByText('中州派')).not.toBeInTheDocument();
+
+    rerender(
+      <I18nProvider defaultLocale="zh-TW">
+        <RuleInfoPanel
+          astroType="heaven"
+          config={{ algorithm: 'zhongzhou' } as Config}
+          solarTimeActive={false}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText('中州派')).toBeInTheDocument();
+    expect(screen.queryByText('通行版')).not.toBeInTheDocument();
+  });
+
   it('all rule info labels exist in both zh-TW and zh-CN dictionaries', () => {
     const keys = [
       'chart.rulesInfo',
+      'rulesInfo.algorithm',
+      'rulesInfo.ruleSet',
       'rulesInfo.school',
       'rulesInfo.schoolValue',
       'rulesInfo.astroType',

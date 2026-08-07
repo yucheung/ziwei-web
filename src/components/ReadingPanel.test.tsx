@@ -4,6 +4,8 @@ import { ReadingPanel } from './ReadingPanel';
 import * as llmModule from '../lib/llm';
 import { getChart } from '../lib/astro';
 import { I18nProvider } from '../i18n';
+import { buildReadingPrompt } from '../lib/prompts';
+import { canonicalizeAstrolabeForReading } from '../lib/chartModel';
 
 // Mock LLM module
 vi.mock('../lib/llm', async () => {
@@ -415,6 +417,35 @@ describe('ReadingPanel Component Test Suite', () => {
       });
       // Debug panel remains collapsed even after a completed request
       expect(screen.queryByText('System Prompt')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('M-2: 送出的 prompt 與 buildReadingPrompt() 逐字相等', () => {
+    it('sends messages whose content byte-for-byte matches buildReadingPrompt() for the same input', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(<ReadingPanel chart={mockChart} />);
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1));
+
+      const [sentMessages] = vi.mocked(llmModule.callLLMStream).mock.calls[0];
+
+      const canonicalChart = canonicalizeAstrolabeForReading(mockChart, 'zh-TW');
+      const { systemPrompt, userPrompt } = buildReadingPrompt(canonicalChart, {
+        type: 'overall',
+        customInstructions: '',
+        focusPalace: undefined,
+        locale: 'zh-TW',
+      });
+
+      expect(sentMessages).toEqual([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ]);
     });
   });
 

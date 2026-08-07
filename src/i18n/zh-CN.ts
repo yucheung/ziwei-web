@@ -250,6 +250,8 @@ export const zhCN: Record<TranslationKey, string> = {
   'llm.debug.model': 'Model',
   'llm.debug.status': 'Status',
   'llm.debug.latency': '延迟',
+  'llm.debug.promptVersion': 'Prompt 版本',
+  'llm.debug.ruleSetVersion': '规则集版本',
 
   // ─── Match Panel ───
   'match.title': '双人紫微命盘合盘 (Astrolabe Match)',
@@ -285,9 +287,12 @@ export const zhCN: Record<TranslationKey, string> = {
   'chart.exportSummary': '下载命盘摘要',
   'chart.exportImage': '下载分享卡',
   'chart.exportImageError': '图片导出失败，请稍后重试',
+  'chart.exportJson': '导出命盘 JSON',
   'chart.rulesInfo': '排盘规则',
 
   // ─── Rule Info Panel (B1-1) ───
+  'rulesInfo.algorithm': '排盘演算法',
+  'rulesInfo.ruleSet': '解读规则集',
   'rulesInfo.school': '流派',
   'rulesInfo.schoolValue': '三合派',
   'rulesInfo.astroType': '星盘类型',

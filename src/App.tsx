@@ -8,11 +8,12 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { FourPillars } from './components/FourPillars';
 import { RuleInfoPanel } from './components/RuleInfoPanel';
 import { getChart } from './lib/astro';
-import type { Config, AstroType } from './lib/astro';
+import type { Config, AstroType, GetChartOptions } from './lib/astro';
 import { DEFAULT_CONFIG } from './lib/astro';
 import { buildFourPillarsFromGanZhi } from './lib/bazi';
-import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage } from './lib/export';
+import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage, downloadChartJson } from './lib/export';
 import type { ExportAstrolabe } from './lib/export';
+import { IZTRO_VERSION } from './components/RuleInfoPanel';
 
 const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ default: m.ChartGrid })));
 const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => ({ default: m.FortunePanel })));
@@ -128,6 +129,40 @@ export default function App() {
     } catch {
       setImageExportError(true);
     }
+  };
+
+  const handleExportJson = () => {
+    if (!astrolabe) return;
+    const chartOptions: GetChartOptions = {
+      date: solarDate,
+      timeIndex: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
+      gender,
+      isLunar: calendarType === 'lunar',
+      language: iztroLanguage,
+      config,
+      astroType,
+      ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
+    };
+    downloadChartJson(
+      astrolabe as unknown as ExportAstrolabe,
+      {
+        input: {
+          date: chartOptions.date,
+          timeIndex: chartOptions.timeIndex,
+          gender: chartOptions.gender,
+          isLunar: chartOptions.isLunar,
+          longitude: chartOptions.longitude,
+        },
+        settings: {
+          school: config.algorithm ?? 'default',
+          yearBoundary: config.yearDivide ?? 'normal',
+          lateZiHandling: config.dayDivide ?? 'current',
+          trueSolarTime: solarTimeActive ? { enabled: true, longitude: parsedLongitude } : { enabled: false },
+          iztroVersion: IZTRO_VERSION,
+        },
+      },
+      locale
+    );
   };
 
   const handleGenerateChart = (e?: React.FormEvent) => {
@@ -300,6 +335,13 @@ export default function App() {
                               className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                             >
                               {t('chart.exportImage')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleExportJson}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            >
+                              {t('chart.exportJson')}
                             </button>
                           </div>
                           {imageExportError && (

@@ -23,6 +23,12 @@ import type { Locale } from '../i18n/locale';
 
 export type ReadingType = 'overall' | 'palaces' | 'mutagens' | 'patterns' | 'comprehensive';
 
+/** Prompt 產生邏輯版本 (供 Debug 面板 / 除錯記錄追蹤 prompt 結構變更) */
+export const PROMPT_VERSION = 'v1';
+
+/** LLM 解讀所依循的宗派人設規則集版本 (三合派)，與排盤引擎的 config.algorithm 無關 */
+export const RULE_SET_VERSION = 'sanhe-v1';
+
 export interface PromptOptions {
   type: ReadingType;
   customInstructions?: string;

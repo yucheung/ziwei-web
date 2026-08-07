@@ -126,10 +126,42 @@ describe('src/lib/export.ts', () => {
   });
 
   describe('generateChartJson', () => {
-    it('is deterministic: same input produces byte-identical output across calls', () => {
-      const first = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
-      const second = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
+    const chartOptions = {
+      date: '2000-08-16',
+      timeIndex: 1,
+      gender: 'male' as const,
+      language: 'zh-CN',
+      config: { algorithm: 'default' as const },
+    };
+
+    it('is deterministic: same GetChartOptions rebuilt across two getChart() calls produce byte-identical JSON', () => {
+      const astrolabeA = getChart(chartOptions);
+      const astrolabeB = getChart(chartOptions);
+
+      const first = generateChartJson(astrolabeA, { locale: 'zh-TW', input: chartOptions });
+      const second = generateChartJson(astrolabeB, { locale: 'zh-TW', input: chartOptions });
       expect(first).toBe(second);
+    });
+
+    it('fills input.timeIndex/longitude/isLunar from the passed GetChartOptions, not from the astrolabe object', () => {
+      const json = generateChartJson(sampleAstrolabe, {
+        locale: 'zh-TW',
+        input: { date: '2000-08-16', timeIndex: 1, gender: 'male', isLunar: false, longitude: 121.56 },
+      });
+      const parsed = JSON.parse(json);
+
+      expect(parsed.input.timeIndex).toBe(1);
+      expect(parsed.input.longitude).toBe(121.56);
+      expect(parsed.input.isLunar).toBe(false);
+    });
+
+    it('omits timeIndex/longitude (undefined) when no input option is passed', () => {
+      const json = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
+      const parsed = JSON.parse(json);
+
+      expect(parsed.input.timeIndex).toBeUndefined();
+      expect(parsed.input.longitude).toBeUndefined();
+      expect(parsed.input.isLunar).toBe(false);
     });
 
     it('produces a complete schema with fixed top-level keys and a palaces array', () => {
@@ -222,6 +254,8 @@ describe('src/lib/export.ts', () => {
       expect(createObjectURLSpy).toHaveBeenCalled();
       expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:fakeurl');
 
+      appendChildSpy.mockRestore();
+      removeChildSpy.mockRestore();
       createObjectURLSpy.mockRestore();
       revokeObjectURLSpy.mockRestore();
     });
@@ -234,13 +268,9 @@ describe('src/lib/export.ts', () => {
     it('downloadChartJson triggers a .json download via downloadFile', () => {
       const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fakeurl');
       const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      // NOTE: an earlier test in this file spies on document.body.appendChild without
-      // restoring it, so vi.spyOn here returns that same shared mock; clear it first
-      // so mock.calls only reflects this test's own call.
       const appendChildSpy = vi.spyOn(document.body, 'appendChild');
-      appendChildSpy.mockClear();
 
-      downloadChartJson(sampleAstrolabe, { school: 'sanhe' });
+      downloadChartJson(sampleAstrolabe, { settings: { school: 'sanhe' } });
 
       expect(createObjectURLSpy).toHaveBeenCalled();
       const [blobArg] = createObjectURLSpy.mock.calls[0];
@@ -249,6 +279,7 @@ describe('src/lib/export.ts', () => {
       const link = appendChildSpy.mock.calls[0][0] as HTMLAnchorElement;
       expect(link.download.endsWith('.json')).toBe(true);
 
+      appendChildSpy.mockRestore();
       createObjectURLSpy.mockRestore();
       revokeObjectURLSpy.mockRestore();
     });

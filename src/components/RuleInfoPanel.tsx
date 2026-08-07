@@ -1,10 +1,8 @@
 import { Info } from 'lucide-react';
 import { useTranslation } from '../i18n';
 import type { Config, AstroType } from '../lib/astro';
+import { RULE_SET_VERSION } from '../lib/prompts';
 
-/** 排盤引擎固定使用三合派規則 (與 lib/prompts.ts 之 LLM 命理宗師人設一致) */
-export const RULE_SCHOOL = 'sanhe';
-export const RULE_VERSION = 'sanhe-v1';
 export const IZTRO_VERSION = '2.5.8';
 
 export interface RuleInfoPanelProps {
@@ -39,7 +37,11 @@ export function RuleInfoPanel({ astroType, config, solarTimeActive, parsedLongit
         {t('chart.rulesInfo')}
       </h3>
       <dl>
-        <Row label={t('rulesInfo.school')} value={`${t('rulesInfo.schoolValue')} (${RULE_VERSION})`} />
+        <Row
+          label={t('rulesInfo.algorithm')}
+          value={config.algorithm === 'zhongzhou' ? t('settings.zhongzhou') : t('settings.default')}
+        />
+        <Row label={t('rulesInfo.ruleSet')} value={`${t('rulesInfo.schoolValue')} (${RULE_SET_VERSION})`} />
         <Row label={t('rulesInfo.astroType')} value={astroTypeLabel} />
         <Row
           label={t('rulesInfo.yearBoundary')}
