@@ -39,7 +39,7 @@ import {
   type FlyingPalace,
   type FlyingStarsResult,
 } from '../lib/flying';
-import { canonicalizeFlyingPalaces, findSoulPalaceIndex, toGenderKey, translateKey, type AppLocale } from '../lib/chartModel';
+import { canonicalizeFlyingPalaces, findSoulPalaceIndex, pickSurroundedPalaces, toGenderKey, translateKey, type AppLocale } from '../lib/chartModel';
 import { useTranslation } from '../i18n';
 
 export interface ChartGridProps {
@@ -57,12 +57,6 @@ export interface ChartGridProps {
     /** 命宮所在地支 (locale 無關，用於正確定位命宮預設選取) */
     earthlyBranchOfSoulPalace?: string;
     palaces: PalaceData[];
-    surroundedPalaces: (targetIndex: number) => {
-      target: PalaceData;
-      opposite: PalaceData;
-      wealth: PalaceData;
-      career: PalaceData;
-    };
   } | null;
   /** Selected palace index in controlled mode (0..11) */
   selectedIndex?: number;
@@ -159,8 +153,12 @@ export const ChartGrid: React.FC<ChartGridProps> = ({
 
   const { palaces } = astrolabe;
 
-  // Calculate surrounding and anhe palace indices using iztro API
-  const sanfang = astrolabe.surroundedPalaces(selectedIndex);
+  // Calculate surrounding and anhe palace indices.
+  // 根因 B2 V2 修復：改用純 index 位移的 pickSurroundedPalaces (與 chartModel.ts 的
+  // canonical getSurroundingPalaces 共用同一套三方四正公式)，取代呼叫
+  // astrolabe.surroundedPalaces() instance method，消除 ChartGrid 對 iztro
+  // astrolabe 物件方法介面的耦合 (只需要 palaces 陣列本身)。
+  const sanfang = pickSurroundedPalaces(palaces, selectedIndex);
   const anheIdx = getAnheIndex(selectedIndex);
 
   // Selected palace data

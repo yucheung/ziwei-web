@@ -237,6 +237,137 @@ export function getCanonicalAstrolabe(options: GetChartOptions): IFunctionalAstr
 }
 
 // ─────────────────────────────────────────────────────────────
+// ChartModel 建構 (B2 V1/V2)：IFunctionalAstrolabe → ChartModel
+// ─────────────────────────────────────────────────────────────
+
+function buildStarModel(star: { name: string; brightness?: string; mutagen?: string }): StarModel {
+  return {
+    starKey: star.name,
+    brightnessKey: star.brightness || undefined,
+    mutagenKey: (star.mutagen || undefined) as MutagenKey | undefined,
+  };
+}
+
+function buildPalaceModel(palace: IFunctionalPalace): PalaceModel {
+  return {
+    index: palace.index,
+    palaceKey: palace.name,
+    stemKey: palace.heavenlyStem,
+    branchKey: palace.earthlyBranch,
+    isBodyPalace: palace.isBodyPalace,
+    isOriginalPalace: palace.isOriginalPalace,
+    majorStars: palace.majorStars.map(buildStarModel),
+    minorStars: palace.minorStars.map(buildStarModel),
+    adjectiveStars: palace.adjectiveStars.map(buildStarModel),
+    decadeKey: palace.decadal
+      ? {
+          range: palace.decadal.range,
+          stemKey: palace.decadal.heavenlyStem,
+          branchKey: palace.decadal.earthlyBranch,
+        }
+      : undefined,
+  };
+}
+
+/**
+ * 將 IFunctionalAstrolabe 轉為 ChartModel (純 key 的 Domain Model)。
+ *
+ * 前提：傳入的 astrolabe 必須是 zh-TW canonical 排盤結果 (通常來自
+ * getCanonicalAstrolabe())，否則 palaceKey/stemKey/... 會是其他顯示語言的字串，
+ * 與既有查表 (STEM_MUTAGENS / MUTAGEN_TABLE) 不相容。
+ */
+export function buildChartModel(astrolabe: IFunctionalAstrolabe): ChartModel {
+  const chineseDateYearly = (astrolabe as unknown as {
+    rawDates?: { chineseDate?: { yearly?: [string, string] } };
+  }).rawDates?.chineseDate?.yearly;
+
+  const yearStemKey = chineseDateYearly?.[0] ?? astrolabe.chineseDate?.[0] ?? '';
+  const yearBranchKey = chineseDateYearly?.[1] ?? astrolabe.chineseDate?.[1] ?? '';
+
+  return {
+    palaces: astrolabe.palaces.map(buildPalaceModel),
+    soulKey: astrolabe.soul,
+    bodyKey: astrolabe.body,
+    fiveElementsKey: astrolabe.fiveElementsClass,
+    yearStemKey,
+    yearBranchKey,
+    solarDate: astrolabe.solarDate,
+    lunarDate: astrolabe.lunarDate,
+    chineseDate: astrolabe.chineseDate,
+    gender: toGenderKey(astrolabe.gender, 'zh-TW') ?? 'male',
+    soulPalaceBranchKey: astrolabe.earthlyBranchOfSoulPalace,
+    astrolabe,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// 三方四正 canonical adapter (B2 V2)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * 三方四正在 12 宮陣列中的索引位移，比照 iztro analyzer.js `getSurroundedPalaces`
+ * 的公式：對宮 = +6，官祿位 = +4，財帛位 = +8 (皆 mod 12)。
+ */
+function fixIndex12(n: number): number {
+  return ((n % 12) + 12) % 12;
+}
+
+export interface SurroundedIndices {
+  targetIndex: number;
+  oppositeIndex: number;
+  wealthIndex: number;
+  careerIndex: number;
+}
+
+export function getSurroundedIndices(targetIndex: number): SurroundedIndices {
+  return {
+    targetIndex: fixIndex12(targetIndex),
+    oppositeIndex: fixIndex12(targetIndex + 6),
+    careerIndex: fixIndex12(targetIndex + 4),
+    wealthIndex: fixIndex12(targetIndex + 8),
+  };
+}
+
+export interface SurroundedPalaces<T> {
+  target: T;
+  opposite: T;
+  wealth: T;
+  career: T;
+}
+
+/**
+ * 語系/資料型別無關的三方四正選取器：只要求陣列元素帶有 `index` 欄位。
+ * 可套用在 canonical PalaceModel[]，也可套用在顯示語言的 palace 陣列 (例如
+ * ChartGrid 目前使用的 PalaceData[])，取代對 astrolabe.surroundedPalaces()
+ * instance method 的依賴 (消除耦合風險)。
+ */
+export function pickSurroundedPalaces<T extends { index: number }>(
+  palaces: T[],
+  targetIndex: number,
+): SurroundedPalaces<T> {
+  const { oppositeIndex, wealthIndex, careerIndex } = getSurroundedIndices(targetIndex);
+  const byIndex = (idx: number): T => {
+    const found = palaces.find((p) => p.index === idx);
+    if (!found) throw new Error(`palace index ${idx} not found`);
+    return found;
+  };
+  return {
+    target: byIndex(fixIndex12(targetIndex)),
+    opposite: byIndex(oppositeIndex),
+    wealth: byIndex(wealthIndex),
+    career: byIndex(careerIndex),
+  };
+}
+
+/**
+ * 三方四正 canonical adapter：將 ChartModel 的目標宮位轉為三方四正的
+ * canonical PalaceModel 四件組 (target/opposite/wealth/career)。
+ */
+export function getSurroundingPalaces(model: ChartModel, targetIndex: number): SurroundedPalaces<PalaceModel> {
+  return pickSurroundedPalaces(model.palaces, targetIndex);
+}
+
+// ─────────────────────────────────────────────────────────────
 // 與既有計算層 (flying.ts) 的介接 adapter
 // ─────────────────────────────────────────────────────────────
 

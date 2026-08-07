@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { getChart } from './astro';
 import {
+  buildChartModel,
   canonicalizeFlyingPalaces,
   canonicalizeAstrolabeForReading,
   findSoulPalaceIndex,
+  getCanonicalAstrolabe,
+  getSurroundingPalaces,
   toCanonicalKey,
   toGenderKey,
   translateKey,
@@ -248,4 +251,98 @@ describe('zh-TW ↔ zh-CN 對映表往返一致性', () => {
       expect(checked.count).toBeGreaterThan(100);
     });
   }
+});
+
+/**
+ * B2 V2: buildChartModel — 將 IFunctionalAstrolabe (zh-TW canonical) 轉為 ChartModel。
+ */
+describe('buildChartModel', () => {
+  for (const fixture of FIXTURES) {
+    it(`${fixture.label}: 12 宮位欄位與原始 astrolabe 完全對應`, () => {
+      const astrolabe = getCanonicalAstrolabe({
+        date: fixture.date,
+        timeIndex: fixture.timeIndex,
+        gender: fixture.gender,
+      });
+      const model = buildChartModel(astrolabe);
+
+      expect(model.palaces).toHaveLength(12);
+      for (let i = 0; i < 12; i++) {
+        const p = astrolabe.palaces[i];
+        const m = model.palaces[i];
+        expect(m.index).toBe(p.index);
+        expect(m.palaceKey).toBe(p.name);
+        expect(m.stemKey).toBe(p.heavenlyStem);
+        expect(m.branchKey).toBe(p.earthlyBranch);
+        expect(m.isBodyPalace).toBe(p.isBodyPalace);
+        expect(m.isOriginalPalace).toBe(p.isOriginalPalace);
+        expect(m.majorStars.map((s) => s.starKey)).toEqual(p.majorStars.map((s) => s.name));
+        expect(m.majorStars.map((s) => s.mutagenKey)).toEqual(
+          p.majorStars.map((s) => s.mutagen || undefined),
+        );
+        expect(m.majorStars.map((s) => s.brightnessKey)).toEqual(
+          p.majorStars.map((s) => s.brightness || undefined),
+        );
+        if (p.decadal) {
+          expect(m.decadeKey).toEqual({
+            range: p.decadal.range,
+            stemKey: p.decadal.heavenlyStem,
+            branchKey: p.decadal.earthlyBranch,
+          });
+        }
+      }
+
+      expect(model.soulKey).toBe(astrolabe.soul);
+      expect(model.bodyKey).toBe(astrolabe.body);
+      expect(model.fiveElementsKey).toBe(astrolabe.fiveElementsClass);
+      expect(model.solarDate).toBe(astrolabe.solarDate);
+      expect(model.chineseDate).toBe(astrolabe.chineseDate);
+      expect(model.soulPalaceBranchKey).toBe(astrolabe.earthlyBranchOfSoulPalace);
+      expect(model.gender).toBe(fixture.gender);
+      expect(model.astrolabe).toBe(astrolabe);
+
+      // 生年天干地支必須是四柱 (chineseDate) 的年柱
+      expect(astrolabe.chineseDate.startsWith(`${model.yearStemKey}${model.yearBranchKey}`)).toBe(true);
+    });
+  }
+});
+
+/**
+ * B2 V2: getSurroundingPalaces — 三方四正 canonical adapter。
+ *
+ * 與 iztro 內建 astrolabe.surroundedPalaces(index) (真實星盤) 交叉比對，逐一驗證
+ * 12 個宮位當作 target 時，opposite/wealth/career 三個位置是否完全一致 (index 與名稱)。
+ * 對應公式 (iztro analyzer.js)：對宮 = +6, 官祿位 = +4, 財帛位 = +8 (mod 12)。
+ */
+describe('getSurroundingPalaces (三方四正 canonical adapter)', () => {
+  for (const fixture of FIXTURES) {
+    it(`${fixture.label}: 12 個宮位的三方四正與 iztro surroundedPalaces() 一致`, () => {
+      const astrolabe = getCanonicalAstrolabe({
+        date: fixture.date,
+        timeIndex: fixture.timeIndex,
+        gender: fixture.gender,
+      });
+      const model = buildChartModel(astrolabe);
+
+      for (let idx = 0; idx < 12; idx++) {
+        const expected = astrolabe.surroundedPalaces(idx);
+        const actual = getSurroundingPalaces(model, idx);
+
+        for (const key of ['target', 'opposite', 'wealth', 'career'] as const) {
+          expect(actual[key].index).toBe(expected[key].index);
+          expect(actual[key].palaceKey).toBe(expected[key].name);
+          expect(actual[key].stemKey).toBe(expected[key].heavenlyStem);
+          expect(actual[key].branchKey).toBe(expected[key].earthlyBranch);
+        }
+      }
+    });
+  }
+
+  it('目標索引越界時拋出錯誤', () => {
+    const astrolabe = getCanonicalAstrolabe({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const model = buildChartModel(astrolabe);
+    expect(() => getSurroundingPalaces(model, -1)).not.toThrow();
+    // -1 應被正規化為 11 (mod 12)，而非拋錯
+    expect(getSurroundingPalaces(model, -1).target.index).toBe(11);
+  });
 });

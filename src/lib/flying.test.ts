@@ -6,9 +6,12 @@ import {
   calculateFlyingOut,
   calculateFlyingStars,
   getPalaceMutagenLabels,
+  mergeFlyingMutagens,
   type FlyingPalace,
 } from './flying';
 import { getChart } from './astro';
+import { buildChartModel, getCanonicalAstrolabe } from './chartModel';
+import { getHoroscopeSummary } from './fortunes';
 
 // ── 十天干四化表查表測試 ──────────────────────────────────────
 
@@ -423,3 +426,106 @@ function createMockPalaces(): FlyingPalace[] {
     },
   ];
 }
+
+/**
+ * B2 2.3: mergeFlyingMutagens — 本命 + 大限 + 流年 疊盤合併
+ */
+describe('mergeFlyingMutagens (B2 2.3 疊盤合併)', () => {
+  it('僅本命層：與各宮星曜的 mutagenKey 完全對應', () => {
+    const astrolabe = getCanonicalAstrolabe({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const model = buildChartModel(astrolabe);
+
+    const merged = mergeFlyingMutagens(model);
+    expect(merged).toHaveLength(12);
+
+    for (const palace of model.palaces) {
+      const expectedNative = [...palace.majorStars, ...palace.minorStars]
+        .filter((s) => s.mutagenKey)
+        .map((s) => ({ star: s.starKey, type: s.mutagenKey, layer: 'native' as const }));
+      const actual = merged.find((m) => m.index === palace.index)!;
+      expect(actual.badges).toEqual(expectedNative);
+    }
+
+    // 本命四化總數必為 4 (祿權科忌各一)
+    const allNative = merged.flatMap((m) => m.badges);
+    expect(allNative).toHaveLength(4);
+    expect(new Set(allNative.map((b) => b.type))).toEqual(new Set(['祿', '權', '科', '忌']));
+  });
+
+  it('加入大限層：四化星落宮與 MUTAGEN_TABLE + findStarPalaceIndex 手算一致', () => {
+    const astrolabe = getCanonicalAstrolabe({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const model = buildChartModel(astrolabe);
+    const summary = getHoroscopeSummary(astrolabe, '2024-08-16', 'zh-TW', 4);
+    const decadalPalace = model.palaces[summary.decadal.index];
+    const decadalStemKey = decadalPalace.decadeKey!.stemKey;
+
+    // 靜態資料一致性：model 內建的大限天干必須等於 iztro horoscope() 算出的大限天干
+    expect(decadalStemKey).toBe(summary.rawHoroscope.decadal.heavenlyStem);
+
+    const merged = mergeFlyingMutagens(model, decadalStemKey);
+    const decadeBadges = merged.flatMap((m) => m.badges.map((b) => ({ ...b, index: m.index })))
+      .filter((b) => b.layer === 'decade');
+
+    expect(decadeBadges).toHaveLength(4);
+    for (const entry of getMutagenByStem(decadalStemKey)) {
+      const expectedIdx = findStarPalaceIndex(model.palaces.map((p) => ({
+        index: p.index,
+        name: p.palaceKey,
+        heavenlyStem: p.stemKey,
+        earthlyBranch: p.branchKey,
+        majorStars: p.majorStars.map((s) => ({ name: s.starKey })),
+        minorStars: p.minorStars.map((s) => ({ name: s.starKey })),
+      })), entry.star);
+      const found = decadeBadges.find((b) => b.star === entry.star && b.type === entry.type);
+      expect(found?.index).toBe(expectedIdx);
+    }
+  });
+
+  it('同一宮位可同時帶有本命與大限四化標記 (疊合展示，不互相覆蓋)', () => {
+    // 挑選一個生年四化星恰好也在該大限四化落宮範圍內的案例：
+    // 逐一嘗試多個日期直到找到本命/大限同宮重疊的情況，驗證疊合設計本身而非特定命例。
+    const dates = ['2000-08-16', '1988-11-02', '1995-03-21', '1984-08-16', '1985-08-16', '1988-08-16'];
+    let overlapFound = false;
+
+    for (const date of dates) {
+      const astrolabe = getCanonicalAstrolabe({ date, timeIndex: 2, gender: 'male' });
+      const model = buildChartModel(astrolabe);
+      const summary = getHoroscopeSummary(astrolabe, '2024-08-16', 'zh-TW', 4);
+      const decadalStemKey = model.palaces[summary.decadal.index].decadeKey!.stemKey;
+
+      const merged = mergeFlyingMutagens(model, decadalStemKey);
+      const palaceWithOverlap = merged.find((m) => {
+        const layers = new Set(m.badges.map((b) => b.layer));
+        return layers.has('native') && layers.has('decade');
+      });
+
+      if (palaceWithOverlap) {
+        overlapFound = true;
+        // 疊合設計：兩筆標記獨立保留，各自標明來源層，而非合併/覆蓋成一筆
+        const nativeBadges = palaceWithOverlap.badges.filter((b) => b.layer === 'native');
+        const decadeBadges = palaceWithOverlap.badges.filter((b) => b.layer === 'decade');
+        expect(nativeBadges.length).toBeGreaterThan(0);
+        expect(decadeBadges.length).toBeGreaterThan(0);
+        break;
+      }
+    }
+
+    expect(overlapFound).toBe(true);
+  });
+
+  it('流年天干需由呼叫端傳入 (ChartModel 無日期資訊，無法僅靠 index 推導)', () => {
+    const astrolabe = getCanonicalAstrolabe({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const model = buildChartModel(astrolabe);
+    const summary = getHoroscopeSummary(astrolabe, '2024-08-16', 'zh-TW', 4);
+    const yearlyStemKey = summary.rawHoroscope.yearly.heavenlyStem;
+
+    const merged = mergeFlyingMutagens(model, undefined, yearlyStemKey);
+    const yearBadges = merged.flatMap((m) => m.badges).filter((b) => b.layer === 'year');
+    expect(yearBadges).toHaveLength(4);
+    expect(new Set(yearBadges.map((b) => b.type))).toEqual(new Set(['祿', '權', '科', '忌']));
+
+    // 未傳入 yearlyStemKey 時，不應產生任何 year 層標記
+    const withoutYear = mergeFlyingMutagens(model);
+    expect(withoutYear.flatMap((m) => m.badges).filter((b) => b.layer === 'year')).toHaveLength(0);
+  });
+});

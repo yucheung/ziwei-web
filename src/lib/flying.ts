@@ -274,6 +274,79 @@ export interface PalaceMutagenLabel {
   fromPalace?: string;
 }
 
+// ─────────────────────────────────────────────────────────────
+// 疊盤合併 (B2 2.3)：本命 + 大限 + 流年 四化合併檢視
+// ─────────────────────────────────────────────────────────────
+
+/** 四化來源層 */
+export type MutagenLayer = 'native' | 'decade' | 'year';
+
+/** 單筆疊盤四化標記 */
+export interface LayeredMutagenBadge {
+  star: string;
+  type: MutagenType;
+  layer: MutagenLayer;
+}
+
+/** 單一宮位的疊盤四化合併結果 */
+export interface PalaceLayeredMutagens {
+  index: number;
+  badges: LayeredMutagenBadge[];
+}
+
+/**
+ * 疊盤合併：把「本命 + 大限 + 流年」三層四化合併成單一 per-palace 檢視，
+ * 解決「同一宮位同時有本命四化與大限四化時如何呈現」——答案是不合併成一個值，
+ * 而是保留每一筆的來源層 (layer)，讓同一宮位可以同時帶有多筆不同來源的四化標記。
+ *
+ * 各層資料來源與純函式邊界：
+ * - native (本命)：直接讀取 iztro 已標記在星曜上的生年四化 (StarModel.mutagenKey)，
+ *   不重新查表——iztro 的星曜四化標記即為權威來源。
+ * - decade (大限)：以 `decadalStemKey` 查 MUTAGEN_TABLE 找出四化星，再用
+ *   findStarPalaceIndex 定位星曜目前所在宮位 (星曜位置不隨大限改變，改變的只是
+ *   各宮的天干標籤)。`decadalStemKey` 為靜態資料，可直接取自
+ *   `model.palaces[h.decadal.index].decadeKey.stemKey`
+ *   (等同 iztro `horoscope().decadal.heavenlyStem`)，因此可以只傳一個天干字串。
+ * - year (流年)：作法與 decade 相同，但流年天干不是 ChartModel 內建的靜態資料
+ *   (它隨查詢日期變動，ChartModel 本身不含日期資訊)，因此 `yearlyStemKey`
+ *   必須由呼叫端傳入，來源為 `getHoroscopeSummary(...).rawHoroscope.yearly.heavenlyStem`。
+ *   iztro 未提供「不需日期」的靜態流年四化資料，此為文件化的已知限制，
+ *   非本函式可修復——呼叫端必須先解析出目標日期的流年天干再傳入。
+ *
+ * 回傳陣列依 model.palaces 順序 (index 0..11)。
+ */
+export function mergeFlyingMutagens(
+  model: ChartModel,
+  decadalStemKey?: string,
+  yearlyStemKey?: string,
+): PalaceLayeredMutagens[] {
+  const flyingPalaces = chartModelToFlyingPalaces(model) as FlyingPalace[];
+  const badgesByIndex: LayeredMutagenBadge[][] = model.palaces.map(() => []);
+
+  for (const palace of model.palaces) {
+    for (const star of [...palace.majorStars, ...palace.minorStars]) {
+      if (star.mutagenKey) {
+        badgesByIndex[palace.index].push({ star: star.starKey, type: star.mutagenKey, layer: 'native' });
+      }
+    }
+  }
+
+  const addFlyingLayer = (stemKey: string | undefined, layer: 'decade' | 'year') => {
+    if (!stemKey) return;
+    for (const entry of getMutagenByStem(stemKey)) {
+      const targetIdx = findStarPalaceIndex(flyingPalaces, entry.star);
+      if (targetIdx >= 0) {
+        badgesByIndex[targetIdx].push({ star: entry.star, type: entry.type, layer });
+      }
+    }
+  };
+
+  addFlyingLayer(decadalStemKey, 'decade');
+  addFlyingLayer(yearlyStemKey, 'year');
+
+  return model.palaces.map((p) => ({ index: p.index, badges: badgesByIndex[p.index] }));
+}
+
 /**
  * 取得某宮位上的所有四化標記
  */

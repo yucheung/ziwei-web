@@ -340,3 +340,73 @@ describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
     expect(summaryDefault.hourly.index).toBe(summaryExplicitZero.hourly.index);
   });
 });
+
+/**
+ * B2 V1: 四化疊盤驗證 (確定性)
+ *
+ * 對本命盤下層層次 (大限/流年/流月/流日/流時) 逐一驗證：iztro horoscope() 原生附帶的
+ * mutagen 陣列，是否與既有 STEM_MUTAGENS 查表 (十干四化對照表) 完全一致。
+ * 同時標記每一層 iztro 是否「原生附帶」mutagen 資料 (rawHoroscope.xxx.mutagen 陣列非空)，
+ * 驗證 getHoroscopeSummary 的 fallback 查表邏輯是否曾被觸發。
+ *
+ * 覆蓋 3 個不同生年天干 (甲/乙/戊)，避開農曆新年前後的日期以確保生年干支穩定。
+ */
+describe('B2 V1: 四化疊盤驗證 — iztro horoscope() mutagen vs STEM_MUTAGENS 查表', () => {
+  const FIXTURES: Array<{ date: string; yearStem: string }> = [
+    { date: '1984-08-16', yearStem: '甲' },
+    { date: '1985-08-16', yearStem: '乙' },
+    { date: '1988-08-16', yearStem: '戊' },
+  ];
+
+  const LAYERS = ['decadal', 'yearly', 'monthly', 'daily', 'hourly'] as const;
+
+  // 記錄每一層「iztro 是否原生附帶 mutagen」的觀測結果，供完成報告引用。
+  const nativeCoverage: Record<(typeof LAYERS)[number], boolean[]> = {
+    decadal: [],
+    yearly: [],
+    monthly: [],
+    daily: [],
+    hourly: [],
+  };
+
+  for (const fixture of FIXTURES) {
+    it(`生年天干 ${fixture.yearStem} (${fixture.date})：各層 mutagen 與查表一致且完整`, () => {
+      const astrolabe = getChart({
+        date: fixture.date,
+        timeIndex: 2,
+        gender: 'male',
+        language: 'zh-TW',
+      });
+
+      const summary = getHoroscopeSummary(astrolabe, '2024-08-16', 'zh-TW', 4);
+      const h = summary.rawHoroscope;
+
+      for (const layer of LAYERS) {
+        const stem = h[layer].heavenlyStem;
+        const expected = getMutagensByStem(stem);
+        const rawMutagen = h[layer].mutagen || [];
+
+        // 標記 iztro 是否原生附帶該層 mutagen (長度 4 視為完整附帶)
+        nativeCoverage[layer].push(rawMutagen.length === 4);
+
+        if (rawMutagen.length === 4) {
+          expect(rawMutagen).toEqual([expected.lu, expected.quan, expected.ke, expected.ji]);
+        }
+
+        // 無論 iztro 是否原生附帶，getHoroscopeSummary 最終輸出必須與查表一致 (完整性)
+        expect(summary[layer].mutagen).toEqual(expected);
+        expect(summary[layer].mutagen.lu).not.toBe('-');
+        expect(summary[layer].mutagen.quan).not.toBe('-');
+        expect(summary[layer].mutagen.ke).not.toBe('-');
+        expect(summary[layer].mutagen.ji).not.toBe('-');
+      }
+    });
+  }
+
+  it('觀測完成後：回報各層 iztro 原生附帶 mutagen 的覆蓋率 (供完成報告引用)', () => {
+    // 這個 it 只在前面所有 fixture 都跑過後才有意義；用來把 nativeCoverage 攤平成人類可讀的斷言。
+    for (const layer of LAYERS) {
+      expect(nativeCoverage[layer].length).toBe(FIXTURES.length);
+    }
+  });
+});
