@@ -294,16 +294,16 @@ describe('App Integration Test Suite', () => {
     renderApp();
     await screen.findByText('生辰資料輸入');
 
-    // 修改表單日期，但不按「生成」→ astrolabe 與 lastChartOptions 仍為初始盤 (2000-08-16 / timeIndex 2 / male)
-    const dateInput = document.getElementById('birth-date-input') as HTMLInputElement;
-    expect(dateInput).toBeTruthy();
-    fireEvent.change(dateInput, { target: { value: '1990-01-01' } });
+    // 修改表單時辰，但不按「生成」→ astrolabe 與 lastChartOptions 仍為初始盤 (timeIndex 2 / male)
+    const timeSelect = document.getElementById('birth-time-select') as HTMLSelectElement;
+    expect(timeSelect).toBeTruthy();
+    fireEvent.change(timeSelect, { target: { value: '5' } });
 
     fireEvent.click(await screen.findByRole('button', { name: '匯出命盤 JSON' }));
 
     expect(jsonSpy).toHaveBeenCalledTimes(1);
     const optionsArg = jsonSpy.mock.calls[0][1] as { input?: { timeIndex?: number; isLunar?: boolean } };
-    // 匯出 input 描述的是「目前畫面上的命盤」(初始盤 timeIndex 2)，而非表單新值
+    // 匯出 input 描述的是「目前畫面上的命盤」(初始盤 timeIndex 2)，而非表單新值 5
     expect(optionsArg?.input?.timeIndex).toBe(2);
     expect(optionsArg?.input?.isLunar).toBe(false);
 

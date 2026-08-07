@@ -142,6 +142,9 @@ export default function App() {
     // 讀取「產生目前這張命盤時」凍結下來的參數，而非即時表單 state，
     // 避免表單已改動但尚未重新排盤時，匯出與畫面上命盤矛盾的 input。
     const options = lastChartOptions;
+    const frozenConfig = options?.config ?? config;
+    const frozenLongitude = options?.longitude;
+    const frozenSolarTimeActive = frozenLongitude !== undefined && frozenLongitude !== null;
     downloadChartJson(
       astrolabe as unknown as ExportAstrolabe,
       {
@@ -153,10 +156,12 @@ export default function App() {
             }
           : undefined,
         settings: {
-          school: config.algorithm ?? 'default',
-          yearBoundary: config.yearDivide ?? 'normal',
-          lateZiHandling: config.dayDivide ?? 'current',
-          trueSolarTime: solarTimeActive ? { enabled: true, longitude: parsedLongitude } : { enabled: false },
+          school: frozenConfig.algorithm ?? 'default',
+          yearBoundary: frozenConfig.yearDivide ?? 'normal',
+          lateZiHandling: frozenConfig.dayDivide ?? 'current',
+          trueSolarTime: frozenSolarTimeActive
+            ? { enabled: true, longitude: Number(frozenLongitude) }
+            : { enabled: false },
           iztroVersion: IZTRO_VERSION,
         },
       },
