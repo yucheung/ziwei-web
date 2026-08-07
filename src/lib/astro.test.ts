@@ -371,6 +371,53 @@ describe('src/lib/astro.ts', () => {
       expect(chart.soul).toBeDefined();
       expect(chart.body).toBeDefined();
     });
+
+    it('B1-5: does not leak yearDivide global state across calls when config is omitted/partial (F5 golden case)', () => {
+      // baseline：全新呼叫，僅帶 algorithm（等同不帶 yearDivide），代表 iztro 真預設 'normal'
+      const baseline = getChart({
+        date: '2024-02-09',
+        timeIndex: 6,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { algorithm: 'zhongzhou' },
+      });
+
+      // 污染呼叫：明確帶 yearDivide: 'exact'，若無防護會把 iztro 全域模組狀態改為 'exact'
+      // （緊接著就是省略呼叫，中間刻意不插入任何會覆寫回 'normal' 的呼叫，
+      //   否則會在測到污染前就把全域狀態沖回 'normal'，掩蓋掉 bug）
+      getChart({
+        date: '2024-02-09',
+        timeIndex: 6,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { algorithm: 'zhongzhou', yearDivide: 'exact' },
+      });
+
+      // 省略呼叫：完全不帶 yearDivide（只帶 algorithm）——修復前會沿用上一次的全域殘留值，
+      // 修復後應合併出完整 DEFAULT_CONFIG（yearDivide: 'normal'），與 baseline 一致
+      const afterOmitted = getChart({
+        date: '2024-02-09',
+        timeIndex: 6,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { algorithm: 'zhongzhou' },
+      });
+
+      const soulPalace = (chart: ReturnType<typeof getChart>) =>
+        chart.palaces.find((p) => p.name === '命宮');
+      const yearPillar = (chart: ReturnType<typeof getChart>) =>
+        chart.rawDates.chineseDate.yearly.join('');
+
+      expect(soulPalace(afterOmitted)?.majorStars.length).toBe(0); // 命宮空宮
+      expect(soulPalace(afterOmitted)?.decadal.range).toEqual([6, 15]); // 大限 6-15
+      expect(yearPillar(afterOmitted)).toBe('癸卯'); // 年柱癸卯（非污染後的甲辰）
+
+      expect(soulPalace(afterOmitted)?.majorStars.length).toBe(
+        soulPalace(baseline)?.majorStars.length
+      );
+      expect(soulPalace(afterOmitted)?.decadal.range).toEqual(soulPalace(baseline)?.decadal.range);
+      expect(yearPillar(afterOmitted)).toBe(yearPillar(baseline));
+    });
   });
 
   describe('getChart rejects longitude combined with a numeric timeIndex (A-4: no silent drop)', () => {

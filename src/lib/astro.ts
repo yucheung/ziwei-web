@@ -9,9 +9,16 @@ export const DEFAULT_ALGORITHM: NonNullable<Config['algorithm']> = 'zhongzhou';
 
 /**
  * 預設斗數設定 (中州派)
+ *
+ * yearDivide/dayDivide 明確對齊 iztro 函式庫自身的模組級預設值
+ * (node_modules/iztro/lib/astro/astro.js: `_yearDivide = 'normal'`,
+ * `_dayDivide = 'forward'`)，而非 Config 型別 JSDoc 字面順序臆測，
+ * 以確保「省略欄位」時的 fallback 行為與 iztro 原生預設一致。
  */
 export const DEFAULT_CONFIG: Config = {
   algorithm: DEFAULT_ALGORITHM,
+  yearDivide: 'normal',
+  dayDivide: 'forward',
 };
 
 /**
@@ -557,7 +564,11 @@ export function getChart(
 
   const fixLeap = opts.fixLeap ?? true;
   const astroType = opts.astroType ?? 'heaven';
-  const config = opts.config ?? DEFAULT_CONFIG;
+  // 明確合併每一欄位（而非 opts.config ?? DEFAULT_CONFIG）：
+  // iztro 的 config() 對「省略欄位」一律 fallback 回目前的全域模組狀態而非固定預設，
+  // 若呼叫端只帶部分欄位（例如只帶 yearDivide），其餘欄位會是 undefined 鍵，
+  // 使 iztro 沿用上一次呼叫遺留的全域狀態（見 docs/Golden/ziwei-fixtures.md §4）。
+  const config = { ...DEFAULT_CONFIG, ...(opts.config ?? {}) };
 
   // 6. 調用 iztro (優先使用 withOptions 以支援 config 與 astroType)
   const option = {
