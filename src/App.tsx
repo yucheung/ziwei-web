@@ -6,6 +6,7 @@ import { Header } from './components/Header';
 import { InputForm } from './components/InputForm';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FourPillars } from './components/FourPillars';
+import { RuleInfoPanel } from './components/RuleInfoPanel';
 import { getChart } from './lib/astro';
 import type { Config, AstroType } from './lib/astro';
 import { DEFAULT_CONFIG } from './lib/astro';
@@ -263,6 +264,12 @@ export default function App() {
                             <FourPillars pillars={fourPillars} />
                           </div>
                         )}
+                        <RuleInfoPanel
+                          astroType={astroType}
+                          config={config}
+                          solarTimeActive={solarTimeActive}
+                          parsedLongitude={parsedLongitude}
+                        />
                         <ChartGrid astrolabe={astrolabe} />
                       </div>
 

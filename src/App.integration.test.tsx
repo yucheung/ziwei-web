@@ -228,6 +228,23 @@ describe('App Integration Test Suite', () => {
     expect(fourPillars?.textContent).toContain('時柱');
   });
 
+  it('renders the rule info panel above ChartGrid (B1-1)', async () => {
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    const rulesHeading = await screen.findByText('排盤規則');
+    const chartGrid = await screen.findByRole('grid', { name: '紫微斗數十二宮命盤' });
+
+    // DOM_POSITION_FOLLOWING means rulesHeading comes before chartGrid in document order
+    expect(
+      rulesHeading.compareDocumentPosition(chartGrid) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    expect(screen.getByText('三合派 (sanhe-v1)')).toBeInTheDocument();
+    expect(screen.getByText('iztro 版本')).toBeInTheDocument();
+    expect(screen.getByText('2.5.8')).toBeInTheDocument();
+  });
+
   it('wires up export buttons (CSV / summary / image) to lib/export (H7)', async () => {
     const csvSpy = vi.spyOn(exportLib, 'downloadChartCsv').mockImplementation(() => {});
     const summarySpy = vi.spyOn(exportLib, 'downloadChartSummaryText').mockImplementation(() => {});

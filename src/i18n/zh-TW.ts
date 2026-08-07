@@ -263,6 +263,20 @@ export const zhTW = {
   'chart.exportSummary': '下載命盤摘要',
   'chart.exportImage': '下載分享卡',
   'chart.exportImageError': '圖片匯出失敗，請稍後再試',
+  'chart.rulesInfo': '排盤規則',
+
+  // ─── Rule Info Panel (B1-1) ───
+  'rulesInfo.school': '流派',
+  'rulesInfo.schoolValue': '三合派',
+  'rulesInfo.astroType': '星盤類型',
+  'rulesInfo.yearBoundary': '年界分界',
+  'rulesInfo.lateZi': '晚子時處理',
+  'rulesInfo.timezone': '時區',
+  'rulesInfo.timezoneValue': '+8 (UTC+8)',
+  'rulesInfo.solarTime': '真太陽時',
+  'rulesInfo.solarTimeEnabled': '啟用 / 經度 {longitude}',
+  'rulesInfo.solarTimeDisabled': '未啟用',
+  'rulesInfo.iztroVersion': 'iztro 版本',
 
   // ─── Palaces ───
   'palace.ming': '命宮',

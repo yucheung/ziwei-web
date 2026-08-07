@@ -273,6 +273,20 @@ export const zhCN: Record<TranslationKey, string> = {
   'chart.exportSummary': '下载命盘摘要',
   'chart.exportImage': '下载分享卡',
   'chart.exportImageError': '图片导出失败，请稍后重试',
+  'chart.rulesInfo': '排盘规则',
+
+  // ─── Rule Info Panel (B1-1) ───
+  'rulesInfo.school': '流派',
+  'rulesInfo.schoolValue': '三合派',
+  'rulesInfo.astroType': '星盘类型',
+  'rulesInfo.yearBoundary': '年界分界',
+  'rulesInfo.lateZi': '晚子时处理',
+  'rulesInfo.timezone': '时区',
+  'rulesInfo.timezoneValue': '+8 (UTC+8)',
+  'rulesInfo.solarTime': '真太阳时',
+  'rulesInfo.solarTimeEnabled': '启用 / 经度 {longitude}',
+  'rulesInfo.solarTimeDisabled': '未启用',
+  'rulesInfo.iztroVersion': 'iztro 版本',
 
   // ─── Palaces ───
   'palace.ming': '命宫',
