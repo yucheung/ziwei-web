@@ -10,6 +10,8 @@ import {
   toCanonicalKey,
   toGenderKey,
   translateKey,
+  type IFunctionalAstrolabe,
+  type IFunctionalPalace,
   type FlyingPalaceLike,
   type ReadingAstrolabeLike,
 } from './chartModel';
@@ -35,14 +37,14 @@ const FIXTURES: Fixture[] = [
   { label: '1988-11-02 早子時 男', date: '1988-11-02', timeIndex: 0, gender: 'male' },
 ];
 
-function toFlyingPalaces(astrolabe: any): FlyingPalaceLike[] {
-  return astrolabe.palaces.map((p: any) => ({
+function toFlyingPalaces(astrolabe: IFunctionalAstrolabe): FlyingPalaceLike[] {
+  return astrolabe.palaces.map((p: IFunctionalPalace) => ({
     index: p.index,
     name: p.name,
     heavenlyStem: p.heavenlyStem,
     earthlyBranch: p.earthlyBranch,
-    majorStars: p.majorStars.map((s: any) => ({ name: s.name, mutagen: s.mutagen })),
-    minorStars: p.minorStars.map((s: any) => ({ name: s.name, mutagen: s.mutagen })),
+    majorStars: p.majorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
+    minorStars: p.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
   }));
 }
 
@@ -78,9 +80,9 @@ describe('chartModel.ts - 跨語系 (zh-TW / zh-CN) 等價性測試', () => {
       });
 
       it('四化落宮 (flying stars) 結果相同', () => {
-        const zhFlying = calculateFlyingStars(toFlyingPalaces(zhAstro) as any);
+        const zhFlying = calculateFlyingStars(toFlyingPalaces(zhAstro));
         const cnFlyingCanonical = calculateFlyingStars(
-          canonicalizeFlyingPalaces(toFlyingPalaces(cnAstro), 'zh-CN') as any,
+          canonicalizeFlyingPalaces(toFlyingPalaces(cnAstro), 'zh-CN'),
         );
 
         for (let i = 0; i < 12; i++) {
@@ -94,8 +96,8 @@ describe('chartModel.ts - 跨語系 (zh-TW / zh-CN) 等價性測試', () => {
       });
 
       it('命宮定位 (soul palace index) 相同', () => {
-        const zhIdx = findSoulPalaceIndex(zhAstro as any);
-        const cnIdx = findSoulPalaceIndex(cnAstro as any);
+        const zhIdx = findSoulPalaceIndex(zhAstro);
+        const cnIdx = findSoulPalaceIndex(cnAstro);
         expect(cnIdx).toBe(zhIdx);
         expect(zhAstro.palaces[zhIdx].name).toBe('命宮');
       });
@@ -136,23 +138,23 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
     it(`${fixture.label}: zh-CN astrolabe 還原後與 zh-TW astrolabe 語意等價`, () => {
       const canonical = canonicalizeAstrolabeForReading(cnAstro as unknown as ReadingAstrolabeLike, 'zh-CN');
 
-      expect(canonical.soul).toBe((zhAstro as any).soul);
-      expect(canonical.body).toBe((zhAstro as any).body);
+      expect(canonical.soul).toBe(zhAstro.soul);
+      expect(canonical.body).toBe(zhAstro.body);
 
       for (let i = 0; i < 12; i++) {
-        const zhPalace = (zhAstro as any).palaces[i];
+        const zhPalace = zhAstro.palaces[i];
         const palace = canonical.palaces[i];
         expect(palace.name).toBe(zhPalace.name);
         expect(palace.heavenlyStem).toBe(zhPalace.heavenlyStem);
         expect(palace.earthlyBranch).toBe(zhPalace.earthlyBranch);
         expect(palace.majorStars!.map((s) => s.name)).toEqual(
-          zhPalace.majorStars.map((s: any) => s.name),
+          zhPalace.majorStars.map((s) => s.name),
         );
         expect(palace.majorStars!.map((s) => s.brightness)).toEqual(
-          zhPalace.majorStars.map((s: any) => s.brightness || undefined),
+          zhPalace.majorStars.map((s) => s.brightness || undefined),
         );
         expect(palace.majorStars!.map((s) => s.mutagen)).toEqual(
-          zhPalace.majorStars.map((s: any) => s.mutagen || undefined),
+          zhPalace.majorStars.map((s) => s.mutagen || undefined),
         );
       }
     });
@@ -179,8 +181,8 @@ describe('canonicalizeAstrolabeForReading (A-3: LLM ACL 介接)', () => {
     const zhAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
     const canonical = canonicalizeAstrolabeForReading(zhAstro as unknown as ReadingAstrolabeLike, 'zh-TW');
 
-    expect(canonical.soul).toBe((zhAstro as any).soul);
-    expect(canonical.palaces[0].name).toBe((zhAstro as any).palaces[0].name);
+    expect(canonical.soul).toBe(zhAstro.soul);
+    expect(canonical.palaces[0].name).toBe(zhAstro.palaces[0].name);
   });
 });
 
@@ -202,8 +204,8 @@ describe('toGenderKey (B-4: 中宮/合盤性別語系無關判斷)', () => {
   it('對實際 iztro 輸出有效 (zh-TW 與 zh-CN 排盤結果一致)', () => {
     const zhAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'zh-TW' });
     const cnAstro = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'female', language: 'zh-CN' });
-    expect(toGenderKey((zhAstro as any).gender, 'zh-TW')).toBe('female');
-    expect(toGenderKey((cnAstro as any).gender, 'zh-CN')).toBe('female');
+    expect(toGenderKey(zhAstro.gender, 'zh-TW')).toBe('female');
+    expect(toGenderKey(cnAstro.gender, 'zh-CN')).toBe('female');
   });
 });
 
@@ -215,14 +217,19 @@ describe('toGenderKey (B-4: 中宮/合盤性別語系無關判斷)', () => {
 describe('zh-TW ↔ zh-CN 對映表往返一致性', () => {
   for (const fixture of FIXTURES) {
     it(`${fixture.label}: 星曜/宮位/亮度/四化/干支 往返還原無損`, () => {
-      const zhAstro = getChart({ ...fixture, language: 'zh-TW' }) as any;
-      const cnAstro = getChart({ ...fixture, language: 'zh-CN' }) as any;
+      const zhAstro = getChart({ ...fixture, language: 'zh-TW' });
+      const cnAstro = getChart({ ...fixture, language: 'zh-CN' });
 
       const checked = { count: 0 };
-      const check = (zhVal: string, cnVal: string, category: Parameters<typeof toCanonicalKey>[1]) => {
+      const check = (
+        zhVal: string | undefined,
+        cnVal: string | undefined,
+        category: Parameters<typeof toCanonicalKey>[1],
+      ) => {
         if (!zhVal) return;
         expect(translateKey(zhVal, category, 'zh-CN')).toBe(cnVal);
-        expect(toCanonicalKey(cnVal, category, 'zh-CN')).toBe(zhVal);
+        const canonicalCnVal = cnVal ? toCanonicalKey(cnVal, category, 'zh-CN') : cnVal;
+        expect(canonicalCnVal).toBe(zhVal);
         checked.count++;
       };
 
@@ -239,7 +246,7 @@ describe('zh-TW ↔ zh-CN 對映表往返一致性', () => {
         check(zhP.earthlyBranch, cnP.earthlyBranch, 'branch');
 
         for (const group of ['majorStars', 'minorStars', 'adjectiveStars'] as const) {
-          zhP[group].forEach((zhStar: any, j: number) => {
+          zhP[group].forEach((zhStar, j: number) => {
             const cnStar = cnP[group][j];
             check(zhStar.name, cnStar.name, 'star');
             check(zhStar.brightness, cnStar.brightness, 'brightness');

@@ -20,5 +20,4 @@ export function customRender(
   return rtlRender(ui, { wrapper: customAllTheProviders, ...options });
 }
 
-export * from '@testing-library/react';
 export { customRender as render };

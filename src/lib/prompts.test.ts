@@ -7,6 +7,7 @@ import {
   sanitizeUserInput,
   DEFAULT_SYSTEM_PROMPT,
   SYSTEM_PROMPT_ZH_CN,
+  type AstrolabeSummaryLike,
 } from './prompts';
 import type { RuleResult } from './rules/types';
 
@@ -332,10 +333,10 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
       const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: 'zh-TW' });
       const summary = summarizeAstrolabe(chart);
 
-      expect(summary).toContain(`命主: ${(chart as any).soul}`);
-      expect(summary).toContain(`身主: ${(chart as any).body}`);
+      expect(summary).toContain(`命主: ${chart.soul}`);
+      expect(summary).toContain(`身主: ${chart.body}`);
 
-      const firstPalaceMajor = (chart as any).palaces[0].majorStars[0];
+      const firstPalaceMajor = chart.palaces[0].majorStars[0];
       if (firstPalaceMajor) {
         expect(summary).toContain(firstPalaceMajor.name);
       }
@@ -350,7 +351,8 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
       const canonicalFromCn = canonicalizeAstrolabeForReading(cnChart as unknown as ReadingAstrolabeLike, 'zh-CN');
 
       const zhSummary = summarizeAstrolabe(zhChart);
-      const cnSummary = summarizeAstrolabe({ ...cnChart, ...canonicalFromCn } as any);
+      const canonicalChart = { ...cnChart, ...canonicalFromCn } satisfies AstrolabeSummaryLike;
+      const cnSummary = summarizeAstrolabe(canonicalChart);
 
       expect(cnSummary).toBe(zhSummary);
       // 簡體字形不得殘留

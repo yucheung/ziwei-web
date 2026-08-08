@@ -6,6 +6,7 @@ import {
   getHoroscopeSummary,
   STEM_MUTAGENS,
 } from './fortunes';
+import type { IFunctionalAstrolabe } from './chartModel';
 
 describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
   it('should return correct heavenly stem mutagens for all 10 stems', () => {
@@ -107,8 +108,10 @@ describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
   });
 
   it('should throw error when invalid astrolabe is provided', () => {
-    expect(() => getHoroscopeSummary(null as any)).toThrow('無效的 Astrolabe 物件');
-    expect(() => getHoroscopeSummary({} as any)).toThrow('無效的 Astrolabe 物件');
+    const invalidAstrolabe: Partial<IFunctionalAstrolabe> = {};
+
+    expect(() => getHoroscopeSummary(null)).toThrow('無效的 Astrolabe 物件');
+    expect(() => getHoroscopeSummary(invalidAstrolabe as IFunctionalAstrolabe)).toThrow('無效的 Astrolabe 物件');
   });
 
   it('should return monthly/daily/hourly data with correct structure for 2026-08-04', () => {

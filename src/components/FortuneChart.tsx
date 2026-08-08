@@ -2,25 +2,12 @@ import { useMemo, useState } from 'react';
 import { CalendarDays, ChevronRight, Flame, TrendingUp } from 'lucide-react';
 import { useTranslation, type TranslationKey } from '../i18n';
 import type { AnalyzedChart } from '../lib/chartAnalyzer';
-import { canonicalPalaceName } from '../lib/rules/chartFacts';
-import { getPalaceKnowledge } from '../lib/palaceKnowledge';
 import type { DecadalItem, HoroscopeSummary } from '../lib/fortunes';
+import { buildFortuneTimeline, type FortuneTimelinePeriod } from './fortuneTimeline';
 
 export interface FortuneChartProps {
   chart: AnalyzedChart;
   horoscope: HoroscopeSummary;
-}
-
-export interface FortuneTimelinePeriod {
-  index: number;
-  range: [number, number];
-  rangeText: string;
-  palace: string;
-  stemBranch: string;
-  stars: string[];
-  mutagens: DecadalItem['mutagen'];
-  themes: string[];
-  isCurrent: boolean;
 }
 
 const MUTAGEN_FIELDS: Array<{
@@ -49,37 +36,6 @@ const MUTAGEN_FIELDS: Array<{
     className: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
   },
 ];
-
-function getKnowledgeThemes(chart: AnalyzedChart, palaceName: string): string[] {
-  const canonicalName = canonicalPalaceName(chart, palaceName);
-  const knowledge = getPalaceKnowledge(canonicalName)
-    ?? getPalaceKnowledge(canonicalName.replace(/宮$/u, ''));
-  return knowledge ? [...knowledge.themes] : [];
-}
-
-/** Project the authoritative HoroscopeSummary decadal table into timeline data. */
-export function buildFortuneTimeline(
-  chart: AnalyzedChart,
-  horoscope: HoroscopeSummary,
-): FortuneTimelinePeriod[] {
-  return horoscope.decadalTable.map((item) => {
-    const palaceName = item.palaceName
-      || chart.palaces.find((palace) => palace.index === item.index)?.name
-      || '';
-
-    return {
-      index: item.index,
-      range: [item.range[0], item.range[1]],
-      rangeText: item.rangeText,
-      palace: palaceName,
-      stemBranch: item.stemBranch,
-      stars: [...item.majorStars],
-      mutagens: { ...item.mutagen },
-      themes: getKnowledgeThemes(chart, palaceName),
-      isCurrent: item.isCurrent,
-    };
-  });
-}
 
 function PeriodMutagens({ mutagens }: { mutagens: DecadalItem['mutagen'] }) {
   const { t } = useTranslation();

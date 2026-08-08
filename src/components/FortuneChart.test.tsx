@@ -3,7 +3,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { I18nProvider } from '../i18n';
 import type { AnalyzedChart } from '../lib/chartAnalyzer';
 import type { HoroscopeSummary } from '../lib/fortunes';
-import { FortuneChart, buildFortuneTimeline } from './FortuneChart';
+import { FortuneChart } from './FortuneChart';
+import { buildFortuneTimeline } from './fortuneTimeline';
 
 function makeChart(): AnalyzedChart {
   return {
