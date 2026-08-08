@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ChartConfig } from './chartConfig';
-import { createChartId, createLegacyChartId } from './chartId';
+import { createChartId, createLegacyChartId, getLegacyChartIdVariants, isLegacyChartId } from './chartId';
 
 const baseConfig: ChartConfig = {
   solarDate: '2000-08-16',
@@ -42,11 +42,23 @@ describe('createChartId', () => {
   });
 
   it('recreates the legacy chart ID used by existing stored readings', () => {
-    expect(createLegacyChartId(baseConfig)).toBe('solar-2000-08-16-6-male');
+    expect(createLegacyChartId(baseConfig)).toBe('legacy:solar-2000-08-16-6-male');
     expect(createLegacyChartId({
       ...baseConfig,
       solarDate: undefined,
       calendarType: 'lunar',
-    })).toBe('lunar-2000-07-17-6-male');
+    })).toBe('legacy:lunar-2000-07-17-6-male');
+  });
+
+  it('marks both prefixed and pre-migration IDs as legacy', () => {
+    const legacyId = createLegacyChartId(baseConfig);
+
+    expect(isLegacyChartId(legacyId)).toBe(true);
+    expect(isLegacyChartId(legacyId.slice('legacy:'.length))).toBe(true);
+    expect(isLegacyChartId(createChartId(baseConfig))).toBe(false);
+    expect(getLegacyChartIdVariants(legacyId)).toEqual([
+      legacyId,
+      'solar-2000-08-16-6-male',
+    ]);
   });
 });

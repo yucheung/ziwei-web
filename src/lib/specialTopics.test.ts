@@ -95,6 +95,7 @@ describe('specialTopics deterministic prompt planning', () => {
     expect(first).toContain('事業規則');
     expect(first).not.toContain('財帛規則');
     expect(first).toContain('star-ziwei');
+    expect(first).toContain('未審核');
     expect(plan.topic).toBe('career');
     expect(plan.rules).toEqual([selectedRule]);
     expect(plan.citations).toContainEqual(expect.objectContaining({ knowledgeId: 'star-ziwei' }));

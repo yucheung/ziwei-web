@@ -17,6 +17,7 @@ import {
 } from './chartFacts';
 import { evaluateFourTransformations } from './fourTransformations';
 import { evaluatePatterns } from './patterns';
+import { applyRuleSourceConfidence } from './provenance';
 import type {
   Evidence,
   FortunePeriod,
@@ -382,6 +383,6 @@ export function evaluateFortune(chart: AnalyzedChart, period: FortunePeriod): Fo
 
   return ruleResults
     .filter((result) => result.matched)
-    .map((result) => toFortuneResult(result, chart, period, target, label))
+    .map((result) => applyRuleSourceConfidence(toFortuneResult(result, chart, period, target, label)))
     .sort((left, right) => right.confidence - left.confidence || left.ruleId.localeCompare(right.ruleId));
 }

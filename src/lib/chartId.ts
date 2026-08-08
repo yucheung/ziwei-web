@@ -2,6 +2,7 @@ import type { ChartConfig } from './chartConfig';
 
 const FNV_OFFSET_BASIS_64 = 14695981039346656037n;
 const FNV_PRIME_64 = 1099511628211n;
+const LEGACY_ID_PREFIX = 'legacy:';
 
 /**
  * Keep the serialized shape explicit so a ChartConfig's identity never depends
@@ -45,5 +46,23 @@ export function createChartId(config: ChartConfig): string {
  */
 export function createLegacyChartId(config: ChartConfig): string {
   const date = config.solarDate || config.lunarDate;
-  return `${config.calendarType}-${date}-${config.hour}-${config.gender}`;
+  return `${LEGACY_ID_PREFIX}${config.calendarType}-${date}-${config.hour}-${config.gender}`;
+}
+
+function withoutLegacyPrefix(chartId: string): string {
+  return chartId.startsWith(LEGACY_ID_PREFIX) ? chartId.slice(LEGACY_ID_PREFIX.length) : chartId;
+}
+
+/** Return true for both the tagged ID and the untagged pre-B8b ID. */
+export function isLegacyChartId(chartId: string): boolean {
+  if (chartId.startsWith(LEGACY_ID_PREFIX)) return true;
+  return /^(?:solar|lunar)-.+-.+-(?:male|female)$/u.test(chartId);
+}
+
+/** Query both the new tagged spelling and the historical untagged spelling. */
+export function getLegacyChartIdVariants(chartId: string): string[] {
+  if (!isLegacyChartId(chartId)) return [];
+
+  const unprefixed = withoutLegacyPrefix(chartId);
+  return [`${LEGACY_ID_PREFIX}${unprefixed}`, unprefixed];
 }

@@ -14,6 +14,7 @@ import {
 } from './export';
 import { getChart } from './astro';
 import html2canvas from 'html2canvas';
+import { chartConfigToGetChartOptions, type ChartConfig } from './chartConfig';
 
 vi.mock('html2canvas', () => ({
   default: vi.fn(),
@@ -185,6 +186,71 @@ describe('src/lib/export.ts', () => {
         isLunar: false,
         longitude: 121.56,
       });
+    });
+
+    it('preserves raw lunar input and can replay a ChartConfig from the exported input', () => {
+      const rawConfig: ChartConfig = {
+        calendarType: 'lunar',
+        lunarDate: '2000-07-17',
+        isLeapMonth: false,
+        hour: 2,
+        gender: 'male',
+        algorithm: 'default',
+        yearDivide: 'normal',
+        dayDivide: 'forward',
+        astroType: 'heaven',
+      };
+      const lunarAstrolabe: ExportAstrolabe = {
+        ...getChart(chartConfigToGetChartOptions(rawConfig, 'zh-TW')),
+        rawInput: rawConfig,
+        calendarType: rawConfig.calendarType,
+        isLeapMonth: rawConfig.isLeapMonth,
+        astroType: rawConfig.astroType,
+        algorithm: rawConfig.algorithm,
+        yearDivide: rawConfig.yearDivide,
+        dayDivide: rawConfig.dayDivide,
+      };
+
+      const json = generateChartJson(lunarAstrolabe, {
+        locale: 'zh-TW',
+        input: {
+          calendarType: rawConfig.calendarType,
+          lunarDate: rawConfig.lunarDate,
+          isLeapMonth: rawConfig.isLeapMonth,
+          hour: rawConfig.hour,
+          gender: rawConfig.gender,
+          timeIndex: rawConfig.hour,
+          isLunar: true,
+        },
+      });
+      const parsed = JSON.parse(json);
+
+      expect(parsed.input).toMatchObject({
+        calendarType: 'lunar',
+        lunarDate: '2000-07-17',
+        isLeapMonth: false,
+        hour: 2,
+        gender: 'male',
+        timeIndex: 2,
+        isLunar: true,
+      });
+      expect(parsed.input.lunarDate).not.toContain('二〇〇〇');
+
+      const replayConfig: ChartConfig = {
+        calendarType: parsed.input.calendarType,
+        solarDate: parsed.input.solarDate || undefined,
+        lunarDate: parsed.input.lunarDate || undefined,
+        isLeapMonth: parsed.input.isLeapMonth,
+        hour: parsed.input.hour,
+        gender: parsed.input.gender,
+        algorithm: parsed.input.algorithm,
+        yearDivide: parsed.input.yearDivide,
+        dayDivide: parsed.input.dayDivide,
+        astroType: parsed.input.astroType,
+        longitude: parsed.input.longitude,
+      };
+
+      expect(() => getChart(chartConfigToGetChartOptions(replayConfig, 'zh-TW'))).not.toThrow();
     });
 
     it('returns byte-identical canonical JSON for the same chart across UI locales', () => {

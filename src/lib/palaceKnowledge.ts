@@ -1,19 +1,29 @@
+import type { KnowledgeSource, UnitSchool } from './starKnowledge';
+
+export type { UnitSchool } from './starKnowledge';
+
 export interface PalaceKnowledgeEntry {
   palaceName: string;
   knowledgeId: string;
-  source: 'iztro-sanhe-v1';
-  school: 'sanhe';
+  source: KnowledgeSource;
+  school: UnitSchool;
   ruleSetVersion: 'sanhe-v1';
   themes: string[];
   bodyPart: string;
   lifeDomain: string;
 }
 
+const PALACE_SOURCE: KnowledgeSource = {
+  library: 'iztro-sanhe-v1',
+  reviewedBy: null,
+  status: 'collected',
+};
+
 const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '命宮',
     knowledgeId: 'palace-ming',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['性格氣質', '人生主軸', '自我認同'],
@@ -23,7 +33,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '兄弟',
     knowledgeId: 'palace-siblings',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['手足關係', '同儕互動', '支援網絡'],
@@ -33,7 +43,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '夫妻',
     knowledgeId: 'palace-spouse',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['伴侶關係', '婚姻互動', '親密承諾'],
@@ -43,7 +53,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '子女',
     knowledgeId: 'palace-children',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['子女緣分', '教養互動', '創造力與作品'],
@@ -53,7 +63,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '財帛',
     knowledgeId: 'palace-wealth',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['收入模式', '資源管理', '價值取捨'],
@@ -63,7 +73,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '疾厄',
     knowledgeId: 'palace-health',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['身心狀態', '生活習慣', '壓力與恢復'],
@@ -73,7 +83,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '遷移',
     knowledgeId: 'palace-migration',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['外出發展', '環境適應', '他人眼中的形象'],
@@ -83,7 +93,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '僕役',
     knowledgeId: 'palace-friends',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['朋友互動', '合作關係', '部屬與社群'],
@@ -93,7 +103,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '官祿',
     knowledgeId: 'palace-career',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['職業方向', '工作表現', '責任與成就'],
@@ -103,7 +113,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '田宅',
     knowledgeId: 'palace-property',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['居住環境', '家庭根基', '不動產與資產'],
@@ -113,7 +123,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '福德',
     knowledgeId: 'palace-spirit',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['精神享受', '內在安定', '休閒與福分'],
@@ -123,7 +133,7 @@ const PALACE_KNOWLEDGE: PalaceKnowledgeEntry[] = [
   {
     palaceName: '父母',
     knowledgeId: 'palace-parents',
-    source: 'iztro-sanhe-v1',
+    source: PALACE_SOURCE,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     themes: ['親子關係', '長輩緣分', '權威與文書'],
@@ -137,4 +147,8 @@ const PALACE_KNOWLEDGE_BY_NAME = new Map(PALACE_KNOWLEDGE.map((entry) => [entry.
 
 export function getPalaceKnowledge(palaceName: string): PalaceKnowledgeEntry | undefined {
   return PALACE_KNOWLEDGE_BY_NAME.get(PALACE_ALIASES[palaceName] ?? palaceName);
+}
+
+export function getPalaceKnowledgeById(knowledgeId: string): PalaceKnowledgeEntry | undefined {
+  return PALACE_KNOWLEDGE.find((entry) => entry.knowledgeId === knowledgeId);
 }

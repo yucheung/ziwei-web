@@ -508,6 +508,7 @@ export const zhTW = {
   'history.selectForCompare': '選擇比較',
   'history.comparing': '歷史解讀並排比較',
   'history.exported': '已匯出解讀歷史 JSON',
+  'history.legacyWarning': '舊格式／命盤設定不完整',
   'print': '列印解讀',
 
   // ─── App Loading ───

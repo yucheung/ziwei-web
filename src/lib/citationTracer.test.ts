@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AnalyzedChart } from './chartAnalyzer';
 import {
+  formatKnowledgeSource,
   getKnowledgeSourceConfidence,
   normalizeKnowledgeSource,
   traceCitations,
@@ -51,7 +52,7 @@ describe('citationTracer', () => {
         knowledgeId: 'star-ziwei',
         field: 'palaces[0].majorStars[0]',
         source: getStarKnowledge('紫微')!.source,
-        confidence: getKnowledgeSourceConfidence(getStarKnowledge('紫微')!.source),
+        confidence: expect.any(Number),
       },
       {
         knowledgeId: 'star-taiyang',
@@ -60,6 +61,27 @@ describe('citationTracer', () => {
         confidence: getKnowledgeSourceConfidence(getStarKnowledge('太陽')!.source),
       },
     ]);
+  });
+
+  it('formats status and reference details for zh-TW and zh-CN consumers', () => {
+    const source: KnowledgeSource = {
+      library: 'iztro-sanhe-v1',
+      reference: '《三命通會》卷三',
+      page: 'p.45',
+      reviewedBy: 'human',
+      status: 'human_approved',
+    };
+
+    expect(formatKnowledgeSource(source, 'zh-TW')).toContain('《三命通會》卷三');
+    expect(formatKnowledgeSource(source, 'zh-TW')).toContain('p.45');
+    expect(formatKnowledgeSource(source, 'zh-TW')).toContain('人類');
+    expect(formatKnowledgeSource({ ...source, status: 'collected', reviewedBy: null }, 'zh-CN'))
+      .toContain('未核实');
+  });
+
+  it('caps partial Wikisource attributes below full confidence', () => {
+    const ziweiCitation = traceCitations(makeSummary()).find((citation) => citation.knowledgeId === 'star-ziwei');
+    expect(ziweiCitation?.confidence).toBeLessThan(1);
   });
 
   it('does not cite unknown stars or palace names', () => {

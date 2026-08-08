@@ -4,6 +4,8 @@ export type FiveElement = '木' | '火' | '土' | '金' | '水';
 
 export type StarCategory = '紫微系' | '天府系' | '六吉星' | '六煞星';
 
+export type UnitSchool = 'sanhe' | 'classical_ziwei';
+
 export type KnowledgeSourceStatus =
   | 'collected'
   | 'source_checked'
@@ -25,6 +27,8 @@ export interface StarKnowledgeAttributes {
   element: FiveElement;
   brightnessRange: string[];
   category: StarCategory;
+  /** Confidence that the cited excerpt supports the complete attributes object. */
+  confidence?: number;
 }
 
 export interface StarKnowledgeEntry {
@@ -32,7 +36,7 @@ export interface StarKnowledgeEntry {
   starType: StarType;
   knowledgeId: string;
   source: KnowledgeSource;
-  school: 'sanhe';
+  school: UnitSchool;
   ruleSetVersion: 'sanhe-v1';
   attributes: StarKnowledgeAttributes;
 }
@@ -63,20 +67,37 @@ function createStarKnowledge(
   brightnessRange: string[],
   category: StarCategory,
   source: KnowledgeSource = collectedSource(),
+  school: UnitSchool = 'sanhe',
+  attributesConfidence?: number,
 ): StarKnowledgeEntry {
   return {
     starName,
     starType,
     knowledgeId: `star-${knowledgeKey}`,
     source,
-    school: 'sanhe',
+    school,
     ruleSetVersion: 'sanhe-v1',
-    attributes: { element, brightnessRange, category },
+    attributes: {
+      element,
+      brightnessRange,
+      category,
+      ...(attributesConfidence === undefined ? {} : { confidence: attributesConfidence }),
+    },
   };
 }
 
 const STAR_KNOWLEDGE: StarKnowledgeEntry[] = [
-  createStarKnowledge('紫微', 'ziwei', 'major', '土', ['廟', '旺', '得', '平'], '紫微系', HUMAN_APPROVED_ZIWEI_SOURCE),
+  createStarKnowledge(
+    '紫微',
+    'ziwei',
+    'major',
+    '土',
+    ['廟', '旺', '得', '平'],
+    '紫微系',
+    HUMAN_APPROVED_ZIWEI_SOURCE,
+    'classical_ziwei',
+    0.7,
+  ),
   createStarKnowledge('天機', 'tianji', 'major', '木', ['廟', '旺', '得', '利', '平', '陷'], '紫微系'),
   createStarKnowledge('太陽', 'taiyang', 'major', '火', ['廟', '旺', '得', '不', '陷'], '紫微系'),
   createStarKnowledge('武曲', 'wuqu', 'major', '金', ['廟', '旺', '得', '利', '平'], '紫微系'),
@@ -109,6 +130,10 @@ const STAR_KNOWLEDGE_BY_NAME = new Map(STAR_KNOWLEDGE.map((entry) => [entry.star
 
 export function getStarKnowledge(starName: string): StarKnowledgeEntry | undefined {
   return STAR_KNOWLEDGE_BY_NAME.get(starName);
+}
+
+export function getStarKnowledgeById(knowledgeId: string): StarKnowledgeEntry | undefined {
+  return STAR_KNOWLEDGE.find((entry) => entry.knowledgeId === knowledgeId);
 }
 
 export function getAllStarKnowledge(): StarKnowledgeEntry[] {

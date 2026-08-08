@@ -1,6 +1,7 @@
 import type { AnalyzedChart } from '../chartAnalyzer';
 import { evaluateFourTransformations } from './fourTransformations';
 import { evaluatePatterns } from './patterns';
+import { applyRuleSourceConfidence } from './provenance';
 import type { PatternResult, RuleResult } from './types';
 
 export type { Evidence, PatternResult, RuleCondition, RuleConclusion, RuleResult } from './types';
@@ -9,7 +10,7 @@ function mergeResults(results: RuleResult[]): RuleResult[] {
   const byRuleId = new Map<string, RuleResult>();
   for (const result of results) {
     if (!result.matched || byRuleId.has(result.ruleId)) continue;
-    byRuleId.set(result.ruleId, result);
+    byRuleId.set(result.ruleId, applyRuleSourceConfidence(result));
   }
 
   return [...byRuleId.values()].sort((left, right) =>

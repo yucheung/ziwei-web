@@ -190,6 +190,9 @@ interface RuleGroundingLabels {
   ruleName: string;
   evidence: string;
   confidence: string;
+  sourceStatus: string;
+  higherConfidence: string;
+  preliminary: string;
   noEvidence: string;
   noMatchedRules: string;
 }
@@ -197,19 +200,25 @@ interface RuleGroundingLabels {
 const RULE_GROUNDING_LABELS: Record<Locale, RuleGroundingLabels> = {
   'zh-TW': {
     header: '【已匹配規則】',
-    instruction: '只有以下已匹配規則可作為確定結論的依據；規則外的主張必須標示為不確定，不得擴張或捏造規則。',
+    instruction: '以下規則依來源審核狀態分級：已交叉支持或人類審核的規則可作為較高可信度依據；confidence ≤ 0.5 的規則僅供初步參考，非確定結論。規則外的主張必須標示為不確定，不得擴張或捏造規則。',
     ruleName: '規則名稱',
     evidence: 'evidence 重點',
     confidence: 'confidence',
+    sourceStatus: '來源審核狀態',
+    higherConfidence: '較高可信度依據（來源已確認）',
+    preliminary: '初步參考，非確定結論',
     noEvidence: '無可列出的 evidence 重點',
     noMatchedRules: '目前沒有已匹配規則；所有規則性結論都必須標示為不確定。',
   },
   'zh-CN': {
     header: '【已匹配规则】',
-    instruction: '只有以下已匹配规则可以作为确定结论的依据；规则外的主张必须标记为不确定，不得扩张或捏造规则。',
+    instruction: '以下规则按来源审核状态分级：已交叉支持或人类审核的规则可作为较高可信度依据；confidence ≤ 0.5 的规则仅供初步参考，非确定结论。规则外的主张必须标记为不确定，不得扩张或捏造规则。',
     ruleName: '规则名称',
     evidence: 'evidence 重点',
     confidence: 'confidence',
+    sourceStatus: '来源审核状态',
+    higherConfidence: '较高可信度依据（来源已确认）',
+    preliminary: '初步参考，非确定结论',
     noEvidence: '没有可列出的 evidence 重点',
     noMatchedRules: '目前没有已匹配规则；所有规则性结论都必须标记为不确定。',
   },
@@ -238,6 +247,8 @@ function serializeMatchedRules(rules: RuleResult[], locale: Locale): string {
     lines.push(`- ${labels.ruleName}：${rule.ruleName}`);
     lines.push(`  ${labels.evidence}：${evidenceHighlights || labels.noEvidence}`);
     lines.push(`  ${labels.confidence}：${rule.confidence}`);
+    lines.push(`  ${labels.sourceStatus}：${rule.sourceStatus ?? 'unknown'}`);
+    lines.push(`  ${rule.confidence <= 0.5 ? labels.preliminary : labels.higherConfidence}`);
   }
 
   return lines.join('\n');
@@ -253,7 +264,7 @@ function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale)
     const citationHeader = locale === 'zh-CN' ? '## 知识来源' : '## 知識來源';
     output += `\n\n${citationHeader}\n`;
     for (const citation of citations) {
-      output += `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source)} — ${citation.field} (${citation.confidence})\n`;
+      output += `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source, locale)} — ${citation.field} (${citation.confidence})\n`;
     }
   }
 

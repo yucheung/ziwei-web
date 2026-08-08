@@ -2,11 +2,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { History, Download, Trash2, Columns, ArrowLeft, RotateCcw } from 'lucide-react';
 import { useTranslation } from '../i18n';
 import { deleteReading, listReadings, type StoredReading } from '../lib/storage';
+import { getLegacyChartIdVariants, isLegacyChartId } from '../lib/chartId';
 
 export interface HistoryPanelProps {
   chartId: string;
   legacyChartId?: string;
   onSelectReading: (reading: StoredReading) => void;
+}
+
+function chartReadingIds(chartId: string, legacyChartId?: string): string | string[] {
+  if (!legacyChartId || legacyChartId === chartId) return chartId;
+
+  const ids = [chartId, ...getLegacyChartIdVariants(legacyChartId)];
+  return [...new Set(ids)];
 }
 
 export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: HistoryPanelProps) {
@@ -22,7 +30,7 @@ export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: Histor
   const refreshReadings = useCallback(async () => {
     setIsLoading(true);
     try {
-      const list = await listReadings(legacyChartId && legacyChartId !== chartId ? [chartId, legacyChartId] : chartId);
+      const list = await listReadings(chartReadingIds(chartId, legacyChartId));
       setReadings(list);
       setError(undefined);
     } catch {
@@ -35,7 +43,7 @@ export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: Histor
   useEffect(() => {
     let cancelled = false;
 
-    void listReadings(legacyChartId && legacyChartId !== chartId ? [chartId, legacyChartId] : chartId)
+    void listReadings(chartReadingIds(chartId, legacyChartId))
       .then((loaded) => {
         if (cancelled) return;
         setReadings(loaded);
@@ -69,13 +77,25 @@ export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: Histor
   const handleExportJson = () => {
     if (readings.length === 0) return;
     const blob = new Blob([JSON.stringify(readings, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `reading-history-${chartId}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    setStatus(t('history.exported'));
+    const urlApi = globalThis.URL;
+
+    if (typeof urlApi?.createObjectURL !== 'function') {
+      setError(t('history.error'));
+      return;
+    }
+
+    try {
+      const url = urlApi.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reading-history-${chartId}.json`;
+      link.click();
+      urlApi.revokeObjectURL?.(url);
+      setStatus(t('history.exported'));
+      setError(undefined);
+    } catch {
+      setError(t('history.error'));
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -170,7 +190,10 @@ export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: Histor
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-white/50 dark:bg-slate-900/50 space-y-2">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
                 <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{t('history.readingA')}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(compareReadings[0].createdAt)}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                  {formatDate(compareReadings[0].createdAt)}
+                  {isLegacyChartId(compareReadings[0].chartId) && <span>{t('history.legacyWarning')}</span>}
+                </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                 {t('history.rulesCount', { count: String(getRuleCount(compareReadings[0])) })}
@@ -191,7 +214,10 @@ export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: Histor
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-white/50 dark:bg-slate-900/50 space-y-2">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
                 <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{t('history.readingB')}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(compareReadings[1].createdAt)}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                  {formatDate(compareReadings[1].createdAt)}
+                  {isLegacyChartId(compareReadings[1].chartId) && <span>{t('history.legacyWarning')}</span>}
+                </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                 {t('history.rulesCount', { count: String(getRuleCount(compareReadings[1])) })}
@@ -235,6 +261,11 @@ export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: Histor
                       <time className="text-xs font-semibold text-slate-700 dark:text-slate-300" dateTime={item.createdAt}>
                         {formatDate(item.createdAt)}
                       </time>
+                      {isLegacyChartId(item.chartId) && (
+                        <span className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                          {t('history.legacyWarning')}
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                       {t('history.rulesCount', { count: String(getRuleCount(item)) })}

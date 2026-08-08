@@ -44,7 +44,7 @@ export function SpecialTopicPanel({ chart, rules, llmConfig: propLlmConfig }: Sp
   const currentProviderName =
     PROVIDER_PRESETS.find((p) => p.id === llmConfig.provider)?.name || llmConfig.provider;
 
-  const promptPlan = useMemo(() => buildSpecialTopicPrompt(chart, topic, rules), [chart, topic, rules]);
+  const promptPlan = useMemo(() => buildSpecialTopicPrompt(chart, topic, rules, locale), [chart, topic, rules, locale]);
   const citations = useMemo(() => traceCitations(chart), [chart]);
 
   useEffect(() => {
@@ -229,7 +229,7 @@ export function SpecialTopicPanel({ chart, rules, llmConfig: propLlmConfig }: Sp
           <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
             {citations.map((citation) => (
               <li key={`${citation.knowledgeId}-${citation.field}`}>
-                [{citation.knowledgeId}] {formatKnowledgeSource(citation.source)} — {citation.field} ({citation.confidence})
+                [{citation.knowledgeId}] {formatKnowledgeSource(citation.source, locale)} — {citation.field} ({citation.confidence})
               </li>
             ))}
           </ul>

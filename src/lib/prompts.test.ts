@@ -77,15 +77,15 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
   });
 
   it.each([
-    ['zh-TW' as const, '## 知識來源'],
-    ['zh-CN' as const, '## 知识来源'],
-  ])('appends traceable citation lines to the %s system prompt', (locale, citationHeader) => {
+    ['zh-TW' as const, '## 知識來源', '未核實（未審核）', '已審核', '人類'],
+    ['zh-CN' as const, '## 知识来源', '未核实', '已审核', '人类'],
+  ])('appends traceable citation lines to the %s system prompt', (locale, citationHeader, collectedLabel, approvedLabel, humanLabel) => {
     const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: locale });
     const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale });
 
     expect(systemPrompt).toContain(citationHeader);
-    expect(systemPrompt).toMatch(/- \[palace-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.name \(0\.5\)/);
-    expect(systemPrompt).toMatch(/- \[star-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.majorStars\[\d+\] \((?:0\.5|1)\)/);
+    expect(systemPrompt).toMatch(new RegExp(`- \\[palace-[^\\]]+\\] iztro-sanhe-v1 \\[${collectedLabel} / collected\\] — palaces\\[\\d+\\]\\.name \\(0\\.5\\)`));
+    expect(systemPrompt).toMatch(new RegExp(`- \\[star-[^\\]]+\\] iztro-sanhe-v1(?:, [^\\n]+)? \\[(?:${collectedLabel} / collected|${approvedLabel} / human_approved / ${humanLabel})\\] — palaces\\[\\d+\\]\\.majorStars\\[\\d+\\] \\((?:0\\.5|0\\.7|1)\\)`));
   });
 
   it('adds only matched rules with evidence highlights and confidence to the system prompt', () => {
@@ -126,8 +126,29 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(systemPrompt).toContain('紫微坐命');
     expect(systemPrompt).toContain('命宮資料符合測試條件');
     expect(systemPrompt).toContain('0.91');
+    expect(systemPrompt).toContain('較高可信度依據');
     expect(systemPrompt).not.toContain('不應出現規則');
     expect(systemPrompt).toContain('規則外的主張必須標示為不確定');
+  });
+
+  it.each([
+    ['zh-TW' as const, '初步參考，非確定結論'],
+    ['zh-CN' as const, '初步参考，非确定结论'],
+  ])('labels low-confidence matched rules as preliminary reference in %s', (locale, wording) => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: locale });
+    const { systemPrompt } = buildReadingPrompt(chart, {
+      type: 'overall',
+      locale,
+      rules: [{
+        ruleId: 'pattern-low-confidence',
+        ruleName: locale === 'zh-CN' ? '低信心规则' : '低信心規則',
+        matched: true,
+        evidence: [],
+        confidence: 0.5,
+      }],
+    });
+
+    expect(systemPrompt).toContain(wording);
   });
 
   it('localizes matched-rule grounding instructions for zh-CN', () => {

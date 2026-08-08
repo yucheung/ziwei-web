@@ -1,6 +1,7 @@
 import type { AnalyzedChart } from './chartAnalyzer';
 import { getPalaceKnowledge } from './palaceKnowledge';
 import { getStarKnowledge, type KnowledgeSource } from './starKnowledge';
+import type { Locale } from '../i18n/locale';
 
 export type CitationConfidence = number;
 
@@ -19,6 +20,28 @@ const STATUS_CONFIDENCE: Record<KnowledgeSource['status'], number> = {
   cross_supported: 0.85,
   human_approved: 1,
   disputed: 0.25,
+};
+
+const STATUS_LABELS: Record<Locale, Record<KnowledgeSource['status'], string>> = {
+  'zh-TW': {
+    collected: '未核實（未審核）',
+    source_checked: '來源已查核',
+    cross_supported: '交叉支持',
+    human_approved: '已審核',
+    disputed: '有爭議',
+  },
+  'zh-CN': {
+    collected: '未核实',
+    source_checked: '来源已查核',
+    cross_supported: '交叉支持',
+    human_approved: '已审核',
+    disputed: '有争议',
+  },
+};
+
+const REVIEWER_LABELS: Record<Locale, Record<NonNullable<KnowledgeSource['reviewedBy']>, string>> = {
+  'zh-TW': { human: '人類', opus: 'Opus' },
+  'zh-CN': { human: '人类', opus: 'Opus' },
 };
 
 export function normalizeKnowledgeSource(source: KnowledgeSource | string | null | undefined): KnowledgeSource {
@@ -54,8 +77,15 @@ export function getKnowledgeSourceConfidence(source: KnowledgeSource): CitationC
   return Math.min(statusConfidence, unreviewedCap);
 }
 
-export function formatKnowledgeSource(source: KnowledgeSource): string {
-  return source.library;
+export function formatKnowledgeSource(
+  source: KnowledgeSource | string | null | undefined,
+  locale: Locale = 'zh-TW',
+): string {
+  const normalized = normalizeKnowledgeSource(source);
+  const reference = [normalized.reference, normalized.page].filter(Boolean).join(' ');
+  const reviewer = normalized.reviewedBy ? ` / ${REVIEWER_LABELS[locale][normalized.reviewedBy]}` : '';
+  const status = `${STATUS_LABELS[locale][normalized.status]} / ${normalized.status}${reviewer}`;
+  return `${normalized.library}${reference ? `, ${reference}` : ''} [${status}]`;
 }
 
 function addCitation(
@@ -63,13 +93,14 @@ function addCitation(
   knowledgeId: string,
   source: KnowledgeSource | string | null | undefined,
   field: string,
+  confidenceCap = 1,
 ): void {
   const normalizedSource = normalizeKnowledgeSource(source);
   citations.push({
     knowledgeId,
     field,
     source: normalizedSource,
-    confidence: getKnowledgeSourceConfidence(normalizedSource),
+    confidence: Math.min(getKnowledgeSourceConfidence(normalizedSource), confidenceCap ?? 1),
   });
 }
 
@@ -89,7 +120,8 @@ export function traceCitations(summary: CitationSummary): Citation[] {
           citations,
           starKnowledge.knowledgeId,
           starKnowledge.source,
-          `palaces[${palaceIndex}].majorStars[${starIndex}]`
+          `palaces[${palaceIndex}].majorStars[${starIndex}]`,
+          starKnowledge.attributes.confidence,
         );
       }
     });
@@ -98,7 +130,13 @@ export function traceCitations(summary: CitationSummary): Citation[] {
   summary.mutagens.entries.forEach((entry, entryIndex) => {
     const starKnowledge = getStarKnowledge(entry.starName);
     if (starKnowledge) {
-      addCitation(citations, starKnowledge.knowledgeId, starKnowledge.source, `mutagens.entries[${entryIndex}]`);
+      addCitation(
+        citations,
+        starKnowledge.knowledgeId,
+        starKnowledge.source,
+        `mutagens.entries[${entryIndex}]`,
+        starKnowledge.attributes.confidence,
+      );
     }
   });
 

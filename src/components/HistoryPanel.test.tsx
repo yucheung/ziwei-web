@@ -60,6 +60,7 @@ describe('HistoryPanel', () => {
     expect(await screen.findByText('第一筆歷史解讀內容：這是一段紫微斗數命盤詳細解讀測試內容。')).toBeInTheDocument();
     expect(screen.getByText('2 條規則')).toBeInTheDocument();
     expect(screen.getByText('1 條規則')).toBeInTheDocument();
+    expect(screen.queryByText('舊格式／命盤設定不完整')).not.toBeInTheDocument();
   });
 
   it('keeps legacy-ID readings visible alongside the deterministic chart ID', async () => {
@@ -73,6 +74,7 @@ describe('HistoryPanel', () => {
     renderPanel('chart-9f3e', vi.fn(), 'solar-2000-08-16-6-male');
 
     expect(await screen.findByText('第一筆歷史解讀內容：這是一段紫微斗數命盤詳細解讀測試內容。')).toBeInTheDocument();
+    expect(screen.getByText('舊格式／命盤設定不完整')).toBeInTheDocument();
   });
 
   it('calls onSelectReading when restore button is clicked', async () => {
@@ -147,6 +149,19 @@ describe('HistoryPanel', () => {
 
     expect(createObjectURL).toHaveBeenCalled();
     expect(screen.getByText('已匯出解讀歷史 JSON')).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('shows an export error instead of throwing when URL.createObjectURL is unavailable', async () => {
+    await saveReading(firstReading);
+    vi.stubGlobal('URL', undefined);
+
+    renderPanel();
+
+    const exportButton = await screen.findByRole('button', { name: '匯出歷史 JSON' });
+    expect(() => fireEvent.click(exportButton)).not.toThrow();
+    expect(await screen.findByRole('alert')).toHaveTextContent('讀取解讀歷史時發生錯誤');
 
     vi.unstubAllGlobals();
   });

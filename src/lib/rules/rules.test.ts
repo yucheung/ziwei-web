@@ -5,6 +5,7 @@ import { analyzeChart } from '../chartAnalyzer';
 import { evaluateFourTransformations, FOUR_TRANSFORMATION_RULES } from './fourTransformations';
 import { evaluatePatterns } from './patterns';
 import { evaluateRules, getRuleResults } from './engine';
+import type { RuleResult } from './types';
 
 const PALACE_NAMES = ['命宮', '兄弟', '夫妻', '子女', '財帛', '疾厄', '遷移', '僕役', '官祿', '田宅', '福德', '父母'];
 const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
@@ -115,6 +116,21 @@ describe('B5a rule evaluators', () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(result.every((rule) => rule.matched)).toBe(true);
     expect(result.every((rule, index) => index === 0 || result[index - 1].confidence >= rule.confidence)).toBe(true);
+  });
+
+  it('caps final confidence when matched evidence comes from unreviewed knowledge', () => {
+    const result = evaluateRules(makeChart());
+    const unreviewedRule = result.find((rule) =>
+      rule.evidence.some((evidence) => evidence.knowledgeId === 'star-lianzhen' || evidence.knowledgeId === 'palace-ming')
+    );
+    const rulesWithStatus = result as Array<RuleResult & { sourceStatus?: string }>;
+
+    expect(unreviewedRule).toBeDefined();
+    expect(unreviewedRule?.confidence).toBeLessThanOrEqual(0.5);
+    expect(rulesWithStatus
+      .filter((rule) => rule.confidence > 0.5)
+      .every((rule) => rule.sourceStatus === 'human_approved' || rule.sourceStatus === 'cross_supported'))
+      .toBe(true);
   });
 
   it('uses birthData.date when source mutagen markers are unavailable', () => {

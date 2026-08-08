@@ -17,7 +17,7 @@ import { canonicalizeAstrolabeForReading } from './lib/chartModel';
 import { evaluateRules, type RuleResult } from './lib/rules/engine';
 import { getHoroscopeSummary, type HoroscopeSummary } from './lib/fortunes';
 import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage, downloadChartJson } from './lib/export';
-import type { ExportAstrolabe } from './lib/export';
+import type { ExportAstrolabe, ExportRawInput } from './lib/export';
 import { createChartId, createLegacyChartId } from './lib/chartId';
 import { createShareUrl, decodeShareUrl } from './lib/shareUrl';
 import { IZTRO_VERSION } from './components/RuleInfoPanel';
@@ -111,8 +111,21 @@ export default function App() {
   const exportAstrolabe = useMemo<ExportAstrolabe | null>(() => {
     if (!astrolabe) return null;
 
+    const rawInput: ExportRawInput | undefined = activeBirthData
+      ? {
+          calendarType: activeBirthData.calendarType,
+          ...(activeBirthData.solarDate ? { solarDate: activeBirthData.solarDate } : {}),
+          ...(activeBirthData.lunarDate ? { lunarDate: activeBirthData.lunarDate } : {}),
+          isLeapMonth: activeBirthData.isLeapMonth,
+          hour: activeBirthData.hour,
+          gender: activeBirthData.gender,
+          ...(activeBirthData.longitude === undefined ? {} : { longitude: activeBirthData.longitude }),
+        }
+      : undefined;
+
     return {
       ...astrolabe,
+      ...(rawInput ? { rawInput } : {}),
       ...(activeBirthData
         ? {
             calendarType: activeBirthData.calendarType,
@@ -218,14 +231,38 @@ export default function App() {
         : typeof options?.longitude === 'string' && options.longitude.trim() !== ''
         ? Number(options.longitude)
         : undefined;
+    const rawInput: ExportRawInput | undefined = activeBirthData
+      ? {
+          calendarType: activeBirthData.calendarType,
+          ...(activeBirthData.solarDate ? { solarDate: activeBirthData.solarDate } : {}),
+          ...(activeBirthData.lunarDate ? { lunarDate: activeBirthData.lunarDate } : {}),
+          isLeapMonth: activeBirthData.isLeapMonth,
+          hour: activeBirthData.hour,
+          gender: activeBirthData.gender,
+          ...(activeBirthData.longitude === undefined ? {} : { longitude: activeBirthData.longitude }),
+        }
+      : undefined;
     downloadChartJson(
       exportAstrolabe ?? (astrolabe as unknown as ExportAstrolabe),
       {
-        input: options
+        input: rawInput || options
           ? {
-              timeIndex: options.timeIndex,
-              isLunar: options.isLunar,
-              longitude: exportLongitude,
+              ...(rawInput ?? {}),
+              ...(options
+                ? {
+                    timeIndex: options.timeIndex,
+                    isLunar: options.isLunar,
+                    longitude: exportLongitude,
+                  }
+                : {}),
+              ...(activeBirthData
+                ? {
+                    astroType: activeBirthData.astroType,
+                    algorithm: activeBirthData.algorithm,
+                    yearDivide: activeBirthData.yearDivide,
+                    dayDivide: activeBirthData.dayDivide,
+                  }
+                : {}),
             }
           : undefined,
         settings: {

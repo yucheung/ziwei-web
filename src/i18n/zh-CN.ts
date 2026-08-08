@@ -518,6 +518,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'history.selectForCompare': '选择比较',
   'history.comparing': '历史解读并排比较',
   'history.exported': '已导出解读历史 JSON',
+  'history.legacyWarning': '旧格式／命盘设置不完整',
   'print': '打印解读',
 
   // ─── App Loading ───

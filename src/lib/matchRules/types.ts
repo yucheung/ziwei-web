@@ -1,5 +1,6 @@
 import type { AnalyzedChart } from '../chartAnalyzer';
 import type { Evidence } from '../rules/types';
+import type { KnowledgeSource } from '../starKnowledge';
 
 export type MatchConditionType = 'starRelationship' | 'palaceOverlap' | 'mutagenInteraction' | 'branchRelation';
 
@@ -29,6 +30,7 @@ export interface MatchRule {
   source: 'iztro-sanhe-v1';
   school: 'sanhe';
   ruleSetVersion: 'sanhe-v1';
+  sourceStatus?: KnowledgeSource['status'];
 }
 
 export interface MatchRuleResult {
@@ -38,6 +40,7 @@ export interface MatchRuleResult {
   evidence: Evidence[];
   confidence: number;
   conclusions: MatchConclusion[];
+  sourceStatus?: KnowledgeSource['status'];
 }
 
 export type MatchRuleEvaluator = (chartA: AnalyzedChart, chartB: AnalyzedChart) => MatchRuleResult[];

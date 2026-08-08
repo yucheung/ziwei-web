@@ -30,7 +30,7 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
       'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
-      'pattern-yang-liang-chang-lu', 'pattern-kui-yue-clamp-ming', 'pattern-tianfu-si', 'pattern-ziwei-hai',
+      'pattern-kui-yue-clamp-ming', 'pattern-tianfu-si', 'pattern-yang-liang-chang-lu', 'pattern-ziwei-hai',
     ],
   },
   {
@@ -38,8 +38,8 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
       'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
-      'pattern-ri-yue-same-palace', 'pattern-ziwei-tianxiang-same-palace', 'pattern-kui-yue-clamp-ming',
-      'pattern-tianfu-system-ming', 'pattern-tianfu-zi', 'pattern-ziwei-chen', 'pattern-ziwei-system-ming',
+      'pattern-kui-yue-clamp-ming', 'pattern-ri-yue-same-palace', 'pattern-tianfu-system-ming',
+      'pattern-tianfu-zi', 'pattern-ziwei-chen', 'pattern-ziwei-system-ming', 'pattern-ziwei-tianxiang-same-palace',
     ],
   },
   {
@@ -89,7 +89,7 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
       'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
-      'pattern-ziwei-tianfu-same-palace', 'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
+      'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-tianfu-same-palace', 'pattern-ziwei-yin',
     ],
   },
   {
@@ -97,26 +97,28 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
       'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
-      'pattern-sha-po-lang', 'pattern-ziwei-tanlang-same-palace', 'pattern-tianfu-system-ming',
-      'pattern-tianfu-wei', 'pattern-ziwei-system-ming', 'pattern-ziwei-you',
+      'pattern-sha-po-lang', 'pattern-tianfu-system-ming', 'pattern-tianfu-wei', 'pattern-ziwei-system-ming',
+      'pattern-ziwei-tanlang-same-palace', 'pattern-ziwei-you',
     ],
   },
   {
     name: 'yang-male-forward', date: '2024-05-15', timeIndex: 6, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
-      'pattern-san-qi-jia-hui', 'four-transformation-lianzhen-huaLu', 'four-transformation-pojun-huaQuan',
-      'four-transformation-taiyang-huaJi', 'four-transformation-wuqu-huaKe', 'pattern-sha-po-lang',
-      'pattern-ziwei-pojun-same-palace', 'pattern-zuo-you-same-palace', 'pattern-tianfu-system-ming',
-      'pattern-tianfu-you', 'pattern-ziwei-system-ming', 'pattern-ziwei-wei',
+      'four-transformation-lianzhen-huaLu', 'four-transformation-pojun-huaQuan',
+      'four-transformation-taiyang-huaJi', 'four-transformation-wuqu-huaKe', 'pattern-san-qi-jia-hui',
+      'pattern-sha-po-lang', 'pattern-tianfu-system-ming', 'pattern-tianfu-you',
+      'pattern-ziwei-pojun-same-palace', 'pattern-ziwei-system-ming', 'pattern-ziwei-wei',
+      'pattern-zuo-you-same-palace',
     ],
   },
   {
     name: 'yang-female-reverse', date: '2024-05-15', timeIndex: 6, gender: 'female', config: NORMAL_CONFIG,
     expectedRuleIds: [
-      'pattern-san-qi-jia-hui', 'four-transformation-lianzhen-huaLu', 'four-transformation-pojun-huaQuan',
-      'four-transformation-taiyang-huaJi', 'four-transformation-wuqu-huaKe', 'pattern-sha-po-lang',
-      'pattern-ziwei-pojun-same-palace', 'pattern-zuo-you-same-palace', 'pattern-tianfu-system-ming',
-      'pattern-tianfu-you', 'pattern-ziwei-system-ming', 'pattern-ziwei-wei',
+      'four-transformation-lianzhen-huaLu', 'four-transformation-pojun-huaQuan',
+      'four-transformation-taiyang-huaJi', 'four-transformation-wuqu-huaKe', 'pattern-san-qi-jia-hui',
+      'pattern-sha-po-lang', 'pattern-tianfu-system-ming', 'pattern-tianfu-you',
+      'pattern-ziwei-pojun-same-palace', 'pattern-ziwei-system-ming', 'pattern-ziwei-wei',
+      'pattern-zuo-you-same-palace',
     ],
   },
   {
@@ -124,7 +126,7 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-lianzhen-huaLu', 'four-transformation-pojun-huaQuan',
       'four-transformation-taiyang-huaJi', 'four-transformation-wuqu-huaKe',
-      'pattern-yang-liang-chang-lu', 'pattern-tianfu-hai', 'pattern-ziwei-si',
+      'pattern-tianfu-hai', 'pattern-yang-liang-chang-lu', 'pattern-ziwei-si',
     ],
   },
   {
@@ -132,8 +134,7 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
       'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
-      'pattern-ziwei-tianfu-same-palace', 'pattern-tianfu-yin',
-      'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
+      'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-tianfu-same-palace', 'pattern-ziwei-yin',
     ],
   },
   {
@@ -141,8 +142,7 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-jumen-huaQuan', 'four-transformation-pojun-huaLu',
       'four-transformation-taiyin-huaKe', 'four-transformation-tanlang-huaJi',
-      'pattern-ziwei-tianfu-same-palace', 'pattern-tianfu-yin',
-      'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
+      'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-tianfu-same-palace', 'pattern-ziwei-yin',
     ],
   },
   {
@@ -150,8 +150,8 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
       'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ji-yue-tong-liang',
-      'pattern-ziwei-tanlang-same-palace', 'pattern-tianfu-system-ming', 'pattern-tianfu-wei',
-      'pattern-yang-tuo-clamp-ming', 'pattern-ziwei-system-ming', 'pattern-ziwei-you',
+      'pattern-tianfu-system-ming', 'pattern-tianfu-wei', 'pattern-yang-tuo-clamp-ming',
+      'pattern-ziwei-system-ming', 'pattern-ziwei-tanlang-same-palace', 'pattern-ziwei-you',
     ],
   },
   {
@@ -174,39 +174,39 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
       'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-chang-qu-same-palace',
-      'pattern-ziwei-tanlang-same-palace', 'pattern-tianfu-chou', 'pattern-tianfu-system-ming', 'pattern-ziwei-mao',
+      'pattern-tianfu-chou', 'pattern-tianfu-system-ming', 'pattern-ziwei-mao', 'pattern-ziwei-tanlang-same-palace',
     ],
   },
   {
     name: 'sweep-2000-chen', date: '2000-08-16', timeIndex: 4, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
-      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ziwei-tanlang-same-palace',
-      'pattern-tianfu-chou', 'pattern-tianfu-system-ming', 'pattern-ziwei-mao',
+      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-tianfu-chou',
+      'pattern-tianfu-system-ming', 'pattern-ziwei-mao', 'pattern-ziwei-tanlang-same-palace',
     ],
   },
   {
     name: 'sweep-2000-si', date: '2000-08-16', timeIndex: 5, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
-      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ziwei-tianfu-same-palace',
-      'pattern-tianfu-system-ming', 'pattern-tianfu-yin', 'pattern-ziwei-yin',
+      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-tianfu-system-ming',
+      'pattern-tianfu-yin', 'pattern-ziwei-tianfu-same-palace', 'pattern-ziwei-yin',
     ],
   },
   {
     name: 'sweep-2000-wu', date: '2000-08-16', timeIndex: 7, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
-      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ziwei-tanlang-same-palace',
-      'pattern-tianfu-chou', 'pattern-tianfu-system-ming', 'pattern-ziwei-mao',
+      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-tianfu-chou',
+      'pattern-tianfu-system-ming', 'pattern-ziwei-mao', 'pattern-ziwei-tanlang-same-palace',
     ],
   },
   {
     name: 'sweep-2000-shen', date: '2000-08-16', timeIndex: 8, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
-      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ziwei-tanlang-same-palace',
-      'pattern-tianfu-chou', 'pattern-ziwei-mao', 'pattern-ziwei-system-ming',
+      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-tianfu-chou',
+      'pattern-ziwei-mao', 'pattern-ziwei-system-ming', 'pattern-ziwei-tanlang-same-palace',
     ],
   },
   {
@@ -214,15 +214,15 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
       'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-chang-qu-same-palace',
-      'pattern-ziwei-tianfu-same-palace', 'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
+      'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-tianfu-same-palace', 'pattern-ziwei-yin',
     ],
   },
   {
     name: 'sweep-2000-xu', date: '2000-08-16', timeIndex: 10, gender: 'male', config: NORMAL_CONFIG,
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
-      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ziwei-tianfu-same-palace',
-      'pattern-tianfu-yin', 'pattern-ziwei-system-ming', 'pattern-ziwei-yin',
+      'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-tianfu-yin',
+      'pattern-ziwei-system-ming', 'pattern-ziwei-tianfu-same-palace', 'pattern-ziwei-yin',
     ],
   },
   {
@@ -230,8 +230,8 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
       'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-sha-po-lang',
-      'pattern-ziwei-tanlang-same-palace', 'pattern-tianfu-system-ming', 'pattern-tianfu-wei',
-      'pattern-ziwei-system-ming', 'pattern-ziwei-you',
+      'pattern-tianfu-system-ming', 'pattern-tianfu-wei', 'pattern-ziwei-system-ming',
+      'pattern-ziwei-tanlang-same-palace', 'pattern-ziwei-you',
     ],
   },
   {
@@ -239,8 +239,8 @@ const FIXTURES: GoldenFixture[] = [
     expectedRuleIds: [
       'four-transformation-taiyang-huaLu', 'four-transformation-taiyin-huaKe',
       'four-transformation-tiantong-huaJi', 'four-transformation-wuqu-huaQuan', 'pattern-ri-yue-same-palace',
-      'pattern-sha-po-lang', 'pattern-ziwei-tianxiang-same-palace', 'pattern-tianfu-system-ming',
-      'pattern-tianfu-wu', 'pattern-yang-tuo-clamp-ming', 'pattern-ziwei-xu',
+      'pattern-sha-po-lang', 'pattern-tianfu-system-ming', 'pattern-tianfu-wu',
+      'pattern-yang-tuo-clamp-ming', 'pattern-ziwei-tianxiang-same-palace', 'pattern-ziwei-xu',
     ],
   },
 ];

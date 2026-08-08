@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getChart } from './astro';
 import { analyzeChart, type AnalyzedChart } from './chartAnalyzer';
-import { traceCitations } from './citationTracer';
+import { formatKnowledgeSource, traceCitations } from './citationTracer';
 import { buildReadingPrompt } from './prompts';
 import { getAllStarKnowledge, getStarKnowledge } from './starKnowledge';
 
@@ -17,7 +17,7 @@ describe('B4 citation integration', () => {
     expect(systemPrompt).toContain('## 知識來源');
     for (const citation of citations) {
       expect(systemPrompt).toContain(
-        `- [${citation.knowledgeId}] ${citation.source.library} — ${citation.field} (${citation.confidence})`
+        `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source, 'zh-TW')} — ${citation.field} (${citation.confidence})`
       );
     }
   });

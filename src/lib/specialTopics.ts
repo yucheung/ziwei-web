@@ -1,5 +1,6 @@
 import type { AnalyzedChart } from './chartAnalyzer';
 import { formatKnowledgeSource, traceCitations, type Citation } from './citationTracer';
+import type { Locale } from '../i18n/locale';
 import {
   getSensitivityBoundary,
   HEALTH_BOUNDARY,
@@ -159,10 +160,10 @@ function chartForPrompt(chart: AnalyzedChart): Omit<AnalyzedChart, 'generatedAt'
   return stableChart;
 }
 
-function formatCitations(citations: Citation[]): string {
+function formatCitations(citations: Citation[], locale: Locale = 'zh-TW'): string {
   if (citations.length === 0) return '（目前沒有可追溯的知識來源。）';
   return citations
-    .map((citation) => `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source)} — ${citation.field} (${citation.confidence})`)
+    .map((citation) => `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source, locale)} — ${citation.field} (${citation.confidence})`)
     .join('\n');
 }
 
@@ -181,6 +182,7 @@ export function buildSpecialTopicPrompt(
   chart: AnalyzedChart,
   topic: TopicType,
   rules: readonly RuleResult[] = [],
+  locale: Locale = 'zh-TW',
 ): SpecialTopicPromptPlan {
   const config = SPECIAL_TOPIC_CONFIGS[topic];
   const selectedRules = filterRulesForTopic(rules, topic);
@@ -200,7 +202,7 @@ export function buildSpecialTopicPrompt(
     '【已驗證規則】',
     selectedRules.length > 0 ? JSON.stringify(selectedRules, null, 2) : '（目前沒有符合本專題的規則。）',
     '【知識來源】',
-    formatCitations(citations),
+    formatCitations(citations, locale),
   ].join('\n');
 
   return {
@@ -223,6 +225,7 @@ export function generateSpecialTopicReading(
   chart: AnalyzedChart,
   topic: TopicType,
   rules: readonly RuleResult[] = [],
+  locale: Locale = 'zh-TW',
 ): string {
-  return buildSpecialTopicPrompt(chart, topic, rules).userPrompt;
+  return buildSpecialTopicPrompt(chart, topic, rules, locale).userPrompt;
 }

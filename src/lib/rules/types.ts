@@ -1,5 +1,6 @@
 import type { AnalyzedChart } from '../chartAnalyzer';
 import type { AppLocale } from '../chartModel';
+import type { KnowledgeSource } from '../starKnowledge';
 
 export type TransformationKey = 'huaLu' | 'huaQuan' | 'huaKe' | 'huaJi';
 
@@ -22,6 +23,7 @@ export interface RuleMetadata {
   source: 'iztro-sanhe-v1';
   school: 'sanhe';
   ruleSetVersion: 'sanhe-v1';
+  sourceStatus?: KnowledgeSource['status'];
   conditions: RuleCondition[];
   conclusions: RuleConclusion[];
 }
@@ -51,6 +53,7 @@ export interface RuleResult {
   matched: boolean;
   evidence: Evidence[];
   confidence: number;
+  sourceStatus?: KnowledgeSource['status'];
 }
 
 export type PatternResult = RuleResult;

@@ -354,10 +354,28 @@ describe('App Integration Test Suite', () => {
     expect(jsonSpy).toHaveBeenCalledTimes(1);
     const [astrolabeArg, optionsArg, localeArg] = jsonSpy.mock.calls[0];
     expect(astrolabeArg).toBeTruthy();
-    expect(optionsArg?.input).toEqual({
+    expect(astrolabeArg).toMatchObject({
+      rawInput: {
+        calendarType: 'solar',
+        solarDate: '2000-08-16',
+        isLeapMonth: false,
+        hour: 2,
+        gender: 'male',
+      },
+    });
+    expect(optionsArg?.input).toMatchObject({
       timeIndex: 2,
       isLunar: false,
       longitude: undefined,
+      solarDate: '2000-08-16',
+      calendarType: 'solar',
+      isLeapMonth: false,
+      hour: 2,
+      gender: 'male',
+      astroType: 'heaven',
+      algorithm: 'zhongzhou',
+      yearDivide: 'normal',
+      dayDivide: 'forward',
     });
     expect(localeArg).toBe('zh-TW');
 

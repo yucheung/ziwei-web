@@ -2,7 +2,7 @@ import html2canvas from 'html2canvas';
 import { translate } from '../i18n';
 import type { Locale, TranslationKey } from '../i18n';
 import { toCanonicalKey, translateKey, type AppLocale, type TranslationCategory } from './chartModel';
-import type { CalendarType } from './chartConfig';
+import type { CalendarType, ChartConfig } from './chartConfig';
 import type { GetChartOptions } from './astro';
 
 /**
@@ -34,6 +34,16 @@ export interface ExportPalaceInfo {
   ages?: number[];
 }
 
+export interface ExportRawInput {
+  calendarType: CalendarType;
+  solarDate?: string;
+  lunarDate?: string;
+  isLeapMonth: boolean;
+  hour: ChartConfig['hour'];
+  gender: ChartConfig['gender'];
+  longitude?: number;
+}
+
 export interface ExportAstrolabe {
   solarDate?: string;
   lunarDate?: string;
@@ -49,6 +59,8 @@ export interface ExportAstrolabe {
   time?: string;
   timeRange?: string;
   gender?: string;
+  /** 原始 ChartConfig 輸入；iztro 的日期欄位可能已被格式化，不能取代此快照。 */
+  rawInput?: ExportRawInput;
   fiveElementsClass?: string;
   soul?: string;
   body?: string;
@@ -236,6 +248,8 @@ export interface ExportChartInput {
   algorithm?: string;
   yearDivide?: string;
   dayDivide?: string;
+  hour?: ChartConfig['hour'];
+  gender?: ChartConfig['gender'];
 }
 
 export interface GenerateChartJsonOptions {
@@ -245,8 +259,7 @@ export interface GenerateChartJsonOptions {
   horoscope?: ChartJsonHoroscope;
   /**
    * 呼叫端排盤時使用的原始輸入，用於補足 iztro astrolabe 不會保留的
-   * timeIndex、longitude 與流派設定；兩種日期也可由呼叫端提供原始值。
-   * `gender` 仍取自 astrolabe，因為它是排盤實際採用且已正規化的值。
+   * timeIndex、hour、gender、longitude 與流派設定；兩種日期也可由呼叫端提供原始值。
    */
   input?: ExportChartInput;
 }
@@ -305,7 +318,12 @@ export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateC
 
   const yearPillar = (astrolabe.chineseDate || '').split(' ')[0] || '';
   const input = options.input;
-  const isLunar = input?.isLunar ?? (astrolabe.calendarType === 'lunar');
+  const rawInput = astrolabe.rawInput;
+  const calendarType = input?.calendarType
+    ?? rawInput?.calendarType
+    ?? astrolabe.calendarType
+    ?? (input?.isLunar ? 'lunar' : 'solar');
+  const isLunar = input?.isLunar ?? (calendarType === 'lunar');
 
   const result: Record<string, unknown> = {
     schemaVersion: 'zhChart-v1',
@@ -320,18 +338,19 @@ export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateC
   // order. Raw iztro astrolabes do not retain every input, so stable defaults
   // keep direct callers backward-compatible while App supplies frozen values.
   result.input = {
-    solarDate: input?.solarDate ?? astrolabe.solarDate ?? '',
-    lunarDate: input?.lunarDate ?? astrolabe.lunarDate ?? '',
-    calendarType: astrolabe.calendarType ?? input?.calendarType ?? (isLunar ? 'lunar' : 'solar'),
-    isLeapMonth: astrolabe.isLeapMonth ?? input?.isLeapMonth ?? false,
-    astroType: astrolabe.astroType ?? input?.astroType ?? 'heaven',
-    algorithm: astrolabe.algorithm ?? input?.algorithm ?? 'zhongzhou',
-    yearDivide: astrolabe.yearDivide ?? input?.yearDivide ?? 'normal',
-    dayDivide: astrolabe.dayDivide ?? input?.dayDivide ?? 'forward',
-    timeIndex: input?.timeIndex,
-    gender: canonicalizeExportValue(astrolabe.gender || '', 'gender', sourceLocale),
+    solarDate: input?.solarDate ?? rawInput?.solarDate ?? astrolabe.solarDate ?? '',
+    lunarDate: input?.lunarDate ?? rawInput?.lunarDate ?? astrolabe.lunarDate ?? '',
+    calendarType,
+    isLeapMonth: input?.isLeapMonth ?? rawInput?.isLeapMonth ?? astrolabe.isLeapMonth ?? false,
+    astroType: input?.astroType ?? astrolabe.astroType ?? 'heaven',
+    algorithm: input?.algorithm ?? astrolabe.algorithm ?? 'zhongzhou',
+    yearDivide: input?.yearDivide ?? astrolabe.yearDivide ?? 'normal',
+    dayDivide: input?.dayDivide ?? astrolabe.dayDivide ?? 'forward',
+    timeIndex: input?.timeIndex ?? rawInput?.hour,
+    hour: input?.hour ?? rawInput?.hour,
+    gender: input?.gender ?? rawInput?.gender ?? canonicalizeExportValue(astrolabe.gender || '', 'gender', sourceLocale),
     isLunar,
-    longitude: astrolabe.longitude ?? input?.longitude,
+    longitude: input?.longitude ?? rawInput?.longitude ?? astrolabe.longitude,
   };
 
   if (options.horoscope) {

@@ -106,6 +106,7 @@ describe('SpecialTopicPanel', () => {
     renderPanel();
 
     expect(screen.getAllByText(/iztro-sanhe-v1/u).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/未審核/u).length).toBeGreaterThan(0);
     expect(screen.queryByText('[object Object]')).not.toBeInTheDocument();
   });
 

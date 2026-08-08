@@ -22,13 +22,21 @@ describe('palaceKnowledge', () => {
       const entry = getPalaceKnowledge(palaceName);
 
       expect(entry).toMatchObject({ palaceName, knowledgeId: expect.stringMatching(/^palace-/) });
-      expect(entry?.source).toBe('iztro-sanhe-v1');
+      expect(entry?.source).toMatchObject({
+        library: 'iztro-sanhe-v1',
+        status: 'collected',
+      });
       expect(entry?.school).toBe('sanhe');
       expect(entry?.ruleSetVersion).toBe('sanhe-v1');
       expect(entry?.themes.length).toBeGreaterThan(0);
       expect(entry?.bodyPart.length).toBeGreaterThan(0);
       expect(entry?.lifeDomain.length).toBeGreaterThan(0);
     }
+  });
+
+  it('looks up a palace knowledge entry by stable knowledge ID', async () => {
+    const { getPalaceKnowledgeById } = await import('./palaceKnowledge');
+    expect(getPalaceKnowledgeById('palace-ming')).toEqual(getPalaceKnowledge('命宮'));
   });
 
   it('accepts 交友 as the modern alias for iztro canonical 僕役', () => {

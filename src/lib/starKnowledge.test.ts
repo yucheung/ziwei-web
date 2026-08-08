@@ -27,7 +27,7 @@ describe('starKnowledge', () => {
         status: expect.stringMatching(/^(collected|source_checked|cross_supported|human_approved|disputed)$/u),
       });
       expect(['human', 'opus', null]).toContain(entry.source.reviewedBy);
-      expect(entry.school).toBe('sanhe');
+      expect(entry.school).toBe(entry.starName === '紫微' ? 'classical_ziwei' : 'sanhe');
       expect(entry.ruleSetVersion).toBe('sanhe-v1');
       expect(entry.attributes.element).toMatch(/^[木火土金水]$/);
       expect(entry.attributes.brightnessRange.length).toBeGreaterThan(0);
@@ -44,13 +44,16 @@ describe('starKnowledge', () => {
       starType: 'major',
       knowledgeId: 'star-ziwei',
       source: expect.objectContaining({ library: 'iztro-sanhe-v1' }),
-      school: 'sanhe',
+      school: 'classical_ziwei',
       ruleSetVersion: 'sanhe-v1',
       attributes: {
         element: '土',
         category: '紫微系',
       },
     });
+    expect(entry?.source.reference).toContain('wikisource.org');
+    expect(entry?.source.page).toBe('卷一·諸星問答論');
+    expect(entry?.attributes.confidence).toBeLessThan(1);
     expect(entry?.attributes.brightnessRange).toEqual(expect.arrayContaining(['廟', '旺']));
   });
 
