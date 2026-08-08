@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ziwei-web.invalid/knowledge/v1/source.schema.json",
+  "title": "Knowledge v1 SourceRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sourceId",
+    "title",
+    "attributedAuthor",
+    "tradition",
+    "school",
+    "schoolAttribution",
+    "sourceTier",
+    "edition",
+    "access",
+    "rights",
+    "verificationStatus",
+    "notes"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "knowledge-v1" },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^src-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "attributedAuthor": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "null" }
+      ]
+    },
+    "tradition": {
+      "enum": ["classical_ziwei", "modern_ziwei", "academic", "other"]
+    },
+    "school": {
+      "enum": ["unclassified", "sanhe", "feixing", "zhongzhou", "other"]
+    },
+    "schoolAttribution": {
+      "enum": [
+        "explicit_in_source",
+        "approved_editorial_classification",
+        "not_explicit_in_source"
+      ]
+    },
+    "sourceTier": { "enum": ["A", "B", "C", "D", "E"] },
+    "edition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "editionStatement",
+        "publisher",
+        "publicationYear",
+        "repositoryName"
+      ],
+      "properties": {
+        "editionStatement": { "type": "string", "minLength": 1 },
+        "publisher": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        },
+        "publicationYear": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        },
+        "repositoryName": { "type": "string", "minLength": 1 }
+      }
+    },
+    "access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "landingUrl",
+        "transcriptionUrl",
+        "facsimileUrl",
+        "accessedDate"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "facsimile",
+            "aligned_transcription",
+            "transcription",
+            "partial_preview",
+            "user_scan"
+          ]
+        },
+        "landingUrl": { "type": "string", "minLength": 1 },
+        "transcriptionUrl": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        },
+        "facsimileUrl": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        },
+        "accessedDate": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "redistributionAllowed"],
+      "properties": {
+        "status": {
+          "enum": [
+            "public_domain",
+            "licensed",
+            "user_provided_for_review",
+            "unknown"
+          ]
+        },
+        "redistributionAllowed": { "type": "boolean" }
+      }
+    },
+    "verificationStatus": {
+      "enum": ["candidate", "metadata_verified", "facsimile_verified"]
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "sourceTier": { "const": "A" } },
+        "required": ["sourceTier"]
+      },
+      "then": {
+        "properties": {
+          "access": {
+            "type": "object",
+            "properties": {
+              "kind": { "const": "facsimile" },
+              "facsimileUrl": { "type": "string", "minLength": 1 }
+            }
+          },
+          "verificationStatus": { "const": "facsimile_verified" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "sourceTier": { "const": "B" } },
+        "required": ["sourceTier"]
+      },
+      "then": {
+        "properties": {
+          "access": {
+            "type": "object",
+            "properties": {
+              "kind": { "const": "aligned_transcription" },
+              "transcriptionUrl": { "type": "string", "minLength": 1 },
+              "facsimileUrl": { "type": "string", "minLength": 1 }
+            }
+          },
+          "verificationStatus": { "const": "facsimile_verified" }
+        }
+      }
+    }
+  ]
+}

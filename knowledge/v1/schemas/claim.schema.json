@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ziwei-web.invalid/knowledge/v1/claim.schema.json",
+  "title": "Knowledge v1 KnowledgeClaim",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "claimId",
+    "subject",
+    "assertionType",
+    "assertionText",
+    "modernParaphrase",
+    "interpretationLevel",
+    "tradition",
+    "school",
+    "scope",
+    "evidence",
+    "conflictRefs",
+    "sensitivity",
+    "lifecycle"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "knowledge-v1" },
+    "claimId": { "$ref": "#/$defs/claimId" },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "star", "palace", "transformation", "patternName"],
+      "properties": {
+        "kind": {
+          "enum": ["star", "star_in_palace", "transformation", "pattern", "methodology"]
+        },
+        "star": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "palace": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "transformation": {
+          "enum": ["祿", "權", "科", "忌", null]
+        },
+        "patternName": { "$ref": "#/$defs/nullableNonEmptyString" }
+      }
+    },
+    "assertionType": {
+      "enum": [
+        "intrinsic_attribute",
+        "personality_tendency",
+        "appearance_description",
+        "conditional_effect",
+        "relationship_tendency",
+        "career_tendency",
+        "methodological_statement",
+        "historical_judgment"
+      ]
+    },
+    "assertionText": { "type": "string", "minLength": 1 },
+    "modernParaphrase": { "$ref": "#/$defs/nullableNonEmptyString" },
+    "interpretationLevel": {
+      "enum": ["verbatim_meaning", "close_paraphrase", "modern_interpretation"]
+    },
+    "tradition": { "$ref": "#/$defs/tradition" },
+    "school": { "$ref": "#/$defs/school" },
+    "scope": { "$ref": "#/$defs/predicate" },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidenceRef" }
+    },
+    "conflictRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/claimId" }
+    },
+    "sensitivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contentType", "sensitivityLevel", "categories", "promptEligible"],
+      "properties": {
+        "contentType": {
+          "enum": ["neutral_claim", "historical_claim", "modern_interpretation"]
+        },
+        "sensitivityLevel": { "enum": ["none", "caution", "restricted"] },
+        "categories": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "health",
+              "longevity",
+              "disability",
+              "gender_role",
+              "family_harm",
+              "fatalism"
+            ]
+          }
+        },
+        "promptEligible": { "type": "boolean" }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "supersedes"],
+      "properties": {
+        "status": {
+          "enum": ["draft", "source_verified", "human_approved", "rejected", "deprecated"]
+        },
+        "supersedes": {
+          "anyOf": [
+            { "$ref": "#/$defs/claimId" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": {
+      "type": "string",
+      "pattern": "^claim-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^src-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "nullableNonEmptyString": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "null" }
+      ]
+    },
+    "tradition": {
+      "enum": ["classical_ziwei", "modern_ziwei", "academic", "other"]
+    },
+    "school": {
+      "enum": ["unclassified", "sanhe", "feixing", "zhongzhou", "other"]
+    },
+    "locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["volume", "chapter", "section", "page", "imagePage", "urlFragment"],
+      "properties": {
+        "volume": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "chapter": { "type": "string", "minLength": 1 },
+        "section": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "page": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "imagePage": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "urlFragment": { "$ref": "#/$defs/nullableNonEmptyString" }
+      },
+      "anyOf": [
+        { "properties": { "page": { "type": "string", "minLength": 1 } } },
+        { "properties": { "imagePage": { "type": "string", "minLength": 1 } } },
+        { "properties": { "urlFragment": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "locator", "quotation", "support", "verification"],
+      "properties": {
+        "sourceId": { "$ref": "#/$defs/sourceId" },
+        "locator": { "$ref": "#/$defs/locator" },
+        "quotation": { "type": "string", "minLength": 1 },
+        "support": { "enum": ["direct", "partial", "contradictory"] },
+        "verification": {
+          "enum": ["unverified", "transcription_checked", "facsimile_checked"]
+        }
+      }
+    },
+    "predicate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op"],
+          "properties": { "op": { "const": "always" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "predicates"],
+          "properties": {
+            "op": { "const": "all" },
+            "predicates": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/predicate" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "predicates"],
+          "properties": {
+            "op": { "const": "any" },
+            "predicates": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/predicate" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "predicate"],
+          "properties": {
+            "op": { "const": "not" },
+            "predicate": { "$ref": "#/$defs/predicate" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "star", "palace"],
+          "properties": {
+            "op": { "const": "star_in_palace" },
+            "star": { "type": "string", "minLength": 1 },
+            "palace": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "star", "values"],
+          "properties": {
+            "op": { "const": "star_brightness" },
+            "star": { "type": "string", "minLength": 1 },
+            "values": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "star", "transformation"],
+          "properties": {
+            "op": { "const": "has_transformation" },
+            "star": { "type": "string", "minLength": 1 },
+            "transformation": { "enum": ["祿", "權", "科", "忌"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "stars", "relation"],
+          "properties": {
+            "op": { "const": "has_supporting_star" },
+            "stars": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "relation": {
+              "enum": ["same_palace", "three_harmony", "opposite", "four_directions"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "stars", "relation"],
+          "properties": {
+            "op": { "const": "has_challenging_star" },
+            "stars": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "relation": {
+              "enum": ["same_palace", "three_harmony", "opposite", "four_directions"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "palace", "branches"],
+          "properties": {
+            "op": { "const": "palace_branch_in" },
+            "palace": { "type": "string", "minLength": 1 },
+            "branches": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
