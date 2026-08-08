@@ -263,6 +263,10 @@ describe('App Integration Test Suite', () => {
     const personATime = await screen.findByLabelText('出生時辰', { selector: 'input' }) as HTMLInputElement;
     expect(personATime).toHaveAttribute('type', 'time');
     expect(personATime).toHaveValue('00:10');
+
+    // F1 regression guard: precise time + longitude must NOT crash match mode —
+    // if getChart threw, match results would never render.
+    expect(await screen.findByText('合盤規則結果')).toBeInTheDocument();
   });
 
   it('does not mark rule info stale for longitude-only input before true solar time is active', async () => {
