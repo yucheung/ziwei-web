@@ -250,6 +250,22 @@ function validateClaims(repository, indexes, diagnostics) {
         );
       }
 
+      if (claim.interpretationLevel === 'modern_interpretation') {
+        const hasEligibleModernEvidence = claim.evidence.some((evidence) => {
+          const sourceEntry = indexes.sources.get(evidence.sourceId);
+          return isEligibleApprovalEvidence(evidence, sourceEntry)
+            && ['modern_ziwei', 'academic'].includes(sourceEntry.value.tradition);
+        });
+        if (!hasEligibleModernEvidence) {
+          addDiagnostic(
+            diagnostics,
+            'MODERN_INTERPRETATION_SOURCE_MISSING',
+            entry,
+            `${claim.claimId} lacks eligible modern or academic evidence for its modern interpretation`,
+          );
+        }
+      }
+
       validateHumanApproval({
         diagnostics,
         entry,

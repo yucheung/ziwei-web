@@ -168,6 +168,26 @@ describe('validatePolicies provenance and approval', () => {
     })))).toContain('APPROVED_CLAIM_SOURCE_INELIGIBLE');
   });
 
+  it('requires a modern interpretation to have its own eligible modern source', () => {
+    const unsupportedModernInterpretation = {
+      ...claim,
+      assertionText: '古典描述可直接推導現代職涯結論。',
+      modernParaphrase: '適合科技管理職。',
+      interpretationLevel: 'modern_interpretation',
+      tradition: 'modern_ziwei',
+      sensitivity: {
+        ...claim.sensitivity,
+        contentType: 'modern_interpretation',
+      },
+      lifecycle: { ...claim.lifecycle, status: 'human_approved' },
+    };
+
+    expect(codes(validatePolicies(repository({
+      claims: [unsupportedModernInterpretation],
+      reviews: [humanReview('claim', unsupportedModernInterpretation.claimId)],
+    })))).toContain('MODERN_INTERPRETATION_SOURCE_MISSING');
+  });
+
   it('requires a current passing human review for approved claims', () => {
     const approvedClaim = {
       ...claim,
