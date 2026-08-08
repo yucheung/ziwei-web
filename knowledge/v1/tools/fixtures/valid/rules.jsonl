@@ -1,0 +1,1 @@
+{"schemaVersion":"knowledge-v1","ruleId":"rule-valid-ziwei-life","name":"紫微坐命","tradition":"classical_ziwei","school":"unclassified","ruleSetVersion":"classical-pilot-v1","predicate":{"op":"star_in_palace","star":"紫微","palace":"命宮"},"conclusionClaimIds":["claim-valid-ziwei-life"],"promptEligible":false,"lifecycleStatus":"draft"}
