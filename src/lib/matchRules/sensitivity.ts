@@ -61,9 +61,19 @@ const BOUNDARY_BY_TOPIC = new Map(
   HIGH_SENSITIVITY_BOUNDARIES.map((boundary) => [boundary.topic, boundary])
 );
 
+/** Return the topic boundary for high sensitivity, with a safe generic fallback. */
+export function getSensitivityBoundary(
+  topic: string | undefined,
+  sensitivity: SensitivityLevel,
+): AssertionBoundary | undefined {
+  if (sensitivity !== 'high') return undefined;
+
+  return (topic && BOUNDARY_BY_TOPIC.get(topic)) || GENERIC_HIGH_SENSITIVITY_BOUNDARY;
+}
+
 function boundaryFor(conclusion: MatchConclusion): AssertionBoundary {
-  return (conclusion.topic && BOUNDARY_BY_TOPIC.get(conclusion.topic))
-    || GENERIC_HIGH_SENSITIVITY_BOUNDARY;
+  return getSensitivityBoundary(conclusion.topic, conclusion.sensitivity)
+    ?? GENERIC_HIGH_SENSITIVITY_BOUNDARY;
 }
 
 function applyConclusionBoundary(conclusion: MatchConclusion): MatchConclusion {

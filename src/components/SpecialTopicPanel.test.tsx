@@ -125,6 +125,26 @@ describe('SpecialTopicPanel', () => {
     expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1);
   });
 
+  it('sends the wealth assertion boundary in the localized system message', async () => {
+    let sentMessages: llmModule.ChatMessage[] | undefined;
+    vi.mocked(llmModule.callLLMStream).mockImplementation(async (messages, _config, callbacks) => {
+      sentMessages = messages;
+      const result = { status: 'completed' as const, text: '財運分析內容' };
+      callbacks.onFinish?.(result);
+      return result;
+    });
+
+    renderPanel();
+    fireEvent.click(screen.getByRole('radio', { name: '財運' }));
+    fireEvent.click(screen.getByRole('button', { name: '生成專題解讀' }));
+
+    await waitFor(() => expect(screen.getByText('財運分析內容')).toBeInTheDocument());
+
+    const systemPrompt = sentMessages?.find((message) => message.role === 'system')?.content ?? '';
+    expect(systemPrompt).toContain('保證獲利');
+    expect(systemPrompt).toContain('此內容僅提供財務傾向與規劃參考');
+  });
+
   it('keeps all new labels available in both locale dictionaries', () => {
     const keys = [
       'specialTopic.title',

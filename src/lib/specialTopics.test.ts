@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AnalyzedChart } from './chartAnalyzer';
+import { WEALTH_BOUNDARY } from './matchRules/sensitivity';
 import type { RuleResult } from './rules/types';
 import {
   SPECIAL_TOPIC_CONFIGS,
@@ -101,5 +102,15 @@ describe('specialTopics deterministic prompt planning', () => {
 
   it('omits generatedAt so the same chart data produces a stable prompt', () => {
     expect(generateSpecialTopicReading(makeChart(), 'education')).not.toContain('2026-08-08T00:00:00.000Z');
+  });
+
+  it('adds the wealth assertion boundary to the deterministic prompt plan', () => {
+    const plan = buildSpecialTopicPrompt(makeChart(), 'wealth');
+
+    expect(plan.boundary).toBe(WEALTH_BOUNDARY);
+    expect(plan.userPrompt).toContain('保證獲利');
+    expect(plan.userPrompt).toContain(WEALTH_BOUNDARY.disclaimer);
+    expect(plan.sensitivityInstruction).toContain('禁止');
+    expect(plan.sensitivityInstruction).not.toBe('');
   });
 });

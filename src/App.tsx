@@ -12,6 +12,10 @@ import type { Config, AstroType, GetChartOptions } from './lib/astro';
 import { DEFAULT_CONFIG } from './lib/astro';
 import { chartConfigToGetChartOptions, type ChartConfig } from './lib/chartConfig';
 import { buildFourPillarsFromGanZhi } from './lib/bazi';
+import { analyzeChart, type AnalyzedChart } from './lib/chartAnalyzer';
+import { canonicalizeAstrolabeForReading } from './lib/chartModel';
+import { evaluateRules, type RuleResult } from './lib/rules/engine';
+import { getHoroscopeSummary, type HoroscopeSummary } from './lib/fortunes';
 import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage, downloadChartJson } from './lib/export';
 import type { ExportAstrolabe } from './lib/export';
 import { createShareUrl, decodeShareUrl } from './lib/shareUrl';
@@ -19,7 +23,9 @@ import { IZTRO_VERSION } from './components/RuleInfoPanel';
 
 const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ default: m.ChartGrid })));
 const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => ({ default: m.FortunePanel })));
+const FortuneChart = lazy(() => import('./components/FortuneChart').then((m) => ({ default: m.FortuneChart })));
 const ReadingPanel = lazy(() => import('./components/ReadingPanel').then((m) => ({ default: m.ReadingPanel })));
+const SpecialTopicPanel = lazy(() => import('./components/SpecialTopicPanel').then((m) => ({ default: m.SpecialTopicPanel })));
 const MatchPanel = lazy(() => import('./components/MatchPanel').then((m) => ({ default: m.MatchPanel })));
 const CollectionPanel = lazy(() => import('./components/CollectionPanel').then((m) => ({ default: m.CollectionPanel })));
 
@@ -123,6 +129,29 @@ export default function App() {
       chineseDate.hourly,
     );
   }, [astrolabe]);
+
+  const analyzedChart = useMemo<AnalyzedChart | null>(
+    () => astrolabe ? analyzeChart(astrolabe, iztroLanguage) : null,
+    [astrolabe, iztroLanguage],
+  );
+  const canonicalAnalyzedChart = useMemo<AnalyzedChart | null>(
+    () => astrolabe
+      ? analyzeChart(canonicalizeAstrolabeForReading(astrolabe, iztroLanguage), 'zh-TW')
+      : null,
+    [astrolabe, iztroLanguage],
+  );
+  const ruleResults = useMemo<RuleResult[]>(
+    () => canonicalAnalyzedChart ? evaluateRules(canonicalAnalyzedChart) : [],
+    [canonicalAnalyzedChart],
+  );
+  const horoscope = useMemo<HoroscopeSummary | null>(() => {
+    if (!astrolabe) return null;
+    try {
+      return getHoroscopeSummary(astrolabe, undefined, iztroLanguage);
+    } catch {
+      return null;
+    }
+  }, [astrolabe, iztroLanguage]);
 
   // 匯出 / 分享
   const chartCaptureRef = useRef<HTMLDivElement>(null);
@@ -442,6 +471,7 @@ export default function App() {
                   {activeTab === 'fortunes' && (
                     <div id="tabpanel-fortunes" role="tabpanel" aria-labelledby="tab-fortunes" tabIndex={0} className="focus:outline-none">
                       <FortunePanel astrolabe={astrolabe} />
+                      {analyzedChart && horoscope && <FortuneChart chart={analyzedChart} horoscope={horoscope} />}
                     </div>
                   )}
                   {activeTab === 'reading' && (
@@ -454,6 +484,7 @@ export default function App() {
                             : 'default-chart'
                         }
                       />
+                      {canonicalAnalyzedChart && <SpecialTopicPanel chart={canonicalAnalyzedChart} rules={ruleResults} />}
                     </div>
                   )}
                 </section>

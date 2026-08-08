@@ -58,9 +58,13 @@ export function SpecialTopicPanel({ chart, rules }: SpecialTopicPanelProps) {
     abortControllerRef.current = new AbortController();
 
     try {
+      const systemPrompt = [t('specialTopic.systemPrompt'), promptPlan.sensitivityInstruction]
+        .filter(Boolean)
+        .join('\n\n');
+
       await callLLMStream(
         [
-          { role: 'system', content: t('specialTopic.systemPrompt') },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: promptPlan.userPrompt },
         ],
         llmConfig,

@@ -1,6 +1,13 @@
 import type { AnalyzedChart } from './chartAnalyzer';
 import { traceCitations, type Citation } from './citationTracer';
-import type { SensitivityLevel } from './matchRules/sensitivity';
+import {
+  getSensitivityBoundary,
+  HEALTH_BOUNDARY,
+  MARRIAGE_BOUNDARY,
+  type AssertionBoundary,
+  type SensitivityLevel,
+  WEALTH_BOUNDARY,
+} from './matchRules/sensitivity';
 import type { RuleResult } from './rules/types';
 
 export type { SensitivityLevel } from './matchRules/sensitivity';
@@ -13,6 +20,7 @@ export interface SpecialTopicConfig {
   promptTemplate: string;
   ruleSubset: string[];
   sensitivity: SensitivityLevel;
+  boundaryTopic?: string;
 }
 
 const CAREER_RULE_SUBSET = [
@@ -96,6 +104,7 @@ export const SPECIAL_TOPIC_CONFIGS: Record<TopicType, SpecialTopicConfig> = {
       '請聚焦財務傾向與資源運用，僅根據命盤資料與已驗證規則說明收入模式、風險與規劃方向，不保證獲利或損益。',
     ruleSubset: [...WEALTH_RULE_SUBSET],
     sensitivity: 'high',
+    boundaryTopic: WEALTH_BOUNDARY.topic,
   },
   relationship: {
     type: 'relationship',
@@ -103,6 +112,7 @@ export const SPECIAL_TOPIC_CONFIGS: Record<TopicType, SpecialTopicConfig> = {
       '請聚焦感情與互動傾向，根據命盤資料與已驗證規則說明溝通、相處與關係經營方向，不斷言必然結果。',
     ruleSubset: [...RELATIONSHIP_RULE_SUBSET],
     sensitivity: 'high',
+    boundaryTopic: MARRIAGE_BOUNDARY.topic,
   },
   health: {
     type: 'health',
@@ -110,6 +120,7 @@ export const SPECIAL_TOPIC_CONFIGS: Record<TopicType, SpecialTopicConfig> = {
       '請聚焦健康關注與生活照護方向，根據命盤資料與已驗證規則提供可觀察的身心狀態提醒，不進行疾病診斷或治療建議。',
     ruleSubset: [...HEALTH_RULE_SUBSET],
     sensitivity: 'high',
+    boundaryTopic: HEALTH_BOUNDARY.topic,
   },
   education: {
     type: 'education',
@@ -125,6 +136,8 @@ export interface SpecialTopicPromptPlan {
   config: SpecialTopicConfig;
   rules: RuleResult[];
   citations: Citation[];
+  boundary?: AssertionBoundary;
+  sensitivityInstruction: string;
   userPrompt: string;
 }
 
@@ -153,6 +166,16 @@ function formatCitations(citations: Citation[]): string {
     .join('\n');
 }
 
+function formatSensitivityInstruction(boundary: AssertionBoundary | undefined): string {
+  if (!boundary) return '';
+
+  return [
+    `可使用措辭：${boundary.allowedPhrasing.join('、')}`,
+    `禁止措辭：${boundary.forbiddenPhrasing.join('、')}`,
+    `必須附上免責聲明：${boundary.disclaimer}`,
+  ].join('\n');
+}
+
 /** Build the complete deterministic request payload before any LLM call. */
 export function buildSpecialTopicPrompt(
   chart: AnalyzedChart,
@@ -162,11 +185,14 @@ export function buildSpecialTopicPrompt(
   const config = SPECIAL_TOPIC_CONFIGS[topic];
   const selectedRules = filterRulesForTopic(rules, topic);
   const citations = traceCitations(chart);
+  const boundary = getSensitivityBoundary(config.boundaryTopic, config.sensitivity);
+  const sensitivityInstruction = formatSensitivityInstruction(boundary);
   const userPrompt = [
     config.promptTemplate,
     '',
     `【專題】${topic}`,
     `【敏感度】${config.sensitivity}`,
+    ...(sensitivityInstruction ? ['【敏感度邊界】', sensitivityInstruction] : []),
     '【結構化命盤資料】',
     '```json',
     JSON.stringify(chartForPrompt(chart), null, 2),
@@ -182,6 +208,8 @@ export function buildSpecialTopicPrompt(
     config,
     rules: selectedRules,
     citations,
+    boundary,
+    sensitivityInstruction,
     userPrompt,
   };
 }

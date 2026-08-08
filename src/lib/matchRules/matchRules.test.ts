@@ -16,6 +16,8 @@ interface ChartFixtureOptions {
   mingBranch?: string;
   mingIndex?: number;
   mingStars?: AnalyzedStar[];
+  mutagenIndex?: number;
+  mutagenStars?: AnalyzedStar[];
 }
 
 function star(starName: string, mutagen?: string): AnalyzedStar {
@@ -36,11 +38,18 @@ function palace(index: number, name: string, earthlyBranch: string, majorStars: 
   };
 }
 
-function makeChart({ mingBranch = '子', mingIndex = 0, mingStars = [] }: ChartFixtureOptions = {}): AnalyzedChart {
+function makeChart({
+  mingBranch = '子',
+  mingIndex = 0,
+  mingStars = [],
+  mutagenIndex,
+  mutagenStars = [],
+}: ChartFixtureOptions = {}): AnalyzedChart {
   const palaces = Array.from({ length: 12 }, (_, index) => {
     const palaceName = PALACE_NAMES[(index - mingIndex + 12) % 12] ?? '命宮';
     const branch = index === mingIndex ? mingBranch : BRANCHES[index] ?? '子';
-    return palace(index, palaceName, branch, index === mingIndex ? mingStars : []);
+    const majorStars = index === mutagenIndex ? mutagenStars : index === mingIndex ? mingStars : [];
+    return palace(index, palaceName, branch, majorStars);
   });
 
   return {
@@ -135,14 +144,34 @@ describe('B7a match-rule engine', () => {
 
   it('finds 雙祿 and 祿忌 mutagen interactions', () => {
     expect(ruleIds(
-      makeChart({ mingStars: [star('廉貞', '祿')] }),
-      makeChart({ mingStars: [star('天機', '祿')] })
+      makeChart({ mutagenIndex: 0, mutagenStars: [star('廉貞', '祿')] }),
+      makeChart({ mutagenIndex: 0, mutagenStars: [star('天機', '祿')] })
     )).toContain('mutagen-double-lu');
 
     expect(ruleIds(
-      makeChart({ mingStars: [star('廉貞', '祿')] }),
-      makeChart({ mingStars: [star('太陽', '忌')] })
+      makeChart({ mutagenIndex: 0, mutagenStars: [star('廉貞', '祿')] }),
+      makeChart({ mutagenIndex: 0, mutagenStars: [star('太陽', '忌')] })
     )).toContain('mutagen-lu-ji');
+
+    expect(ruleIds(
+      makeChart({ mutagenIndex: 0, mutagenStars: [star('廉貞', '忌')] }),
+      makeChart({ mutagenIndex: 0, mutagenStars: [star('太陽', '祿')] })
+    )).toContain('mutagen-lu-ji');
+
+    expect(ruleIds(
+      makeChart({ mingStars: [star('廉貞', '祿')] }),
+      makeChart({ mutagenIndex: 2, mutagenStars: [star('天機', '祿')] }),
+    )).not.toContain('mutagen-double-lu');
+
+    expect(ruleIds(
+      makeChart({ mingStars: [star('廉貞', '祿')] }),
+      makeChart({ mutagenIndex: 2, mutagenStars: [star('太陽', '忌')] }),
+    )).not.toContain('mutagen-lu-ji');
+
+    expect(ruleIds(
+      makeChart({ mutagenIndex: 2, mutagenStars: [star('太陽', '忌')] }),
+      makeChart({ mingStars: [star('廉貞', '祿')] }),
+    )).not.toContain('mutagen-lu-ji');
   });
 
   it('marks the specific double-lu wealth conclusion as high sensitivity', () => {

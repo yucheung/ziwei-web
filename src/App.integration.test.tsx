@@ -91,12 +91,14 @@ describe('App Integration Test Suite', () => {
     fireEvent.click(fortunesTab);
 
     expect(await screen.findByText(/運限大盤分析/i)).toBeInTheDocument();
+    expect(await screen.findByText(/大限流分析圖/i)).toBeInTheDocument();
 
     // Click 'AI 智能命盤解讀' Tab
     const readingTab = await screen.findByRole('tab', { name: /AI 智能命盤解讀/i });
     fireEvent.click(readingTab);
 
     expect(await screen.findByText('AI 多模型命盤結構化解讀')).toBeInTheDocument();
+    expect(await screen.findByText('AI 專題命盤解讀')).toBeInTheDocument();
 
     // Switch back to '十二宮星盤總覽' Tab
     const chartTab = await screen.findByRole('tab', { name: /十二宮星盤總覽/i });

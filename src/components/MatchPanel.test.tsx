@@ -7,8 +7,8 @@ import { getCanonicalAstrolabe } from '../lib/chartModel';
 import { evaluateMatch } from '../lib/matchRules';
 import { applySensitivityBoundaries } from '../lib/matchRules/sensitivity';
 
-const PERSON_A = { name: '測試甲', date: '1996-03-15', timeIndex: 6, gender: 'male' as const };
-const PERSON_B = { name: '測試乙', date: '1998-11-20', timeIndex: 2, gender: 'female' as const };
+const PERSON_A = { name: '測試甲', date: '1990-01-01', timeIndex: 0, gender: 'male' as const };
+const PERSON_B = { name: '測試乙', date: '1991-05-20', timeIndex: 2, gender: 'female' as const };
 
 function getExpectedResults() {
   const chartA = analyzeChart(getCanonicalAstrolabe(PERSON_A), 'zh-TW');
