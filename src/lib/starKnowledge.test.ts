@@ -51,6 +51,7 @@ describe('starKnowledge', () => {
         category: '紫微系',
       },
     });
+    expect(entry?.source).toMatchObject({ school: 'classical_ziwei' });
     expect(entry?.source.reference).toContain('wikisource.org');
     expect(entry?.source.page).toBe('卷一·諸星問答論');
     expect(entry?.attributes.confidence).toBeLessThan(1);

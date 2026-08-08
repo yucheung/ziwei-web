@@ -86,6 +86,7 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(systemPrompt).toContain(citationHeader);
     expect(systemPrompt).toMatch(new RegExp(`- \\[palace-[^\\]]+\\] iztro-sanhe-v1 \\[${collectedLabel} / collected\\] — palaces\\[\\d+\\]\\.name \\(0\\.5\\)`));
     expect(systemPrompt).toMatch(new RegExp(`- \\[star-[^\\]]+\\] iztro-sanhe-v1(?:, [^\\n]+)? \\[(?:${collectedLabel} / collected|${approvedLabel} / human_approved / ${humanLabel})\\] — palaces\\[\\d+\\]\\.majorStars\\[\\d+\\] \\((?:0\\.5|0\\.7|1)\\)`));
+    expect(systemPrompt).toContain(`classical_ziwei, ${approvedLabel}/${humanLabel}) — via iztro-sanhe-v1`);
   });
 
   it('adds only matched rules with evidence highlights and confidence to the system prompt', () => {

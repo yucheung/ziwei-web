@@ -15,6 +15,7 @@ export type KnowledgeSourceStatus =
 
 export interface KnowledgeSource {
   library: string;
+  school?: UnitSchool;
   reference?: string;
   excerpt?: string;
   page?: string;
@@ -51,6 +52,7 @@ function collectedSource(): KnowledgeSource {
 
 const HUMAN_APPROVED_ZIWEI_SOURCE: KnowledgeSource = {
   library: 'iztro-sanhe-v1',
+  school: 'classical_ziwei',
   reference: 'https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96',
   excerpt: '問紫微所主若何？答曰：紫微屬土，乃中天之尊星為帝座，主掌造化樞機，人生主宰。',
   page: '卷一·諸星問答論',

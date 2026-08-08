@@ -85,6 +85,11 @@ export function formatKnowledgeSource(
   const reference = [normalized.reference, normalized.page].filter(Boolean).join(' ');
   const reviewer = normalized.reviewedBy ? ` / ${REVIEWER_LABELS[locale][normalized.reviewedBy]}` : '';
   const status = `${STATUS_LABELS[locale][normalized.status]} / ${normalized.status}${reviewer}`;
+  if (normalized.reference) {
+    const school = normalized.school ? `${normalized.school}, ` : '';
+    const reviewerLabel = normalized.reviewedBy ? `/${REVIEWER_LABELS[locale][normalized.reviewedBy]}` : '';
+    return `${reference} (${school}${STATUS_LABELS[locale][normalized.status]}${reviewerLabel}) — via ${normalized.library}`;
+  }
   return `${normalized.library}${reference ? `, ${reference}` : ''} [${status}]`;
 }
 

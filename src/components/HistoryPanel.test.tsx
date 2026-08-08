@@ -140,7 +140,8 @@ describe('HistoryPanel', () => {
     await saveReading(firstReading);
     const createObjectURL = vi.fn().mockReturnValue('blob:test');
     const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+    vi.stubGlobal('URL', Object.assign(class extends URL {}, { createObjectURL, revokeObjectURL }));
+    expect(() => new URL('https://example.com')).not.toThrow();
 
     renderPanel();
 

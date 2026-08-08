@@ -91,3 +91,19 @@ interface KnowledgeSource {
 - npm test 全綠（477 baseline + 新增）
 - build exit 0 · eslint 0 errors
 - Opus 複審 ≥8.5/10（P0 兩項為強制重點）
+
+---
+
+## 附錄：confidence 塌陷為單一值的設計決定（2026-08-08 三審記錄）
+
+**現狀**：B8 Review 2 的 provenance cap 上線後，production 中所有未審核（collected）規則最終 confidence 都是 0.5。
+
+**原因**：現有 97 條規則全部引用未經 human 審核的 iztro-sanhe-v1 來源 → cap 一律生效。
+
+**後果（已接受）**：
+1. prompt 的「較高可信度依據」分支在真實資料下不可達（測試靠合成規則才觸發）
+2. engine 的 confidence 降序排序退化為 ruleId 字典序，規則呈現順序不再有意義
+
+**這是安全性上誠實的結果**：在知識庫 human_approved 條目達標前，所有規則都只該被當成初步參考。當 B9 知識庫擴充引入 human_approved 來源後，這些規則會自然浮回高信心，排序與 prompt 分級同步恢復。
+
+**不視為 bug，為有意設計**。

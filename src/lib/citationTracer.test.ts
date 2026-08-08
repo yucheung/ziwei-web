@@ -72,11 +72,21 @@ describe('citationTracer', () => {
       status: 'human_approved',
     };
 
-    expect(formatKnowledgeSource(source, 'zh-TW')).toContain('《三命通會》卷三');
-    expect(formatKnowledgeSource(source, 'zh-TW')).toContain('p.45');
-    expect(formatKnowledgeSource(source, 'zh-TW')).toContain('人類');
+    expect(formatKnowledgeSource(source, 'zh-TW')).toBe(
+      '《三命通會》卷三 p.45 (已審核/人類) — via iztro-sanhe-v1'
+    );
     expect(formatKnowledgeSource({ ...source, status: 'collected', reviewedBy: null }, 'zh-CN'))
       .toContain('未核实');
+    expect(formatKnowledgeSource({ library: 'iztro-sanhe-v1', reviewedBy: null, status: 'collected' }, 'zh-TW'))
+      .toBe('iztro-sanhe-v1 [未核實（未審核） / collected]');
+  });
+
+  it('formats classical references before their library attribution', () => {
+    const source = getStarKnowledge('紫微')!.source;
+
+    expect(formatKnowledgeSource(source, 'zh-TW')).toBe(
+      `${source.reference} ${source.page} (classical_ziwei, 已審核/人類) — via ${source.library}`
+    );
   });
 
   it('caps partial Wikisource attributes below full confidence', () => {
