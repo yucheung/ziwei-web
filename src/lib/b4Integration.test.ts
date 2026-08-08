@@ -17,7 +17,7 @@ describe('B4 citation integration', () => {
     expect(systemPrompt).toContain('## 知識來源');
     for (const citation of citations) {
       expect(systemPrompt).toContain(
-        `- [${citation.knowledgeId}] ${citation.source} — ${citation.field} (${citation.confidence})`
+        `- [${citation.knowledgeId}] ${citation.source.library} — ${citation.field} (${citation.confidence})`
       );
     }
   });

@@ -22,7 +22,11 @@ describe('starKnowledge', () => {
 
     expect(new Set(entries.map((entry) => entry.knowledgeId)).size).toBe(27);
     for (const entry of entries) {
-      expect(entry.source).toBe('iztro-sanhe-v1');
+      expect(entry.source).toMatchObject({
+        library: 'iztro-sanhe-v1',
+        status: expect.stringMatching(/^(collected|source_checked|cross_supported|human_approved|disputed)$/u),
+      });
+      expect(['human', 'opus', null]).toContain(entry.source.reviewedBy);
       expect(entry.school).toBe('sanhe');
       expect(entry.ruleSetVersion).toBe('sanhe-v1');
       expect(entry.attributes.element).toMatch(/^[木火土金水]$/);
@@ -39,7 +43,7 @@ describe('starKnowledge', () => {
       starName: '紫微',
       starType: 'major',
       knowledgeId: 'star-ziwei',
-      source: 'iztro-sanhe-v1',
+      source: expect.objectContaining({ library: 'iztro-sanhe-v1' }),
       school: 'sanhe',
       ruleSetVersion: 'sanhe-v1',
       attributes: {
@@ -61,5 +65,11 @@ describe('starKnowledge', () => {
 
   it('returns undefined for an unknown star', () => {
     expect(getStarKnowledge('不存在的星曜')).toBeUndefined();
+  });
+
+  it('includes at least one explicitly human-approved source example', () => {
+    expect(getAllStarKnowledge().some((entry) =>
+      entry.source.reviewedBy === 'human' && entry.source.status === 'human_approved'
+    )).toBe(true);
   });
 });

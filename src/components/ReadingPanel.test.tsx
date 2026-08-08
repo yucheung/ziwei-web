@@ -6,6 +6,16 @@ import { getChart } from '../lib/astro';
 import { I18nProvider } from '../i18n';
 import { buildReadingPrompt } from '../lib/prompts';
 import { canonicalizeAstrolabeForReading } from '../lib/chartModel';
+import * as storageModule from '../lib/storage';
+import type { RuleResult } from '../lib/rules/types';
+
+vi.mock('../lib/storage', async () => {
+  const actual = await vi.importActual<typeof import('../lib/storage')>('../lib/storage');
+  return {
+    ...actual,
+    saveReading: vi.fn(),
+  };
+});
 
 // Mock LLM module
 vi.mock('../lib/llm', async () => {
@@ -262,6 +272,45 @@ describe('ReadingPanel Component Test Suite', () => {
     });
 
     expect(llmModule.callLLMStream).toHaveBeenCalledTimes(1);
+  });
+
+  it('stores the supplied rules unchanged when a reading completes', async () => {
+    const rules: RuleResult[] = [{
+      ruleId: 'pattern-test',
+      ruleName: '測試規則',
+      matched: true,
+      evidence: [{
+        knowledgeId: 'star-ziwei',
+        field: 'palaces[0].majorStars[0]',
+        source: 'iztro-sanhe-v1',
+        value: '紫微',
+        reasoning: '測試證據',
+      }],
+      confidence: 0.88,
+    }];
+    vi.mocked(storageModule.saveReading).mockResolvedValue({
+      id: 'stored-reading',
+      chartId: 'chart-1',
+      reading: '可保存的解讀',
+      rules,
+      createdAt: '2026-08-08T00:00:00.000Z',
+    });
+    vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+      const result = { status: 'completed' as const, text: '可保存的解讀' };
+      callbacks.onFinish?.(result);
+      return result;
+    });
+
+    render(<ReadingPanel chart={mockChart} chartId="chart-1" rules={rules} />);
+    fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+    await waitFor(() => {
+      expect(storageModule.saveReading).toHaveBeenCalledWith(expect.objectContaining({
+        chartId: 'chart-1',
+        reading: '可保存的解讀',
+        rules,
+      }));
+    });
   });
 
   it('renders completed streamed reading text', async () => {

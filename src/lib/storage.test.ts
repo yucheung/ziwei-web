@@ -11,6 +11,15 @@ import {
   saveChart,
   saveReading,
 } from './storage';
+import type { RuleResult } from './rules/types';
+
+const storedRule: RuleResult = {
+  ruleId: 'pattern-test',
+  ruleName: '測試規則',
+  matched: true,
+  evidence: [],
+  confidence: 0.9,
+};
 
 const firstChart: StoredChart = {
   id: 'chart-1',
@@ -40,7 +49,7 @@ const firstReading: StoredReading = {
   id: 'reading-1',
   chartId: 'chart-1',
   reading: 'First reading',
-  rules: [{ id: 'rule-1' }],
+  rules: [storedRule],
   createdAt: '2026-08-07T10:00:00.000Z',
 };
 
@@ -92,6 +101,25 @@ describe('reading storage', () => {
     await saveReading(updated);
 
     expect(await listReadings()).toEqual([updated]);
+  });
+
+  it('normalizes legacy reading rules at the storage boundary', async () => {
+    const legacyReading = {
+      ...firstReading,
+      id: 'legacy-reading',
+      rules: [storedRule, { id: 'legacy-rule-only' }],
+    } as unknown as StoredReading;
+
+    await saveReading(legacyReading);
+
+    expect(await getReading('legacy-reading')).toEqual({
+      ...legacyReading,
+      rules: [storedRule],
+    });
+    expect(await listReadings()).toEqual([{
+      ...legacyReading,
+      rules: [storedRule],
+    }]);
   });
 
   it('lists readings by newest creation time and optionally filters by chart', async () => {

@@ -8,6 +8,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   SYSTEM_PROMPT_ZH_CN,
 } from './prompts';
+import type { RuleResult } from './rules/types';
 
 describe('prompts.ts - Astrolabe Prompt Generator', () => {
   it('should correctly format astrolabe summary into markdown string', () => {
@@ -83,8 +84,69 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale });
 
     expect(systemPrompt).toContain(citationHeader);
-    expect(systemPrompt).toMatch(/- \[palace-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.name \(high\)/);
-    expect(systemPrompt).toMatch(/- \[star-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.majorStars\[\d+\] \(high\)/);
+    expect(systemPrompt).toMatch(/- \[palace-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.name \(0\.5\)/);
+    expect(systemPrompt).toMatch(/- \[star-[^\]]+\] iztro-sanhe-v1 — palaces\[\d+\]\.majorStars\[\d+\] \((?:0\.5|1)\)/);
+  });
+
+  it('adds only matched rules with evidence highlights and confidence to the system prompt', () => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const rules: RuleResult[] = [
+      {
+        ruleId: 'pattern-test-matched',
+        ruleName: '測試命宮規則',
+        matched: true,
+        evidence: [{
+          knowledgeId: 'star-ziwei',
+          field: 'palaces[0].majorStars[0]',
+          source: 'iztro-sanhe-v1',
+          value: '紫微坐命',
+          reasoning: '命宮資料符合測試條件',
+        }],
+        confidence: 0.91,
+      },
+      {
+        ruleId: 'pattern-test-unmatched',
+        ruleName: '不應出現規則',
+        matched: false,
+        evidence: [{
+          knowledgeId: 'star-tianji',
+          field: 'palaces[1].majorStars[0]',
+          source: 'iztro-sanhe-v1',
+          value: '天機',
+          reasoning: '這條證據不應被送入 prompt',
+        }],
+        confidence: 0.99,
+      },
+    ];
+
+    const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', rules });
+
+    expect(systemPrompt).toContain('【已匹配規則】');
+    expect(systemPrompt).toContain('測試命宮規則');
+    expect(systemPrompt).toContain('紫微坐命');
+    expect(systemPrompt).toContain('命宮資料符合測試條件');
+    expect(systemPrompt).toContain('0.91');
+    expect(systemPrompt).not.toContain('不應出現規則');
+    expect(systemPrompt).toContain('規則外的主張必須標示為不確定');
+  });
+
+  it('localizes matched-rule grounding instructions for zh-CN', () => {
+    const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male' });
+    const { systemPrompt } = buildReadingPrompt(chart, {
+      type: 'overall',
+      locale: 'zh-CN',
+      rules: [{
+        ruleId: 'pattern-test-cn',
+        ruleName: '测试规则',
+        matched: true,
+        evidence: [],
+        confidence: 0.8,
+      }],
+    });
+
+    expect(systemPrompt).toContain('【已匹配规则】');
+    expect(systemPrompt).toContain('规则外的主张必须标记为不确定');
+    expect(systemPrompt).toContain('测试规则');
   });
 
   it('includes citations in the deterministic golden system prompt', () => {

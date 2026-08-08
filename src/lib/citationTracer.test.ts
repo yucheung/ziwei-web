@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { AnalyzedChart } from './chartAnalyzer';
-import { traceCitations } from './citationTracer';
+import {
+  getKnowledgeSourceConfidence,
+  normalizeKnowledgeSource,
+  traceCitations,
+} from './citationTracer';
+import { getStarKnowledge, type KnowledgeSource } from './starKnowledge';
 
 function makeSummary(overrides: Partial<AnalyzedChart> = {}): AnalyzedChart {
   return {
@@ -35,20 +40,24 @@ describe('citationTracer', () => {
       {
         knowledgeId: 'palace-ming',
         field: 'palaces[0].name',
-        source: 'iztro-sanhe-v1',
-        confidence: 'high',
+        source: {
+          library: 'iztro-sanhe-v1',
+          reviewedBy: null,
+          status: 'collected',
+        },
+        confidence: 0.5,
       },
       {
         knowledgeId: 'star-ziwei',
         field: 'palaces[0].majorStars[0]',
-        source: 'iztro-sanhe-v1',
-        confidence: 'high',
+        source: getStarKnowledge('紫微')!.source,
+        confidence: getKnowledgeSourceConfidence(getStarKnowledge('紫微')!.source),
       },
       {
         knowledgeId: 'star-taiyang',
         field: 'mutagens.entries[0]',
-        source: 'iztro-sanhe-v1',
-        confidence: 'high',
+        source: getStarKnowledge('太陽')!.source,
+        confidence: getKnowledgeSourceConfidence(getStarKnowledge('太陽')!.source),
       },
     ]);
   });
@@ -76,5 +85,39 @@ describe('citationTracer', () => {
         })
       )
     ).toEqual([]);
+  });
+
+  it('normalizes legacy and unknown sources conservatively', () => {
+    const legacy = normalizeKnowledgeSource('legacy-library');
+    const unknown = normalizeKnowledgeSource(undefined);
+
+    expect(legacy).toEqual({
+      library: 'legacy-library',
+      reviewedBy: null,
+      status: 'collected',
+    });
+    expect(getKnowledgeSourceConfidence(legacy)).toBeLessThanOrEqual(0.5);
+    expect(unknown).toEqual({
+      library: 'unknown',
+      reviewedBy: null,
+      status: 'disputed',
+    });
+    expect(getKnowledgeSourceConfidence(unknown)).toBeLessThanOrEqual(0.25);
+  });
+
+  it.each([
+    ['collected', null, 0.5],
+    ['source_checked', 'opus', 0.7],
+    ['source_checked', null, 0.5],
+    ['cross_supported', 'opus', 0.85],
+    ['human_approved', 'human', 1],
+    ['human_approved', null, 0.5],
+    ['disputed', 'human', 0.25],
+  ] as Array<[KnowledgeSource['status'], KnowledgeSource['reviewedBy'], number]>)('assigns exact confidence for %s sources reviewed by %s', (status, reviewedBy, expected) => {
+    expect(getKnowledgeSourceConfidence({
+      library: 'test-library',
+      status,
+      reviewedBy,
+    })).toBe(expected);
   });
 });

@@ -1,5 +1,5 @@
 import type { AnalyzedChart } from './chartAnalyzer';
-import { traceCitations, type Citation } from './citationTracer';
+import { formatKnowledgeSource, traceCitations, type Citation } from './citationTracer';
 import {
   getSensitivityBoundary,
   HEALTH_BOUNDARY,
@@ -162,7 +162,7 @@ function chartForPrompt(chart: AnalyzedChart): Omit<AnalyzedChart, 'generatedAt'
 function formatCitations(citations: Citation[]): string {
   if (citations.length === 0) return '（目前沒有可追溯的知識來源。）';
   return citations
-    .map((citation) => `- [${citation.knowledgeId}] ${citation.source} — ${citation.field} (${citation.confidence})`)
+    .map((citation) => `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source)} — ${citation.field} (${citation.confidence})`)
     .join('\n');
 }
 

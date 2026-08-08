@@ -4,12 +4,21 @@ import { I18nProvider } from '../i18n';
 import type { StoredReading } from '../lib/storage';
 import { clearAll, listReadings, saveReading } from '../lib/storage';
 import { HistoryPanel } from './HistoryPanel';
+import type { RuleResult } from '../lib/rules/types';
+
+const storedRule = (ruleId: string): RuleResult => ({
+  ruleId,
+  ruleName: ruleId,
+  matched: true,
+  evidence: [],
+  confidence: 0.9,
+});
 
 const firstReading: StoredReading = {
   id: 'reading-1',
   chartId: 'chart-100',
   reading: '第一筆歷史解讀內容：這是一段紫微斗數命盤詳細解讀測試內容。',
-  rules: [{ id: 'rule-1' }, { id: 'rule-2' }],
+  rules: [storedRule('rule-1'), storedRule('rule-2')],
   createdAt: '2026-08-07T10:00:00.000Z',
 };
 
@@ -17,7 +26,7 @@ const secondReading: StoredReading = {
   id: 'reading-2',
   chartId: 'chart-100',
   reading: '第二筆歷史解讀內容：這是另一段紫微斗數命盤詳細解讀測試內容。',
-  rules: [{ id: 'rule-3' }],
+  rules: [storedRule('rule-3')],
   createdAt: '2026-08-07T12:00:00.000Z',
 };
 

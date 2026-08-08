@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, BookOpen, RefreshCw, ShieldAlert, Sparkles, Square } from 'lucide-react';
 import { useTranslation, type TranslationKey } from '../i18n';
-import { traceCitations } from '../lib/citationTracer';
+import { formatKnowledgeSource, traceCitations } from '../lib/citationTracer';
 import {
   callLLMStream,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
@@ -217,7 +217,7 @@ export function SpecialTopicPanel({ chart, rules }: SpecialTopicPanelProps) {
           <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
             {citations.map((citation) => (
               <li key={`${citation.knowledgeId}-${citation.field}`}>
-                [{citation.knowledgeId}] {citation.source} — {citation.field} ({citation.confidence})
+                [{citation.knowledgeId}] {formatKnowledgeSource(citation.source)} — {citation.field} ({citation.confidence})
               </li>
             ))}
           </ul>

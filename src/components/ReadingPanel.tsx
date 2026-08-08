@@ -38,11 +38,13 @@ import { canonicalizeAstrolabeForReading, type AppLocale, type IFunctionalAstrol
 import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
 import { saveReading, type StoredReading } from '../lib/storage';
+import type { RuleResult } from '../lib/rules/types';
 import { HistoryPanel } from './HistoryPanel';
 
 export interface ReadingPanelProps {
   chart: IFunctionalAstrolabe | null;
   chartId?: string;
+  rules?: RuleResult[];
   onSelectReading?: (reading: StoredReading) => void;
 }
 
@@ -108,7 +110,7 @@ function saveLastRequestMeta(meta: LastRequestMeta): void {
   }
 }
 
-export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, onSelectReading }) => {
+export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, rules, onSelectReading }) => {
   const { t, locale } = useTranslation();
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
   const [readingType, setReadingType] = useState<ReadingType>('overall');
@@ -208,7 +210,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, onSe
               id: globalThis.crypto.randomUUID(),
               chartId,
               reading: latestFullText,
-              rules: [],
+              rules: rules ?? [],
               createdAt: new Date().toISOString(),
             }).then(() => setHistoryKey((k) => k + 1));
           }
@@ -248,6 +250,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, onSe
       customInstructions,
       focusPalace: focusPalace || undefined,
       locale: appLocale,
+      rules,
     });
 
     setDebugPrompt({ systemPrompt, userPrompt });

@@ -102,6 +102,13 @@ describe('SpecialTopicPanel', () => {
     expect(screen.getByRole('radio', { name: '学业' })).toBeInTheDocument();
   });
 
+  it('renders structured citation sources by library name', () => {
+    renderPanel();
+
+    expect(screen.getAllByText(/iztro-sanhe-v1/u).length).toBeGreaterThan(0);
+    expect(screen.queryByText('[object Object]')).not.toBeInTheDocument();
+  });
+
   it('streams the selected topic reading and sends only its rule subset', async () => {
     let sentMessages: llmModule.ChatMessage[] | undefined;
     vi.mocked(llmModule.callLLMStream).mockImplementation(async (messages, _config, callbacks) => {

@@ -19,8 +19,9 @@
  * 使用者收到的是簡體輸出，而非被寫死的繁體系統提示詞覆蓋。
  */
 import { analyzeChart, type AnalyzedStar } from './chartAnalyzer';
-import { traceCitations } from './citationTracer';
+import { formatKnowledgeSource, traceCitations } from './citationTracer';
 import type { ReadingAstrolabeLike } from './chartModel';
+import type { RuleResult } from './rules/types';
 import type { Locale } from '../i18n/locale';
 
 export type { StructuredSummary } from './chartAnalyzer';
@@ -39,6 +40,8 @@ export interface PromptOptions {
   focusPalace?: string;
   /** 解讀輸出語言，預設 'zh-TW'（向後相容既有呼叫端） */
   locale?: Locale;
+  /** 已由 deterministic rule engine 命中的規則；只會把 matched 項目送入 system prompt。 */
+  rules?: RuleResult[];
 }
 
 /**
@@ -181,6 +184,65 @@ const STRUCTURED_SUMMARY_LABELS: Record<Locale, string> = {
   'zh-CN': '【结构化命盘摘要 JSON】',
 };
 
+interface RuleGroundingLabels {
+  header: string;
+  instruction: string;
+  ruleName: string;
+  evidence: string;
+  confidence: string;
+  noEvidence: string;
+  noMatchedRules: string;
+}
+
+const RULE_GROUNDING_LABELS: Record<Locale, RuleGroundingLabels> = {
+  'zh-TW': {
+    header: '【已匹配規則】',
+    instruction: '只有以下已匹配規則可作為確定結論的依據；規則外的主張必須標示為不確定，不得擴張或捏造規則。',
+    ruleName: '規則名稱',
+    evidence: 'evidence 重點',
+    confidence: 'confidence',
+    noEvidence: '無可列出的 evidence 重點',
+    noMatchedRules: '目前沒有已匹配規則；所有規則性結論都必須標示為不確定。',
+  },
+  'zh-CN': {
+    header: '【已匹配规则】',
+    instruction: '只有以下已匹配规则可以作为确定结论的依据；规则外的主张必须标记为不确定，不得扩张或捏造规则。',
+    ruleName: '规则名称',
+    evidence: 'evidence 重点',
+    confidence: 'confidence',
+    noEvidence: '没有可列出的 evidence 重点',
+    noMatchedRules: '目前没有已匹配规则；所有规则性结论都必须标记为不确定。',
+  },
+};
+
+function serializeMatchedRules(rules: RuleResult[], locale: Locale): string {
+  const labels = RULE_GROUNDING_LABELS[locale];
+  const matchedRules = rules.filter((rule) => rule.matched);
+  const lines = [`\n\n${labels.header}`, labels.instruction];
+
+  if (matchedRules.length === 0) {
+    lines.push(labels.noMatchedRules);
+    return lines.join('\n');
+  }
+
+  for (const rule of matchedRules) {
+    const evidenceHighlights = rule.evidence
+      .map((evidence) => [
+        evidence.field,
+        evidence.value,
+        evidence.reasoning,
+      ].filter(Boolean).join('：'))
+      .filter(Boolean)
+      .join('；');
+
+    lines.push(`- ${labels.ruleName}：${rule.ruleName}`);
+    lines.push(`  ${labels.evidence}：${evidenceHighlights || labels.noEvidence}`);
+    lines.push(`  ${labels.confidence}：${rule.confidence}`);
+  }
+
+  return lines.join('\n');
+}
+
 function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale): string {
   const { generatedAt: _, ...summary } = analyzeChart(chart, locale);
   const citations = traceCitations(summary);
@@ -191,7 +253,7 @@ function serializeStructuredSummary(chart: AstrolabeSummaryLike, locale: Locale)
     const citationHeader = locale === 'zh-CN' ? '## 知识来源' : '## 知識來源';
     output += `\n\n${citationHeader}\n`;
     for (const citation of citations) {
-      output += `- [${citation.knowledgeId}] ${citation.source} — ${citation.field} (${citation.confidence})\n`;
+      output += `- [${citation.knowledgeId}] ${formatKnowledgeSource(citation.source)} — ${citation.field} (${citation.confidence})\n`;
     }
   }
 
@@ -405,6 +467,10 @@ export function buildReadingPrompt(chart: AstrolabeSummaryLike | null, options: 
   let systemPrompt = getSystemPrompt(locale);
   if (chart) {
     systemPrompt += serializeStructuredSummary(chart, locale);
+  }
+
+  if (options.rules) {
+    systemPrompt += serializeMatchedRules(options.rules, locale);
   }
 
   if (options.customInstructions && options.customInstructions.trim()) {

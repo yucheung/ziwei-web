@@ -1,6 +1,7 @@
 import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
 import type { ChartConfig } from './chartConfig';
+import type { RuleResult } from './rules/types';
 
 export interface StoredChart {
   id: string;
@@ -13,7 +14,7 @@ export interface StoredReading {
   id: string;
   chartId: string;
   reading: string;
-  rules: unknown[];
+  rules: RuleResult[];
   createdAt: string;
 }
 
@@ -41,6 +42,41 @@ function clone<T>(value: T): T {
   }
 
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isEvidence(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+
+  return typeof value.knowledgeId === 'string'
+    && typeof value.field === 'string'
+    && typeof value.source === 'string'
+    && typeof value.value === 'string'
+    && typeof value.reasoning === 'string';
+}
+
+function isRuleResult(value: unknown): value is RuleResult {
+  if (!isRecord(value)) return false;
+
+  return typeof value.ruleId === 'string'
+    && typeof value.ruleName === 'string'
+    && typeof value.matched === 'boolean'
+    && Array.isArray(value.evidence)
+    && value.evidence.every(isEvidence)
+    && typeof value.confidence === 'number'
+    && Number.isFinite(value.confidence);
+}
+
+function normalizeStoredReading(reading: StoredReading): StoredReading {
+  const rawReading = reading as unknown as Record<string, unknown>;
+  const rules = Array.isArray(rawReading.rules)
+    ? rawReading.rules.filter(isRuleResult).map((rule) => clone(rule))
+    : [];
+
+  return { ...reading, rules };
 }
 
 function sortNewestFirst<T extends { createdAt: string; id: string }>(records: T[]): T[] {
@@ -106,7 +142,7 @@ export async function deleteChart(id: string): Promise<void> {
 
 export async function saveReading(reading: StoredReading): Promise<StoredReading> {
   const database = await getDatabase();
-  const storedReading = clone(reading);
+  const storedReading = normalizeStoredReading(clone(reading));
 
   if (database) {
     await database.put('readings', storedReading);
@@ -120,15 +156,18 @@ export async function saveReading(reading: StoredReading): Promise<StoredReading
 export async function getReading(id: string): Promise<StoredReading | undefined> {
   const database = await getDatabase();
   const reading = database ? await database.get('readings', id) : memoryReadings.get(id);
-  return reading === undefined ? undefined : clone(reading);
+  return reading === undefined ? undefined : normalizeStoredReading(clone(reading));
 }
 
 export async function listReadings(chartId?: string): Promise<StoredReading[]> {
   const database = await getDatabase();
   const readings = database ? await database.getAll('readings') : [...memoryReadings.values()];
-  const matchingReadings = chartId === undefined ? readings : readings.filter((reading) => reading.chartId === chartId);
+  const normalizedReadings = readings.map((reading) => normalizeStoredReading(clone(reading)));
+  const matchingReadings = chartId === undefined
+    ? normalizedReadings
+    : normalizedReadings.filter((reading) => reading.chartId === chartId);
 
-  return sortNewestFirst(matchingReadings.map(clone));
+  return sortNewestFirst(matchingReadings);
 }
 
 export async function deleteReading(id: string): Promise<void> {

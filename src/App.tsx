@@ -478,6 +478,7 @@ export default function App() {
                     <div id="tabpanel-reading" role="tabpanel" aria-labelledby="tab-reading" tabIndex={0} className="focus:outline-none">
                       <ReadingPanel
                         chart={astrolabe}
+                        rules={ruleResults}
                         chartId={
                           activeBirthData
                             ? `${activeBirthData.calendarType}-${activeBirthData.solarDate || activeBirthData.lunarDate}-${activeBirthData.hour}-${activeBirthData.gender}`

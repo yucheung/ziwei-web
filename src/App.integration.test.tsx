@@ -108,6 +108,30 @@ describe('App Integration Test Suite', () => {
     expect(await screen.findByRole('tab', { name: /十二宮星盤總覽/i })).toBeInTheDocument();
   });
 
+  it('sends App-evaluated matched rules into the main reading system prompt', async () => {
+    let sentMessages: llmModule.ChatMessage[] | undefined;
+    vi.mocked(llmModule.callLLMStream).mockImplementation(async (messages, _config, callbacks) => {
+      sentMessages = messages;
+      const result = { status: 'completed' as const, text: '規則約束下的解讀' };
+      callbacks.onFinish?.(result);
+      return result;
+    });
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+    fireEvent.click(await screen.findByRole('tab', { name: /AI 智能命盤解讀/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+    await waitFor(() => expect(sentMessages).toBeDefined());
+
+    const systemPrompt = sentMessages?.find((message) => message.role === 'system')?.content ?? '';
+    expect(systemPrompt).toContain('【已匹配規則】');
+    expect(systemPrompt).toMatch(/規則名稱：.+/u);
+    expect(systemPrompt).toMatch(/evidence 重點：.+/u);
+    expect(systemPrompt).toMatch(/confidence：0\.\d+/u);
+    expect(systemPrompt).toContain('規則外的主張必須標示為不確定');
+  });
+
   it('switches view mode between 個人命盤 and 雙人合盤', async () => {
     renderApp();
 

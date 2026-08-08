@@ -4,6 +4,23 @@ export type FiveElement = '木' | '火' | '土' | '金' | '水';
 
 export type StarCategory = '紫微系' | '天府系' | '六吉星' | '六煞星';
 
+export type KnowledgeSourceStatus =
+  | 'collected'
+  | 'source_checked'
+  | 'cross_supported'
+  | 'human_approved'
+  | 'disputed';
+
+export interface KnowledgeSource {
+  library: string;
+  reference?: string;
+  excerpt?: string;
+  page?: string;
+  reviewedBy: 'human' | 'opus' | null;
+  reviewedAt?: string;
+  status: KnowledgeSourceStatus;
+}
+
 export interface StarKnowledgeAttributes {
   element: FiveElement;
   brightnessRange: string[];
@@ -14,11 +31,29 @@ export interface StarKnowledgeEntry {
   starName: string;
   starType: StarType;
   knowledgeId: string;
-  source: 'iztro-sanhe-v1';
+  source: KnowledgeSource;
   school: 'sanhe';
   ruleSetVersion: 'sanhe-v1';
   attributes: StarKnowledgeAttributes;
 }
+
+function collectedSource(): KnowledgeSource {
+  return {
+    library: 'iztro-sanhe-v1',
+    reviewedBy: null,
+    status: 'collected',
+  };
+}
+
+const HUMAN_APPROVED_ZIWEI_SOURCE: KnowledgeSource = {
+  library: 'iztro-sanhe-v1',
+  reference: 'https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%80#%E8%AF%B8%E6%98%9F%E5%95%8F%E7%AD%94%E8%AB%96',
+  excerpt: '問紫微所主若何？答曰：紫微屬土，乃中天之尊星為帝座，主掌造化樞機，人生主宰。',
+  page: '卷一·諸星問答論',
+  reviewedBy: 'human',
+  reviewedAt: '2026-08-08',
+  status: 'human_approved',
+};
 
 function createStarKnowledge(
   starName: string,
@@ -26,13 +61,14 @@ function createStarKnowledge(
   starType: StarType,
   element: FiveElement,
   brightnessRange: string[],
-  category: StarCategory
+  category: StarCategory,
+  source: KnowledgeSource = collectedSource(),
 ): StarKnowledgeEntry {
   return {
     starName,
     starType,
     knowledgeId: `star-${knowledgeKey}`,
-    source: 'iztro-sanhe-v1',
+    source,
     school: 'sanhe',
     ruleSetVersion: 'sanhe-v1',
     attributes: { element, brightnessRange, category },
@@ -40,7 +76,7 @@ function createStarKnowledge(
 }
 
 const STAR_KNOWLEDGE: StarKnowledgeEntry[] = [
-  createStarKnowledge('紫微', 'ziwei', 'major', '土', ['廟', '旺', '得', '平'], '紫微系'),
+  createStarKnowledge('紫微', 'ziwei', 'major', '土', ['廟', '旺', '得', '平'], '紫微系', HUMAN_APPROVED_ZIWEI_SOURCE),
   createStarKnowledge('天機', 'tianji', 'major', '木', ['廟', '旺', '得', '利', '平', '陷'], '紫微系'),
   createStarKnowledge('太陽', 'taiyang', 'major', '火', ['廟', '旺', '得', '不', '陷'], '紫微系'),
   createStarKnowledge('武曲', 'wuqu', 'major', '金', ['廟', '旺', '得', '利', '平'], '紫微系'),
