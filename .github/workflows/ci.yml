@@ -16,5 +16,5 @@ jobs:
       - run: npm ci
       - run: npm run knowledge:validate
       - run: npm run build
-      - run: npm run lint
+      - run: npm run lint -- --max-warnings 0
       - run: npm run test
