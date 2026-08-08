@@ -152,6 +152,28 @@ describe('SpecialTopicPanel', () => {
     expect(systemPrompt).toContain('此內容僅提供財務傾向與規劃參考');
   });
 
+  it('displays the current model label and uses inherited llmConfig prop', () => {
+    const customConfig: llmModule.LLMConfig = {
+      provider: 'openai',
+      baseUrl: 'https://api.openai.com/v1',
+      apiKey: 'custom-key',
+      model: 'gpt-4o-custom',
+      temperature: 0.5,
+    };
+
+    render(
+      <I18nProvider defaultLocale="zh-TW">
+        <SpecialTopicPanel
+          chart={makeChart()}
+          rules={[]}
+          llmConfig={customConfig}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByText(/目前模型：OpenAI \/ gpt-4o-custom/i)).toBeInTheDocument();
+  });
+
   it('keeps all new labels available in both locale dictionaries', () => {
     const keys = [
       'specialTopic.title',
@@ -173,6 +195,8 @@ describe('SpecialTopicPanel', () => {
       'specialTopic.sources',
       'specialTopic.noSources',
       'specialTopic.sensitivityNotice',
+      'specialTopic.currentModel',
+      'specialTopic.notSet',
     ] as const;
 
     for (const key of keys) {

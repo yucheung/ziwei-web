@@ -39,13 +39,18 @@ import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
 import { saveReading, type StoredReading } from '../lib/storage';
 import type { RuleResult } from '../lib/rules/types';
+import type { ChartConfig } from '../lib/chartConfig';
 import { HistoryPanel } from './HistoryPanel';
 
 export interface ReadingPanelProps {
   chart: IFunctionalAstrolabe | null;
   chartId?: string;
+  legacyChartId?: string;
   rules?: RuleResult[];
+  chartConfig?: ChartConfig | null;
   onSelectReading?: (reading: StoredReading) => void;
+  llmConfig?: LLMConfig;
+  onLLMConfigChange?: (newConfig: LLMConfig) => void;
 }
 
 const READING_TYPES: Array<{ id: ReadingType; labelKey: TranslationKey }> = [
@@ -110,9 +115,19 @@ function saveLastRequestMeta(meta: LastRequestMeta): void {
   }
 }
 
-export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, rules, onSelectReading }) => {
+export const ReadingPanel: React.FC<ReadingPanelProps> = ({
+  chart,
+  chartId,
+  legacyChartId,
+  rules,
+  chartConfig,
+  onSelectReading,
+  llmConfig: propLlmConfig,
+  onLLMConfigChange,
+}) => {
   const { t, locale } = useTranslation();
-  const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
+  const [internalLlmConfig, setInternalLlmConfig] = useState<LLMConfig>(loadLLMConfig);
+  const llmConfig = propLlmConfig ?? internalLlmConfig;
   const [readingType, setReadingType] = useState<ReadingType>('overall');
   const [customInstructions, setCustomInstructions] = useState('');
   const [focusPalace, setFocusPalace] = useState('');
@@ -148,7 +163,10 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, rule
   // Sync config when modal closes
   const handleSaveConfig = (newConfig: LLMConfig) => {
     saveLLMConfig(newConfig);
-    setLlmConfig(newConfig);
+    setInternalLlmConfig(newConfig);
+    if (onLLMConfigChange) {
+      onLLMConfigChange(newConfig);
+    }
     setIsConfigOpen(false);
     setErrorMsg(null);
   };
@@ -211,6 +229,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, rule
               chartId,
               reading: latestFullText,
               rules: rules ?? [],
+              ...(chartConfig === undefined ? {} : { chartConfig }),
               createdAt: new Date().toISOString(),
             }).then(() => setHistoryKey((k) => k + 1));
           }
@@ -583,7 +602,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({ chart, chartId, rule
 
       {chartId && (
         <div className="mt-2 no-print">
-          <HistoryPanel key={historyKey} chartId={chartId} onSelectReading={handleSelectHistoryReading} />
+          <HistoryPanel
+            key={historyKey}
+            chartId={chartId}
+            legacyChartId={legacyChartId}
+            onSelectReading={handleSelectHistoryReading}
+          />
         </div>
       )}
 

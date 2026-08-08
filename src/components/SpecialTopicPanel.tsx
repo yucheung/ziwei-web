@@ -6,6 +6,8 @@ import {
   callLLMStream,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
   loadLLMConfig,
+  PROVIDER_PRESETS,
+  type LLMConfig,
   type StreamFinishStatus,
 } from '../lib/llm';
 import { renderMarkdown } from '../lib/markdown';
@@ -16,6 +18,7 @@ import type { RuleResult } from '../lib/rules/types';
 export interface SpecialTopicPanelProps {
   chart: AnalyzedChart;
   rules: RuleResult[];
+  llmConfig?: LLMConfig;
 }
 
 const TOPIC_OPTIONS: Array<{ id: TopicType; labelKey: TranslationKey }> = [
@@ -26,16 +29,20 @@ const TOPIC_OPTIONS: Array<{ id: TopicType; labelKey: TranslationKey }> = [
   { id: 'education', labelKey: 'specialTopic.education' },
 ];
 
-export function SpecialTopicPanel({ chart, rules }: SpecialTopicPanelProps) {
+export function SpecialTopicPanel({ chart, rules, llmConfig: propLlmConfig }: SpecialTopicPanelProps) {
   const { t, locale } = useTranslation();
   const [topic, setTopic] = useState<TopicType>('career');
-  const [llmConfig] = useState(loadLLMConfig);
+  const [defaultLlmConfig] = useState(loadLLMConfig);
+  const llmConfig = propLlmConfig ?? defaultLlmConfig;
   const [readingText, setReadingText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [finishStatus, setFinishStatus] = useState<StreamFinishStatus | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
+
+  const currentProviderName =
+    PROVIDER_PRESETS.find((p) => p.id === llmConfig.provider)?.name || llmConfig.provider;
 
   const promptPlan = useMemo(() => buildSpecialTopicPrompt(chart, topic, rules), [chart, topic, rules]);
   const citations = useMemo(() => traceCitations(chart), [chart]);
@@ -121,7 +128,12 @@ export function SpecialTopicPanel({ chart, rules }: SpecialTopicPanelProps) {
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{t('specialTopic.title')}</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400">{t('specialTopic.subtitle')}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {t('specialTopic.subtitle')}
+              <span className="ml-2 font-mono font-medium text-amber-600 dark:text-amber-400">
+                ({t('specialTopic.currentModel')}：{currentProviderName} / {llmConfig.model || t('specialTopic.notSet')})
+              </span>
+            </p>
           </div>
         </div>
       </div>

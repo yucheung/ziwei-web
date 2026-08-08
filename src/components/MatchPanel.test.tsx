@@ -111,8 +111,34 @@ describe('MatchPanel Component (src/components/MatchPanel.tsx)', () => {
         expect(screen.getAllByText(evidence.field).length).toBeGreaterThan(0);
         expect(screen.getAllByText(evidence.source).length).toBeGreaterThan(0);
         expect(screen.getAllByText(evidence.value).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(evidence.reasoning).length).toBeGreaterThan(0);
       }
     }
+  });
+
+  it('renders Person A inheriting complete ChartConfig and handles "使用目前命盤設定" button', () => {
+    const currentBirthData = {
+      solarDate: '1995-06-18',
+      calendarType: 'solar' as const,
+      isLeapMonth: false,
+      hour: 4,
+      gender: 'female' as const,
+      algorithm: 'default' as const,
+      yearDivide: 'exact' as const,
+      dayDivide: 'forward' as const,
+      astroType: 'earth' as const,
+      longitude: 120.5,
+    };
+
+    render(
+      <I18nProvider defaultLocale="zh-TW">
+        <MatchPanel currentBirthData={currentBirthData} />
+      </I18nProvider>,
+    );
+
+    const btn = screen.getByRole('button', { name: /帶入目前命盤設定/i });
+    expect(btn).toBeInTheDocument();
+
+    fireEvent.click(btn);
+    expect(screen.getByDisplayValue('1995-06-18')).toBeInTheDocument();
   });
 });

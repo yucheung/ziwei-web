@@ -1,7 +1,8 @@
 import html2canvas from 'html2canvas';
 import { translate } from '../i18n';
 import type { Locale, TranslationKey } from '../i18n';
-import { translateKey, type AppLocale } from './chartModel';
+import { toCanonicalKey, translateKey, type AppLocale, type TranslationCategory } from './chartModel';
+import type { CalendarType } from './chartConfig';
 import type { GetChartOptions } from './astro';
 
 /**
@@ -36,6 +37,14 @@ export interface ExportPalaceInfo {
 export interface ExportAstrolabe {
   solarDate?: string;
   lunarDate?: string;
+  /** Frozen chart inputs added by the App export boundary; raw iztro objects may omit them. */
+  calendarType?: CalendarType;
+  isLeapMonth?: boolean;
+  astroType?: string;
+  algorithm?: string;
+  yearDivide?: string;
+  dayDivide?: string;
+  longitude?: number;
   chineseDate?: string;
   time?: string;
   timeRange?: string;
@@ -215,50 +224,79 @@ export interface ChartJsonHoroscope {
   temporal?: Record<string, unknown>;
 }
 
+export interface ExportChartInput {
+  timeIndex?: GetChartOptions['timeIndex'];
+  isLunar?: boolean;
+  longitude?: number;
+  solarDate?: string;
+  lunarDate?: string;
+  calendarType?: CalendarType;
+  isLeapMonth?: boolean;
+  astroType?: string;
+  algorithm?: string;
+  yearDivide?: string;
+  dayDivide?: string;
+}
+
 export interface GenerateChartJsonOptions {
   locale?: AppLocale;
   settings?: ChartJsonSettings;
   /** 運限資料 (若呼叫端已計算，供 JSON 匯出保留；未提供則匯出時省略此鍵) */
   horoscope?: ChartJsonHoroscope;
   /**
-   * 呼叫端排盤時使用的原始 GetChartOptions，用於填充 `input` 欄位。
-   * iztro 產出的 astrolabe 物件本身不含 timeIndex/longitude，這兩個欄位只能
-   * 由呼叫端顯式帶入，否則 `input` 會靜默缺失決定性資訊。
-   *
-   * 不含 `date` / `gender`：`result.input` 的 solarDate 與 gender 一律直接取自
-   * astrolabe (見下方 generateChartJson)，因為那才是排盤實際採用、且已正規化
-   * 的權威值——呼叫端的 `date` 在 isLunar=true 時是農曆日期字串，直接當
-   * solarDate 顯示會誤導；`gender` 也已由 astrolabe 正規化為顯示字串。
+   * 呼叫端排盤時使用的原始輸入，用於補足 iztro astrolabe 不會保留的
+   * timeIndex、longitude 與流派設定；兩種日期也可由呼叫端提供原始值。
+   * `gender` 仍取自 astrolabe，因為它是排盤實際採用且已正規化的值。
    */
-  input?: Pick<GetChartOptions, 'timeIndex' | 'isLunar' | 'longitude'>;
+  input?: ExportChartInput;
 }
 
-function starToJson(s: ExportStarInfo, appLocale: AppLocale): Record<string, unknown> {
-  const out: Record<string, unknown> = { name: translateKey(s.name, 'star', appLocale) };
+function canonicalizeExportKey(value: string, category: TranslationCategory, sourceLocale: AppLocale): string {
+  const canonical = toCanonicalKey(value, category, sourceLocale);
+  if (canonical !== value) return canonical;
+
+  // Be defensive when callers pass an astrolabe whose language differs from
+  // the locale argument; this keeps the export canonical at this boundary.
+  const alternateLocale: AppLocale = sourceLocale === 'zh-CN' ? 'zh-TW' : 'zh-CN';
+  return toCanonicalKey(value, category, alternateLocale);
+}
+
+function canonicalizeExportValue(value: string, category: TranslationCategory, sourceLocale: AppLocale): string {
+  return translateKey(canonicalizeExportKey(value, category, sourceLocale), category, 'zh-TW');
+}
+
+function starToJson(s: ExportStarInfo, sourceLocale: AppLocale): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    name: canonicalizeExportValue(s.name, 'star', sourceLocale),
+  };
   if (s.type !== undefined) out.type = s.type;
-  if (s.brightness !== undefined) out.brightness = translateKey(s.brightness, 'brightness', appLocale);
-  if (s.mutagen !== undefined) out.mutagen = translateKey(s.mutagen, 'mutagen', appLocale);
+  if (s.brightness !== undefined) {
+    out.brightness = canonicalizeExportValue(s.brightness, 'brightness', sourceLocale);
+  }
+  if (s.mutagen !== undefined) {
+    out.mutagen = canonicalizeExportValue(s.mutagen, 'mutagen', sourceLocale);
+  }
   return out;
 }
 
 export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateChartJsonOptions = {}): string {
-  const appLocale: AppLocale = options.locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
+  const sourceLocale: AppLocale = options.locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   const palaces = Array.isArray(astrolabe.palaces) ? astrolabe.palaces : [];
 
   const chartPalaces = palaces.map((p) => ({
-    name: translateKey(p.name, 'palace', appLocale),
-    heavenlyStem: translateKey(p.heavenlyStem || '', 'stem', appLocale),
-    earthlyBranch: translateKey(p.earthlyBranch || '', 'branch', appLocale),
+    name: canonicalizeExportValue(p.name, 'palace', sourceLocale),
+    heavenlyStem: canonicalizeExportValue(p.heavenlyStem || '', 'stem', sourceLocale),
+    earthlyBranch: canonicalizeExportValue(p.earthlyBranch || '', 'branch', sourceLocale),
     isBodyPalace: !!p.isBodyPalace,
     isOriginalPalace: !!p.isOriginalPalace,
-    majorStars: (p.majorStars || []).map((s) => starToJson(s, appLocale)),
-    minorStars: (p.minorStars || []).map((s) => starToJson(s, appLocale)),
-    adjectiveStars: (p.adjectiveStars || []).map((s) => translateKey(s.name, 'star', appLocale)),
-    changsheng12: translateKey(p.changsheng12 || '', 'star', appLocale),
-    boshi12: translateKey(p.boshi12 || '', 'star', appLocale),
-    suijian12: translateKey(p.suijian12 || '', 'star', appLocale),
-    jiangqian12: translateKey(p.jiangqian12 || '', 'star', appLocale),
+    majorStars: (p.majorStars || []).map((s) => starToJson(s, sourceLocale)),
+    minorStars: (p.minorStars || []).map((s) => starToJson(s, sourceLocale)),
+    adjectiveStars: (p.adjectiveStars || []).map((s) => canonicalizeExportValue(s.name, 'star', sourceLocale)),
+    changsheng12: canonicalizeExportValue(p.changsheng12 || '', 'star', sourceLocale),
+    boshi12: canonicalizeExportValue(p.boshi12 || '', 'star', sourceLocale),
+    suijian12: canonicalizeExportValue(p.suijian12 || '', 'star', sourceLocale),
+    jiangqian12: canonicalizeExportValue(p.jiangqian12 || '', 'star', sourceLocale),
     decadal: {
       range: p.decadal?.range ? [p.decadal.range[0], p.decadal.range[1]] : undefined,
     },
@@ -266,37 +304,48 @@ export function generateChartJson(astrolabe: ExportAstrolabe, options: GenerateC
   }));
 
   const yearPillar = (astrolabe.chineseDate || '').split(' ')[0] || '';
+  const input = options.input;
+  const isLunar = input?.isLunar ?? (astrolabe.calendarType === 'lunar');
 
   const result: Record<string, unknown> = {
     schemaVersion: 'zhChart-v1',
+    locale: 'zh-TW',
   };
 
   if (options.settings) {
     result.settings = options.settings;
   }
 
-  // solarDate/gender：取自 astrolabe (排盤結果的權威值)。
-  // timeIndex/isLunar/longitude：astrolabe 不保留這些原始輸入，只能取自呼叫端。
+  // Both date representations and all chart settings are emitted in a fixed
+  // order. Raw iztro astrolabes do not retain every input, so stable defaults
+  // keep direct callers backward-compatible while App supplies frozen values.
   result.input = {
-    solarDate: astrolabe.solarDate,
-    timeIndex: options.input?.timeIndex,
-    gender: translateKey(astrolabe.gender || '', 'gender', appLocale),
-    isLunar: options.input?.isLunar ?? false,
-    longitude: options.input?.longitude,
-  };
-
-  result.chart = {
-    fiveElementsClass: translateKey(astrolabe.fiveElementsClass || '', 'fiveElementsClass', appLocale),
-    soulStar: translateKey(astrolabe.soul || '', 'star', appLocale),
-    bodyStar: translateKey(astrolabe.body || '', 'star', appLocale),
-    heavenlyStem: translateKey(yearPillar.charAt(0) || '', 'stem', appLocale),
-    earthlyBranch: translateKey(yearPillar.charAt(1) || '', 'branch', appLocale),
-    palaces: chartPalaces,
+    solarDate: input?.solarDate ?? astrolabe.solarDate ?? '',
+    lunarDate: input?.lunarDate ?? astrolabe.lunarDate ?? '',
+    calendarType: astrolabe.calendarType ?? input?.calendarType ?? (isLunar ? 'lunar' : 'solar'),
+    isLeapMonth: astrolabe.isLeapMonth ?? input?.isLeapMonth ?? false,
+    astroType: astrolabe.astroType ?? input?.astroType ?? 'heaven',
+    algorithm: astrolabe.algorithm ?? input?.algorithm ?? 'zhongzhou',
+    yearDivide: astrolabe.yearDivide ?? input?.yearDivide ?? 'normal',
+    dayDivide: astrolabe.dayDivide ?? input?.dayDivide ?? 'forward',
+    timeIndex: input?.timeIndex,
+    gender: canonicalizeExportValue(astrolabe.gender || '', 'gender', sourceLocale),
+    isLunar,
+    longitude: astrolabe.longitude ?? input?.longitude,
   };
 
   if (options.horoscope) {
     result.horoscope = options.horoscope;
   }
+
+  result.chart = {
+    fiveElementsClass: canonicalizeExportValue(astrolabe.fiveElementsClass || '', 'fiveElementsClass', sourceLocale),
+    soulStar: canonicalizeExportValue(astrolabe.soul || '', 'star', sourceLocale),
+    bodyStar: canonicalizeExportValue(astrolabe.body || '', 'star', sourceLocale),
+    heavenlyStem: canonicalizeExportValue(yearPillar.charAt(0) || '', 'stem', sourceLocale),
+    earthlyBranch: canonicalizeExportValue(yearPillar.charAt(1) || '', 'branch', sourceLocale),
+    palaces: chartPalaces,
+  };
 
   result.determinism = true;
 

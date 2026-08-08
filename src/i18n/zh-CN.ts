@@ -37,6 +37,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'form.preciseTime': '精确出生时间',
   'form.solarTimeApplied': '已应用真太阳时校正',
   'form.solarTimeHint': '同时输入经度与精确时间，即可应用真太阳时校正时辰',
+  'form.isLeapMonth': '农历闰月',
 
   // ─── Time Index (shichen) ───
   'time.0': '早子时 (00:00 - 01:00)',
@@ -247,7 +248,9 @@ export const zhCN: Record<TranslationKey, string> = {
   'specialTopic.sources': '知识来源',
   'specialTopic.noSources': '目前没有可追溯的知识来源。',
   'specialTopic.sensitivityNotice': '此专题仅提供趋势与观察方向参考，不构成确定预测、专业诊断或决策依据。',
-  'specialTopic.systemPrompt': '你是一位专业、谨慎且重视证据的紫微斗数解读助手。请根据用户提供的资料与已验证规则回答，使用简体中文；不可把命理内容当成确定预测、医疗诊断或财务保证。',
+  'specialTopic.systemPrompt': '你是一位专业、谨慎且重视证据的紫微斗数解读助手。请根据使用者提供的资料与已验证规则回答，使用简体中文；不可把命理内容当成确定预测、医疗诊断或财务保证。',
+  'specialTopic.currentModel': '当前模型',
+  'specialTopic.notSet': '未设置',
 
   // LLM Config Modal
   'llm.title': 'OpenAI-Compatible LLM 多模型设置',
@@ -289,6 +292,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'match.subtitle': '双盘并排对照 · 十干四化互飞气场 · 情感与性格契合度深度评估',
   'match.preset1': '预设合盘 1',
   'match.preset2': '预设合盘 2',
+  'match.useCurrentChart': '导入当前命盘设置',
   'match.personA': '甲方 (Person A 生辰资料)',
   'match.labelA': '主盘 A',
   'match.personB': '乙方 (Person B 生辰资料)',
@@ -367,6 +371,8 @@ export const zhCN: Record<TranslationKey, string> = {
   'rulesInfo.solarTimeEnabled': '启用 / 经度 {longitude}',
   'rulesInfo.solarTimeDisabled': '未启用',
   'rulesInfo.iztroVersion': 'iztro 版本',
+  'rulesInfo.unsynced': '未同步',
+  'rulesInfo.lastChartParams': '最后排盘参数',
 
   // ─── Palaces ───
   'palace.ming': '命宫',

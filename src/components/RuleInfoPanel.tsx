@@ -10,6 +10,7 @@ export interface RuleInfoPanelProps {
   config: Config;
   solarTimeActive: boolean;
   parsedLongitude?: number;
+  isStale?: boolean;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -21,7 +22,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function RuleInfoPanel({ astroType, config, solarTimeActive, parsedLongitude }: RuleInfoPanelProps) {
+export function RuleInfoPanel({ astroType, config, solarTimeActive, parsedLongitude, isStale }: RuleInfoPanelProps) {
   const { t } = useTranslation();
 
   const yearBoundary = config.yearDivide ?? 'normal';
@@ -35,6 +36,11 @@ export function RuleInfoPanel({ astroType, config, solarTimeActive, parsedLongit
       <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
         <Info className="w-3.5 h-3.5" aria-hidden="true" />
         {t('chart.rulesInfo')}
+        {isStale && (
+          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 font-normal border border-amber-500/30">
+            {t('rulesInfo.unsynced')}
+          </span>
+        )}
       </h3>
       <dl>
         <Row

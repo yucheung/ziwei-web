@@ -6,55 +6,120 @@ import { evaluateMatch, type MatchRuleResult } from '../lib/matchRules';
 import { applySensitivityBoundaries } from '../lib/matchRules/sensitivity';
 import { useTranslation } from '../i18n';
 
+import type { ChartConfig } from '../lib/chartConfig';
+import type { GetChartOptions } from '../lib/astro';
+
 const TIME_KEYS = [
   'time.0', 'time.1', 'time.2', 'time.3', 'time.4', 'time.5', 'time.6',
   'time.7', 'time.8', 'time.9', 'time.10', 'time.11', 'time.12',
 ] as const;
 
-interface MatchPanelProps {
-  initialPersonA?: {
-    name: string;
-    date: string;
-    timeIndex: string | number;
-    gender: 'male' | 'female';
-  };
-  initialPersonB?: {
-    name: string;
-    date: string;
-    timeIndex: string | number;
-    gender: 'male' | 'female';
-  };
+export interface MatchPersonConfig {
+  name?: string;
+  date?: string;
+  timeIndex?: string | number;
+  gender?: 'male' | 'female';
+  calendarType?: 'solar' | 'lunar';
+  isLeapMonth?: boolean;
+  algorithm?: 'zhongzhou' | 'default';
+  yearDivide?: 'normal' | 'exact';
+  dayDivide?: 'current' | 'forward';
+  astroType?: 'heaven' | 'earth' | 'human';
+  longitude?: number;
 }
 
-export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialPersonB }) => {
+interface MatchPanelProps {
+  initialPersonA?: MatchPersonConfig;
+  initialPersonB?: MatchPersonConfig;
+  currentBirthData?: ChartConfig | null;
+}
+
+export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialPersonB, currentBirthData }) => {
   const { t, locale } = useTranslation();
   const [nameA, setNameA] = useState(initialPersonA?.name || t('match.defaultPersonA'));
   const [dateA, setDateA] = useState(initialPersonA?.date || '2000-08-16');
   const [timeA, setTimeA] = useState(String(initialPersonA?.timeIndex ?? '2'));
   const [genderA, setGenderA] = useState<'male' | 'female'>(initialPersonA?.gender || 'male');
+  const [calendarTypeA, setCalendarTypeA] = useState<'solar' | 'lunar'>(initialPersonA?.calendarType || 'solar');
+  const [isLeapMonthA, setIsLeapMonthA] = useState<boolean>(initialPersonA?.isLeapMonth || false);
+  const [algorithmA, setAlgorithmA] = useState<'zhongzhou' | 'default'>(initialPersonA?.algorithm || 'zhongzhou');
+  const [yearDivideA, setYearDivideA] = useState<'normal' | 'exact'>(initialPersonA?.yearDivide || 'normal');
+  const [dayDivideA, setDayDivideA] = useState<'current' | 'forward'>(initialPersonA?.dayDivide || 'forward');
+  const [astroTypeA, setAstroTypeA] = useState<'heaven' | 'earth' | 'human'>(initialPersonA?.astroType || 'heaven');
+  const [longitudeA, setLongitudeA] = useState<number | undefined>(initialPersonA?.longitude);
+
   const [nameB, setNameB] = useState(initialPersonB?.name || t('match.defaultPersonB'));
   const [dateB, setDateB] = useState(initialPersonB?.date || '2002-05-20');
   const [timeB, setTimeB] = useState(String(initialPersonB?.timeIndex ?? '6'));
   const [genderB, setGenderB] = useState<'male' | 'female'>(initialPersonB?.gender || 'female');
+  const [calendarTypeB, setCalendarTypeB] = useState<'solar' | 'lunar'>(initialPersonB?.calendarType || 'solar');
+  const [isLeapMonthB, setIsLeapMonthB] = useState<boolean>(initialPersonB?.isLeapMonth || false);
+  const [algorithmB, setAlgorithmB] = useState<'zhongzhou' | 'default'>(initialPersonB?.algorithm || 'zhongzhou');
+  const [yearDivideB, setYearDivideB] = useState<'normal' | 'exact'>(initialPersonB?.yearDivide || 'normal');
+  const [dayDivideB, setDayDivideB] = useState<'current' | 'forward'>(initialPersonB?.dayDivide || 'forward');
+  const [astroTypeB, setAstroTypeB] = useState<'heaven' | 'earth' | 'human'>(initialPersonB?.astroType || 'heaven');
+  const [longitudeB, setLongitudeB] = useState<number | undefined>(initialPersonB?.longitude);
+
+  const handleUseCurrentChartForA = () => {
+    if (!currentBirthData) return;
+    const date = currentBirthData.calendarType === 'lunar'
+      ? (currentBirthData.lunarDate || '')
+      : (currentBirthData.solarDate || '');
+    if (date) setDateA(date);
+    setTimeA(String(currentBirthData.hour));
+    setGenderA(currentBirthData.gender);
+    setCalendarTypeA(currentBirthData.calendarType);
+    setIsLeapMonthA(currentBirthData.isLeapMonth ?? false);
+    setAlgorithmA(currentBirthData.algorithm);
+    setYearDivideA(currentBirthData.yearDivide);
+    setDayDivideA(currentBirthData.dayDivide);
+    setAstroTypeA(currentBirthData.astroType);
+    setLongitudeA(currentBirthData.longitude);
+  };
 
   const matchResults: MatchRuleResult[] | null = useMemo(() => {
     try {
-      const chartA = analyzeChart(getCanonicalAstrolabe({
+      const optionsA: GetChartOptions = {
         date: dateA,
-        timeIndex: Number.parseInt(timeA, 10),
+        timeIndex: Number.isNaN(Number(timeA)) ? timeA : Number.parseInt(timeA, 10),
         gender: genderA,
-      }), locale);
-      const chartB = analyzeChart(getCanonicalAstrolabe({
+        isLunar: calendarTypeA === 'lunar',
+        isLeapMonth: isLeapMonthA,
+        config: {
+          algorithm: algorithmA,
+          yearDivide: yearDivideA,
+          dayDivide: dayDivideA,
+        },
+        astroType: astroTypeA,
+        ...(longitudeA !== undefined ? { longitude: longitudeA } : {}),
+      };
+      const chartA = analyzeChart(getCanonicalAstrolabe(optionsA), locale);
+
+      const optionsB: GetChartOptions = {
         date: dateB,
-        timeIndex: Number.parseInt(timeB, 10),
+        timeIndex: Number.isNaN(Number(timeB)) ? timeB : Number.parseInt(timeB, 10),
         gender: genderB,
-      }), locale);
+        isLunar: calendarTypeB === 'lunar',
+        isLeapMonth: isLeapMonthB,
+        config: {
+          algorithm: algorithmB,
+          yearDivide: yearDivideB,
+          dayDivide: dayDivideB,
+        },
+        astroType: astroTypeB,
+        ...(longitudeB !== undefined ? { longitude: longitudeB } : {}),
+      };
+      const chartB = analyzeChart(getCanonicalAstrolabe(optionsB), locale);
       return applySensitivityBoundaries(evaluateMatch(chartA, chartB));
     } catch (error) {
       console.error('Match rule evaluation error:', error);
       return null;
     }
-  }, [dateA, timeA, genderA, dateB, timeB, genderB, locale]);
+  }, [
+    dateA, timeA, genderA, calendarTypeA, isLeapMonthA, algorithmA, yearDivideA, dayDivideA, astroTypeA, longitudeA,
+    dateB, timeB, genderB, calendarTypeB, isLeapMonthB, algorithmB, yearDivideB, dayDivideB, astroTypeB, longitudeB,
+    locale,
+  ]);
 
   const loadPresetPair = (pairType: 1 | 2) => {
     if (pairType === 1) {
@@ -62,10 +127,25 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       setDateA('1996-03-15');
       setTimeA('6');
       setGenderA('male');
+      setCalendarTypeA('solar');
+      setIsLeapMonthA(false);
+      setAlgorithmA('zhongzhou');
+      setYearDivideA('normal');
+      setDayDivideA('forward');
+      setAstroTypeA('heaven');
+      setLongitudeA(undefined);
+
       setNameB(t('match.preset1NameB'));
       setDateB('1998-11-20');
       setTimeB('2');
       setGenderB('female');
+      setCalendarTypeB('solar');
+      setIsLeapMonthB(false);
+      setAlgorithmB('zhongzhou');
+      setYearDivideB('normal');
+      setDayDivideB('forward');
+      setAstroTypeB('heaven');
+      setLongitudeB(undefined);
       return;
     }
 
@@ -73,10 +153,25 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
     setDateA('1992-07-08');
     setTimeA('8');
     setGenderA('male');
+    setCalendarTypeA('solar');
+    setIsLeapMonthA(false);
+    setAlgorithmA('zhongzhou');
+    setYearDivideA('normal');
+    setDayDivideA('forward');
+    setAstroTypeA('heaven');
+    setLongitudeA(undefined);
+
     setNameB(t('match.preset2NameB'));
     setDateB('1994-01-28');
     setTimeB('10');
     setGenderB('female');
+    setCalendarTypeB('solar');
+    setIsLeapMonthB(false);
+    setAlgorithmB('zhongzhou');
+    setYearDivideB('normal');
+    setDayDivideB('forward');
+    setAstroTypeB('heaven');
+    setLongitudeB(undefined);
   };
 
   const renderPersonInputs = (
@@ -101,9 +196,20 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
             <User className={isA ? 'w-4 h-4 text-amber-600 dark:text-amber-400' : 'w-4 h-4 text-purple-600 dark:text-purple-400'} aria-hidden="true" />
             {personLabel}
           </span>
-          <span className={isA ? 'text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20' : 'text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20'}>
-            {t(isA ? 'match.labelA' : 'match.labelB')}
-          </span>
+          <div className="flex items-center gap-2">
+            {isA && currentBirthData && (
+              <button
+                type="button"
+                onClick={handleUseCurrentChartForA}
+                className="text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition-colors font-medium cursor-pointer"
+              >
+                {t('match.useCurrentChart')}
+              </button>
+            )}
+            <span className={isA ? 'text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20' : 'text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20'}>
+              {t(isA ? 'match.labelA' : 'match.labelB')}
+            </span>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>

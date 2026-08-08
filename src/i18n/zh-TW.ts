@@ -27,6 +27,7 @@ export const zhTW = {
   'form.preciseTime': '精確出生時間',
   'form.solarTimeApplied': '已套用真太陽時修正',
   'form.solarTimeHint': '同時輸入經度與精確時間，即可套用真太陽時修正時辰',
+  'form.isLeapMonth': '農曆閏月',
 
   // ─── Time Index (shichen) ───
   'time.0': '早子時 (00:00 - 01:00)',
@@ -238,6 +239,8 @@ export const zhTW = {
   'specialTopic.noSources': '目前沒有可追溯的知識來源。',
   'specialTopic.sensitivityNotice': '此專題僅提供趨勢與觀察方向參考，不構成確定預測、專業診斷或決策依據。',
   'specialTopic.systemPrompt': '你是一位專業、謹慎且重視證據的紫微斗數解讀助手。請根據使用者提供的資料與已驗證規則回答，使用繁體中文；不可把命理內容當成確定預測、醫療診斷或財務保證。',
+  'specialTopic.currentModel': '目前模型',
+  'specialTopic.notSet': '未設定',
 
   // LLM Config Modal
   'llm.title': 'OpenAI-Compatible LLM 多模型設定',
@@ -279,6 +282,7 @@ export const zhTW = {
   'match.subtitle': '雙盤並排對照 · 十干四化互飛氣場 · 情感與性格契合度深度評估',
   'match.preset1': '預設合盤 1',
   'match.preset2': '預設合盤 2',
+  'match.useCurrentChart': '帶入目前命盤設定',
   'match.personA': '甲方 (Person A 生辰資料)',
   'match.labelA': '主盤 A',
   'match.personB': '乙方 (Person B 生辰資料)',
@@ -357,6 +361,8 @@ export const zhTW = {
   'rulesInfo.solarTimeEnabled': '啟用 / 經度 {longitude}',
   'rulesInfo.solarTimeDisabled': '未啟用',
   'rulesInfo.iztroVersion': 'iztro 版本',
+  'rulesInfo.unsynced': '未同步',
+  'rulesInfo.lastChartParams': '最後排盤參數',
 
   // ─── Palaces ───
   'palace.ming': '命宮',

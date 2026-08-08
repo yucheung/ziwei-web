@@ -91,6 +91,39 @@ describe('chart storage', () => {
 });
 
 describe('reading storage', () => {
+  it('round-trips the complete chart config with a stored reading', async () => {
+    const chartConfigReading: StoredReading = {
+      ...firstReading,
+      id: 'reading-with-config',
+      chartConfig: {
+        solarDate: '2000-08-16',
+        calendarType: 'solar',
+        isLeapMonth: false,
+        hour: '12:55',
+        gender: 'female',
+        algorithm: 'default',
+        yearDivide: 'exact',
+        dayDivide: 'current',
+        astroType: 'earth',
+        longitude: 114.17,
+      },
+    };
+
+    await saveReading(chartConfigReading);
+
+    expect(await getReading('reading-with-config')).toEqual(chartConfigReading);
+    expect(await listReadings()).toEqual([chartConfigReading]);
+  });
+
+  it('keeps legacy readings without chartConfig readable', async () => {
+    await saveReading(firstReading);
+
+    const fetched = await getReading(firstReading.id);
+
+    expect(fetched).toEqual(firstReading);
+    expect(fetched).not.toHaveProperty('chartConfig');
+  });
+
   it('saves, retrieves, and updates readings by id', async () => {
     await saveReading(firstReading);
 

@@ -25,13 +25,22 @@ describe('src/lib/export.ts', () => {
   beforeEach(() => {
     // language 必須明示：iztro 的顯示字串在建盤當下就以「全域」語系解析，
     // 省略時會沿用前一個測試設定的語系，斷言將隨測試執行順序而飄移。
-    sampleAstrolabe = getChart({
-      date: '2000-08-16',
-      timeIndex: 1,
-      gender: 'male',
-      language: 'zh-CN',
-      config: { algorithm: 'default' },
-    });
+    sampleAstrolabe = {
+      ...getChart({
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male',
+        language: 'zh-CN',
+        config: { algorithm: 'default' },
+      }),
+      calendarType: 'solar',
+      isLeapMonth: false,
+      astroType: 'heaven',
+      algorithm: 'default',
+      yearDivide: 'normal',
+      dayDivide: 'forward',
+      longitude: 121.56,
+    };
   });
 
   describe('escapeCsvField', () => {
@@ -155,12 +164,78 @@ describe('src/lib/export.ts', () => {
       expect(parsed.input.isLunar).toBe(false);
     });
 
-    it('omits timeIndex/longitude (undefined) when no input option is passed', () => {
+    it('includes both dates and every deterministic chart setting in the input snapshot', () => {
+      const json = generateChartJson(sampleAstrolabe, {
+        locale: 'zh-CN',
+        input: { timeIndex: 1, isLunar: false },
+      });
+      const parsed = JSON.parse(json);
+
+      expect(parsed.locale).toBe('zh-TW');
+      expect(parsed.input.solarDate).toBe(sampleAstrolabe.solarDate);
+      expect(parsed.input.lunarDate).toBe(sampleAstrolabe.lunarDate);
+      expect(parsed.input).toMatchObject({
+        calendarType: 'solar',
+        isLeapMonth: false,
+        astroType: 'heaven',
+        algorithm: 'default',
+        yearDivide: 'normal',
+        dayDivide: 'forward',
+        timeIndex: 1,
+        isLunar: false,
+        longitude: 121.56,
+      });
+    });
+
+    it('returns byte-identical canonical JSON for the same chart across UI locales', () => {
+      const options = {
+        date: '2000-08-16',
+        timeIndex: 1,
+        gender: 'male' as const,
+        config: { algorithm: 'default' as const, yearDivide: 'normal' as const, dayDivide: 'forward' as const },
+        astroType: 'heaven' as const,
+      };
+      const twAstrolabe = {
+        ...getChart({ ...options, language: 'zh-TW' }),
+        calendarType: 'solar' as const,
+        isLeapMonth: false,
+        astroType: 'heaven' as const,
+        algorithm: 'default',
+        yearDivide: 'normal' as const,
+        dayDivide: 'forward' as const,
+      };
+      const cnAstrolabe = {
+        ...getChart({ ...options, language: 'zh-CN' }),
+        calendarType: 'solar' as const,
+        isLeapMonth: false,
+        astroType: 'heaven' as const,
+        algorithm: 'default',
+        yearDivide: 'normal' as const,
+        dayDivide: 'forward' as const,
+      };
+
+      const twJson = generateChartJson(twAstrolabe, {
+        locale: 'zh-TW',
+        input: { timeIndex: 1, isLunar: false },
+      });
+      const cnJson = generateChartJson(cnAstrolabe, {
+        locale: 'zh-CN',
+        input: { timeIndex: 1, isLunar: false },
+      });
+
+      expect(cnJson).toBe(twJson);
+      expect(twJson).toContain('遷移');
+      expect(twJson).toContain('巨門');
+      expect(twJson).not.toContain('迁移');
+      expect(twJson).not.toContain('巨门');
+    });
+
+    it('omits timeIndex while retaining the frozen longitude from the astrolabe', () => {
       const json = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
       const parsed = JSON.parse(json);
 
       expect(parsed.input.timeIndex).toBeUndefined();
-      expect(parsed.input.longitude).toBeUndefined();
+      expect(parsed.input.longitude).toBe(121.56);
       expect(parsed.input.isLunar).toBe(false);
     });
 
@@ -171,8 +246,9 @@ describe('src/lib/export.ts', () => {
       });
       const parsed = JSON.parse(json);
 
-      expect(Object.keys(parsed)).toEqual(['schemaVersion', 'settings', 'input', 'chart', 'determinism']);
+      expect(Object.keys(parsed)).toEqual(['schemaVersion', 'locale', 'settings', 'input', 'chart', 'determinism']);
       expect(parsed.schemaVersion).toBe('zhChart-v1');
+      expect(parsed.locale).toBe('zh-TW');
       expect(parsed.settings).toEqual({ school: 'sanhe', iztroVersion: '2.x' });
       expect(parsed.determinism).toBe(true);
       expect(Array.isArray(parsed.chart.palaces)).toBe(true);
@@ -183,7 +259,7 @@ describe('src/lib/export.ts', () => {
       const json = generateChartJson(sampleAstrolabe, { locale: 'zh-TW' });
       const parsed = JSON.parse(json);
       expect(parsed).not.toHaveProperty('settings');
-      expect(Object.keys(parsed)).toEqual(['schemaVersion', 'input', 'chart', 'determinism']);
+      expect(Object.keys(parsed)).toEqual(['schemaVersion', 'locale', 'input', 'chart', 'determinism']);
     });
 
     it('never includes a generatedAt timestamp', () => {
@@ -191,7 +267,7 @@ describe('src/lib/export.ts', () => {
       expect(json).not.toContain('generatedAt');
     });
 
-    it('translates palace/star names per locale, consistent with translateKey', () => {
+    it('emits palace and star names in the fixed zh-TW canonical locale', () => {
       const twAstrolabe = getChart({
         date: '2000-08-16',
         timeIndex: 1,
@@ -205,10 +281,10 @@ describe('src/lib/export.ts', () => {
       expect(twJson).not.toContain('迁移');
 
       const cnJson = generateChartJson(twAstrolabe, { locale: 'zh-CN' });
-      expect(cnJson).toContain('迁移');
-      expect(cnJson).not.toContain('遷移');
-      expect(cnJson).toContain('巨门');
-      expect(cnJson).not.toContain('巨門');
+      expect(cnJson).toContain('遷移');
+      expect(cnJson).not.toContain('迁移');
+      expect(cnJson).toContain('巨門');
+      expect(cnJson).not.toContain('巨门');
     });
   });
 

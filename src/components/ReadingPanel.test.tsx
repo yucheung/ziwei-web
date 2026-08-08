@@ -8,6 +8,7 @@ import { buildReadingPrompt } from '../lib/prompts';
 import { canonicalizeAstrolabeForReading } from '../lib/chartModel';
 import * as storageModule from '../lib/storage';
 import type { RuleResult } from '../lib/rules/types';
+import type { ChartConfig } from '../lib/chartConfig';
 
 vi.mock('../lib/storage', async () => {
   const actual = await vi.importActual<typeof import('../lib/storage')>('../lib/storage');
@@ -275,6 +276,18 @@ describe('ReadingPanel Component Test Suite', () => {
   });
 
   it('stores the supplied rules unchanged when a reading completes', async () => {
+    const chartConfig: ChartConfig = {
+      solarDate: '2000-08-16',
+      calendarType: 'solar',
+      isLeapMonth: false,
+      hour: 1,
+      gender: 'male',
+      algorithm: 'zhongzhou',
+      yearDivide: 'normal',
+      dayDivide: 'forward',
+      astroType: 'heaven',
+      longitude: 121.56,
+    };
     const rules: RuleResult[] = [{
       ruleId: 'pattern-test',
       ruleName: '測試規則',
@@ -293,6 +306,7 @@ describe('ReadingPanel Component Test Suite', () => {
       chartId: 'chart-1',
       reading: '可保存的解讀',
       rules,
+      chartConfig,
       createdAt: '2026-08-08T00:00:00.000Z',
     });
     vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
@@ -301,7 +315,7 @@ describe('ReadingPanel Component Test Suite', () => {
       return result;
     });
 
-    render(<ReadingPanel chart={mockChart} chartId="chart-1" rules={rules} />);
+    render(<ReadingPanel chart={mockChart} chartId="chart-1" rules={rules} chartConfig={chartConfig} />);
     fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
 
     await waitFor(() => {
@@ -309,6 +323,7 @@ describe('ReadingPanel Component Test Suite', () => {
         chartId: 'chart-1',
         reading: '可保存的解讀',
         rules,
+        chartConfig,
       }));
     });
   });

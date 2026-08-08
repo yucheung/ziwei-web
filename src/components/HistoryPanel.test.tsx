@@ -30,10 +30,10 @@ const secondReading: StoredReading = {
   createdAt: '2026-08-07T12:00:00.000Z',
 };
 
-function renderPanel(chartId = 'chart-100', onSelectReading = vi.fn()) {
+function renderPanel(chartId = 'chart-100', onSelectReading = vi.fn(), legacyChartId?: string) {
   render(
     <I18nProvider defaultLocale="zh-TW">
-      <HistoryPanel chartId={chartId} onSelectReading={onSelectReading} />
+      <HistoryPanel chartId={chartId} legacyChartId={legacyChartId} onSelectReading={onSelectReading} />
     </I18nProvider>
   );
 
@@ -60,6 +60,19 @@ describe('HistoryPanel', () => {
     expect(await screen.findByText('第一筆歷史解讀內容：這是一段紫微斗數命盤詳細解讀測試內容。')).toBeInTheDocument();
     expect(screen.getByText('2 條規則')).toBeInTheDocument();
     expect(screen.getByText('1 條規則')).toBeInTheDocument();
+  });
+
+  it('keeps legacy-ID readings visible alongside the deterministic chart ID', async () => {
+    await saveReading({
+      ...firstReading,
+      id: 'legacy-reading',
+      chartId: 'solar-2000-08-16-6-male',
+      chartConfig: undefined,
+    });
+
+    renderPanel('chart-9f3e', vi.fn(), 'solar-2000-08-16-6-male');
+
+    expect(await screen.findByText('第一筆歷史解讀內容：這是一段紫微斗數命盤詳細解讀測試內容。')).toBeInTheDocument();
   });
 
   it('calls onSelectReading when restore button is clicked', async () => {

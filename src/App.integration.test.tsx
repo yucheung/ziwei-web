@@ -8,7 +8,8 @@ import * as llmModule from './lib/llm';
 import * as localeModule from './i18n/locale';
 import { createShareUrl, decodeShareUrl } from './lib/shareUrl';
 import type { ChartConfig } from './lib/chartConfig';
-import { clearAll, saveChart } from './lib/storage';
+import { createChartId } from './lib/chartId';
+import { clearAll, saveChart, saveReading } from './lib/storage';
 
 // Mock locale to always return zh-TW
 vi.mock('./i18n/locale', () => ({
@@ -459,6 +460,73 @@ describe('App Integration Test Suite', () => {
     fireEvent.click(screen.getByRole('button', { name: '删除' }));
     expect(confirmSpy).toHaveBeenCalledWith('确定要删除“待載入命盤”吗？此操作无法恢复。');
     await waitFor(() => expect(screen.queryByText('待載入命盤')).not.toBeInTheDocument());
+    await clearAll();
+  });
+
+  it('rebuilds the chart from a stored reading chartConfig when history is restored', async () => {
+    const storedConfig: ChartConfig = {
+      solarDate: '2000-08-16',
+      calendarType: 'solar',
+      isLeapMonth: false,
+      hour: 2,
+      gender: 'male',
+      algorithm: 'zhongzhou',
+      yearDivide: 'normal',
+      dayDivide: 'forward',
+      astroType: 'heaven',
+    };
+    await clearAll();
+    await saveReading({
+      id: 'reading-with-chart-config',
+      chartId: createChartId(storedConfig),
+      reading: '可還原的歷史解讀',
+      rules: [],
+      chartConfig: storedConfig,
+      createdAt: '2026-08-08T00:00:00.000Z',
+    });
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    fireEvent.change(document.querySelector('input[type="date"]')!, { target: { value: '1995-10-15' } });
+    fireEvent.change(document.getElementById('birth-time-select')!, { target: { value: '6' } });
+    fireEvent.click(await screen.findByRole('radio', { name: '坤造 (女)' }));
+
+    fireEvent.click(await screen.findByRole('tab', { name: /AI 智能命盤解讀/i }));
+    await screen.findByText('AI 多模型命盤結構化解讀');
+
+    fireEvent.click(await screen.findByRole('button', { name: '還原解讀' }));
+    fireEvent.click(await screen.findByRole('tab', { name: /十二宮星盤總覽/i }));
+
+    await waitFor(() => {
+      expect((document.querySelector('input[type="date"]') as HTMLInputElement).value).toBe('2000-08-16');
+      expect((document.getElementById('birth-time-select') as HTMLSelectElement).value).toBe('2');
+      expect(screen.getByRole('radio', { name: '乾造 (男)' })).toBeChecked();
+      const centerInfo = screen.getByText('紫微斗數命盤中樞').nextElementSibling;
+      expect(centerInfo?.textContent).toMatch(/乾造/);
+    });
+
+    await clearAll();
+  });
+
+  it('keeps legacy chart-ID readings visible and text-restorable', async () => {
+    await clearAll();
+    await saveReading({
+      id: 'legacy-reading-without-config',
+      chartId: 'solar-2000-08-16-2-male',
+      reading: '舊格式 ID 的歷史解讀',
+      rules: [],
+      createdAt: '2026-08-08T00:00:00.000Z',
+    });
+
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+    fireEvent.click(await screen.findByRole('tab', { name: /AI 智能命盤解讀/i }));
+
+    expect(await screen.findByText('舊格式 ID 的歷史解讀')).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: '還原解讀' }));
+    expect(screen.getAllByText('舊格式 ID 的歷史解讀')).toHaveLength(2);
+
     await clearAll();
   });
 

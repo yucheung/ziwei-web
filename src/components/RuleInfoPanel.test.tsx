@@ -70,6 +70,17 @@ describe('RuleInfoPanel', () => {
     expect(screen.queryByText('通行版')).not.toBeInTheDocument();
   });
 
+  it('displays unsynced indicator when isStale is true', () => {
+    renderPanel({
+      astroType: 'heaven',
+      config: { algorithm: 'zhongzhou' } as Config,
+      solarTimeActive: false,
+      isStale: true,
+    });
+    expect(screen.getByText('未同步')).toBeInTheDocument();
+    expect(screen.getByText('中州派')).toBeInTheDocument();
+  });
+
   it('all rule info labels exist in both zh-TW and zh-CN dictionaries', () => {
     const keys = [
       'chart.rulesInfo',
@@ -86,6 +97,8 @@ describe('RuleInfoPanel', () => {
       'rulesInfo.solarTimeEnabled',
       'rulesInfo.solarTimeDisabled',
       'rulesInfo.iztroVersion',
+      'rulesInfo.unsynced',
+      'rulesInfo.lastChartParams',
     ] as const;
 
     for (const key of keys) {

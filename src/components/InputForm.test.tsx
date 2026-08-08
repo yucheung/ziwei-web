@@ -16,6 +16,8 @@ function renderForm(overrides: Record<string, unknown> = {}) {
     setGender: vi.fn(),
     calendarType: 'solar' as const,
     setCalendarType: vi.fn(),
+    isLeapMonth: false,
+    setIsLeapMonth: vi.fn(),
     config: defaultConfig,
     setConfig: vi.fn(),
     astroType: 'heaven' as AstroType,
@@ -126,5 +128,22 @@ describe('InputForm Component', () => {
   it('solarTimeActive=false shows the hint message', () => {
     renderForm({ solarTimeActive: false });
     expect(screen.getByText(/同時輸入經度與精確時間/i)).toBeInTheDocument();
+  });
+
+  it('leap month checkbox is hidden in solar calendar mode', () => {
+    renderForm({ calendarType: 'solar' });
+    expect(screen.queryByLabelText(/農曆閏月/i)).not.toBeInTheDocument();
+  });
+
+  it('leap month checkbox is visible in lunar calendar mode and fires setIsLeapMonth when clicked', () => {
+    const setIsLeapMonth = vi.fn();
+    renderForm({ calendarType: 'lunar', isLeapMonth: false, setIsLeapMonth });
+
+    const checkbox = screen.getByLabelText(/農曆閏月/i);
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+
+    fireEvent.click(checkbox);
+    expect(setIsLeapMonth).toHaveBeenCalledWith(true);
   });
 });

@@ -18,8 +18,12 @@ import { evaluateRules, type RuleResult } from './lib/rules/engine';
 import { getHoroscopeSummary, type HoroscopeSummary } from './lib/fortunes';
 import { downloadChartCsv, downloadChartSummaryText, downloadShareCardImage, downloadChartJson } from './lib/export';
 import type { ExportAstrolabe } from './lib/export';
+import { createChartId, createLegacyChartId } from './lib/chartId';
 import { createShareUrl, decodeShareUrl } from './lib/shareUrl';
 import { IZTRO_VERSION } from './components/RuleInfoPanel';
+import type { StoredReading } from './lib/storage';
+
+import { loadLLMConfig, type LLMConfig } from './lib/llm';
 
 const ChartGrid = lazy(() => import('./components/ChartGrid').then((m) => ({ default: m.ChartGrid })));
 const FortunePanel = lazy(() => import('./components/FortunePanel').then((m) => ({ default: m.FortunePanel })));
@@ -49,6 +53,7 @@ export default function App() {
   const [timeIndex, setTimeIndex] = useState('2'); // 丑時 (1:00 - 3:00)
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [calendarType, setCalendarType] = useState<'solar' | 'lunar'>('solar');
+  const [isLeapMonth, setIsLeapMonth] = useState(false);
 
   // 真太陽時修正：經度 + 精確出生時間 (兩者皆填才會套用修正，預設空白 = 不啟用)
   const [longitude, setLongitude] = useState('');
@@ -64,13 +69,14 @@ export default function App() {
   // 斗數設定
   const [config, setConfig] = useState<Config>(() => ({ ...DEFAULT_CONFIG }));
   const [astroType, setAstroType] = useState<AstroType>('heaven');
+  const [llmConfig, setLlmConfig] = useState<LLMConfig>(loadLLMConfig);
 
   const iztroLanguage = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
 
   const buildBirthData = (): ChartConfig => ({
     ...(calendarType === 'lunar' ? { lunarDate: solarDate } : { solarDate }),
     calendarType,
-    isLeapMonth: false,
+    isLeapMonth: calendarType === 'lunar' ? isLeapMonth : false,
     hour: solarTimeActive ? preciseTime : parseInt(timeIndex, 10),
     gender,
     algorithm: config.algorithm ?? 'zhongzhou',
@@ -101,6 +107,25 @@ export default function App() {
   const [lastChartOptions, setLastChartOptions] = useState<GetChartOptions | null>(() =>
     activeBirthData ? chartConfigToGetChartOptions(activeBirthData, iztroLanguage) : null
   );
+
+  const exportAstrolabe = useMemo<ExportAstrolabe | null>(() => {
+    if (!astrolabe) return null;
+
+    return {
+      ...astrolabe,
+      ...(activeBirthData
+        ? {
+            calendarType: activeBirthData.calendarType,
+            isLeapMonth: activeBirthData.isLeapMonth,
+            astroType: activeBirthData.astroType,
+            algorithm: activeBirthData.algorithm,
+            yearDivide: activeBirthData.yearDivide,
+            dayDivide: activeBirthData.dayDivide,
+            ...(activeBirthData.longitude === undefined ? {} : { longitude: activeBirthData.longitude }),
+          }
+        : {}),
+    };
+  }, [activeBirthData, astrolabe]);
 
   // 當語言變更時，自動更新星盤語言
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -161,12 +186,12 @@ export default function App() {
 
   const handleExportCsv = () => {
     if (!astrolabe) return;
-    downloadChartCsv(astrolabe as unknown as ExportAstrolabe, undefined, locale);
+    downloadChartCsv(exportAstrolabe ?? (astrolabe as unknown as ExportAstrolabe), undefined, locale);
   };
 
   const handleExportSummary = () => {
     if (!astrolabe) return;
-    downloadChartSummaryText(astrolabe as unknown as ExportAstrolabe, undefined, locale);
+    downloadChartSummaryText(exportAstrolabe ?? (astrolabe as unknown as ExportAstrolabe), undefined, locale);
   };
 
   const handleExportImage = async () => {
@@ -187,14 +212,20 @@ export default function App() {
     const frozenConfig = options?.config ?? config;
     const frozenLongitude = options?.longitude;
     const frozenSolarTimeActive = frozenLongitude !== undefined && frozenLongitude !== null;
+    const exportLongitude =
+      typeof options?.longitude === 'number'
+        ? options.longitude
+        : typeof options?.longitude === 'string' && options.longitude.trim() !== ''
+        ? Number(options.longitude)
+        : undefined;
     downloadChartJson(
-      astrolabe as unknown as ExportAstrolabe,
+      exportAstrolabe ?? (astrolabe as unknown as ExportAstrolabe),
       {
         input: options
           ? {
               timeIndex: options.timeIndex,
               isLunar: options.isLunar,
-              longitude: options.longitude,
+              longitude: exportLongitude,
             }
           : undefined,
         settings: {
@@ -233,6 +264,7 @@ export default function App() {
 
       setSolarDate(birthDate);
       setCalendarType(birthData.calendarType);
+      setIsLeapMonth(birthData.isLeapMonth ?? false);
       setGender(birthData.gender);
       setConfig({
         algorithm: birthData.algorithm,
@@ -256,6 +288,12 @@ export default function App() {
       alert(err instanceof Error ? err.message : t('app.chartError'));
     }
   }, [iztroLanguage, t]);
+
+  const handleSelectReading = useCallback((reading: StoredReading) => {
+    if (reading.chartConfig) {
+      handleLoadChart(reading.chartConfig);
+    }
+  }, [handleLoadChart]);
 
   useEffect(() => {
     if (hasCheckedShareUrlRef.current) return;
@@ -291,6 +329,26 @@ export default function App() {
     }
   };
 
+  // 讀取「產生目前這張命盤時」凍結下來的參數，而非即時表單 state
+  const frozenConfig = lastChartOptions?.config ?? config;
+  const frozenAstroType = lastChartOptions?.astroType ?? astroType;
+  const frozenRawLongitude = lastChartOptions?.longitude;
+  const frozenLongitude =
+    typeof frozenRawLongitude === 'number'
+      ? frozenRawLongitude
+      : typeof frozenRawLongitude === 'string' && frozenRawLongitude.trim() !== '' && !Number.isNaN(parseFloat(frozenRawLongitude))
+      ? parseFloat(frozenRawLongitude)
+      : undefined;
+  const frozenSolarTimeActive = frozenLongitude !== undefined;
+
+  const isRuleInfoStale =
+    (config.algorithm ?? 'zhongzhou') !== (frozenConfig.algorithm ?? 'zhongzhou') ||
+    (config.yearDivide ?? 'normal') !== (frozenConfig.yearDivide ?? 'normal') ||
+    (config.dayDivide ?? 'forward') !== (frozenConfig.dayDivide ?? 'forward') ||
+    astroType !== frozenAstroType ||
+    solarTimeActive !== frozenSolarTimeActive ||
+    parsedLongitude !== frozenLongitude;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-100/30 via-slate-50 to-slate-50 dark:from-indigo-950/40 dark:via-slate-950 dark:to-slate-950 transition-colors duration-300">
       {/* Top Header */}
@@ -307,11 +365,19 @@ export default function App() {
           <Suspense fallback={<LoadingFallback />}>
             {viewMode === 'match' ? (
               <MatchPanel
+                currentBirthData={activeBirthData}
                 initialPersonA={{
                   name: t('match.defaultPersonA'),
                   date: solarDate,
                   timeIndex,
                   gender,
+                  calendarType,
+                  isLeapMonth,
+                  algorithm: config.algorithm ?? 'zhongzhou',
+                  yearDivide: config.yearDivide ?? 'normal',
+                  dayDivide: config.dayDivide ?? 'forward',
+                  astroType,
+                  ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
                 }}
               />
             ) : (
@@ -327,6 +393,8 @@ export default function App() {
                     setGender={setGender}
                     calendarType={calendarType}
                     setCalendarType={setCalendarType}
+                    isLeapMonth={isLeapMonth}
+                    setIsLeapMonth={setIsLeapMonth}
                     config={config}
                     setConfig={setConfig}
                     astroType={astroType}
@@ -408,10 +476,11 @@ export default function App() {
                           </div>
                         )}
                         <RuleInfoPanel
-                          astroType={astroType}
-                          config={config}
-                          solarTimeActive={solarTimeActive}
-                          parsedLongitude={parsedLongitude}
+                          astroType={frozenAstroType}
+                          config={frozenConfig}
+                          solarTimeActive={frozenSolarTimeActive}
+                          parsedLongitude={frozenLongitude}
+                          isStale={isRuleInfoStale}
                         />
                         <ChartGrid astrolabe={astrolabe} />
                       </div>
@@ -479,13 +548,24 @@ export default function App() {
                       <ReadingPanel
                         chart={astrolabe}
                         rules={ruleResults}
+                        chartConfig={activeBirthData}
                         chartId={
                           activeBirthData
-                            ? `${activeBirthData.calendarType}-${activeBirthData.solarDate || activeBirthData.lunarDate}-${activeBirthData.hour}-${activeBirthData.gender}`
+                            ? createChartId(activeBirthData)
                             : 'default-chart'
                         }
+                        legacyChartId={activeBirthData ? createLegacyChartId(activeBirthData) : undefined}
+                        onSelectReading={handleSelectReading}
+                        llmConfig={llmConfig}
+                        onLLMConfigChange={setLlmConfig}
                       />
-                      {canonicalAnalyzedChart && <SpecialTopicPanel chart={canonicalAnalyzedChart} rules={ruleResults} />}
+                      {canonicalAnalyzedChart && (
+                        <SpecialTopicPanel
+                          chart={canonicalAnalyzedChart}
+                          rules={ruleResults}
+                          llmConfig={llmConfig}
+                        />
+                      )}
                     </div>
                   )}
                 </section>

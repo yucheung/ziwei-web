@@ -15,6 +15,7 @@ export interface StoredReading {
   chartId: string;
   reading: string;
   rules: RuleResult[];
+  chartConfig?: ChartConfig | null;
   createdAt: string;
 }
 
@@ -159,13 +160,16 @@ export async function getReading(id: string): Promise<StoredReading | undefined>
   return reading === undefined ? undefined : normalizeStoredReading(clone(reading));
 }
 
-export async function listReadings(chartId?: string): Promise<StoredReading[]> {
+export async function listReadings(chartId?: string | readonly string[]): Promise<StoredReading[]> {
   const database = await getDatabase();
   const readings = database ? await database.getAll('readings') : [...memoryReadings.values()];
   const normalizedReadings = readings.map((reading) => normalizeStoredReading(clone(reading)));
-  const matchingReadings = chartId === undefined
+  const chartIds = chartId === undefined
+    ? undefined
+    : new Set(typeof chartId === 'string' ? [chartId] : chartId);
+  const matchingReadings = chartIds === undefined
     ? normalizedReadings
-    : normalizedReadings.filter((reading) => reading.chartId === chartId);
+    : normalizedReadings.filter((reading) => chartIds.has(reading.chartId));
 
   return sortNewestFirst(matchingReadings);
 }

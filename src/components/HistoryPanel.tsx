@@ -5,10 +5,11 @@ import { deleteReading, listReadings, type StoredReading } from '../lib/storage'
 
 export interface HistoryPanelProps {
   chartId: string;
+  legacyChartId?: string;
   onSelectReading: (reading: StoredReading) => void;
 }
 
-export function HistoryPanel({ chartId, onSelectReading }: HistoryPanelProps) {
+export function HistoryPanel({ chartId, legacyChartId, onSelectReading }: HistoryPanelProps) {
   const { locale, t } = useTranslation();
   const [readings, setReadings] = useState<StoredReading[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +22,7 @@ export function HistoryPanel({ chartId, onSelectReading }: HistoryPanelProps) {
   const refreshReadings = useCallback(async () => {
     setIsLoading(true);
     try {
-      const list = await listReadings(chartId);
+      const list = await listReadings(legacyChartId && legacyChartId !== chartId ? [chartId, legacyChartId] : chartId);
       setReadings(list);
       setError(undefined);
     } catch {
@@ -29,12 +30,12 @@ export function HistoryPanel({ chartId, onSelectReading }: HistoryPanelProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [chartId, t]);
+  }, [chartId, legacyChartId, t]);
 
   useEffect(() => {
     let cancelled = false;
 
-    void listReadings(chartId)
+    void listReadings(legacyChartId && legacyChartId !== chartId ? [chartId, legacyChartId] : chartId)
       .then((loaded) => {
         if (cancelled) return;
         setReadings(loaded);
@@ -50,7 +51,7 @@ export function HistoryPanel({ chartId, onSelectReading }: HistoryPanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [chartId, t]);
+  }, [chartId, legacyChartId, t]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm(t('history.deleteConfirm'))) return;

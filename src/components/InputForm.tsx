@@ -13,6 +13,8 @@ export interface InputFormProps {
   setGender: (gender: 'male' | 'female') => void;
   calendarType: 'solar' | 'lunar';
   setCalendarType: (type: 'solar' | 'lunar') => void;
+  isLeapMonth: boolean;
+  setIsLeapMonth: (isLeap: boolean) => void;
   config: Config;
   setConfig: React.Dispatch<React.SetStateAction<Config>>;
   astroType: AstroType;
@@ -34,6 +36,8 @@ export function InputForm({
   setGender,
   calendarType,
   setCalendarType,
+  isLeapMonth,
+  setIsLeapMonth,
   config,
   setConfig,
   astroType,
@@ -86,6 +90,20 @@ export function InputForm({
               {t('form.lunar')}
             </button>
           </div>
+          {calendarType === 'lunar' && (
+            <div className="mt-2.5 flex items-center gap-2">
+              <label htmlFor="is-leap-month-checkbox" className="text-xs font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2 cursor-pointer">
+                <input
+                  id="is-leap-month-checkbox"
+                  type="checkbox"
+                  checked={isLeapMonth}
+                  onChange={(e) => setIsLeapMonth(e.target.checked)}
+                  className="w-4 h-4 rounded text-amber-500 border-slate-300 dark:border-slate-700 focus:ring-amber-500 cursor-pointer"
+                />
+                <span>{t('form.isLeapMonth')}</span>
+              </label>
+            </div>
+          )}
         </div>
 
         {/* Date Input */}
