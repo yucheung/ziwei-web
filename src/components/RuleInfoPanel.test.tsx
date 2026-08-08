@@ -106,4 +106,9 @@ describe('RuleInfoPanel', () => {
       expect(zhCN[key]).toBeTruthy();
     }
   });
+
+  it('keeps zh-CN algorithm terminology in simplified Chinese', () => {
+    expect(zhCN['rulesInfo.algorithm']).toBe('排盘算法');
+    expect(zhCN['rulesInfo.algorithm']).not.toContain('演算法');
+  });
 });

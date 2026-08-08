@@ -248,7 +248,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'specialTopic.sources': '知识来源',
   'specialTopic.noSources': '目前没有可追溯的知识来源。',
   'specialTopic.sensitivityNotice': '此专题仅提供趋势与观察方向参考，不构成确定预测、专业诊断或决策依据。',
-  'specialTopic.systemPrompt': '你是一位专业、谨慎且重视证据的紫微斗数解读助手。请根据使用者提供的资料与已验证规则回答，使用简体中文；不可把命理内容当成确定预测、医疗诊断或财务保证。',
+  'specialTopic.systemPrompt': '你是一位专业、谨慎且重视证据的紫微斗数解读助手。请根据用户提供的资料与已验证规则回答，使用简体中文；不可把命理内容当成确定预测、医疗诊断或财务保证。',
   'specialTopic.currentModel': '当前模型',
   'specialTopic.notSet': '未设置',
 
@@ -358,7 +358,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'collection.unknown': '未知',
 
   // ─── Rule Info Panel (B1-1) ───
-  'rulesInfo.algorithm': '排盘演算法',
+  'rulesInfo.algorithm': '排盘算法',
   'rulesInfo.ruleSet': '解读规则集',
   'rulesInfo.school': '流派',
   'rulesInfo.schoolValue': '三合派',

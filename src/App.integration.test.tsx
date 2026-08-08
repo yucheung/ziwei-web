@@ -252,6 +252,31 @@ describe('App Integration Test Suite', () => {
     expect(await screen.findByText('2000-8-15')).toBeInTheDocument();
   });
 
+  it('passes active precise time to Person A when opening match mode', async () => {
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    fireEvent.change(screen.getByLabelText('出生地經度'), { target: { value: '114.17' } });
+    fireEvent.change(screen.getByLabelText('精確出生時間'), { target: { value: '00:10' } });
+    fireEvent.click(await screen.findByRole('tab', { name: '雙人合盤' }));
+
+    const personATime = await screen.findByLabelText('出生時辰', { selector: 'input' }) as HTMLInputElement;
+    expect(personATime).toHaveAttribute('type', 'time');
+    expect(personATime).toHaveValue('00:10');
+  });
+
+  it('does not mark rule info stale for longitude-only input before true solar time is active', async () => {
+    renderApp();
+    await screen.findByText('生辰資料輸入');
+
+    expect(screen.queryByText('未同步')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('出生地經度'), { target: { value: '114.17' } });
+    expect(screen.queryByText('未同步')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('精確出生時間'), { target: { value: '00:10' } });
+    expect(screen.getByText('未同步')).toBeInTheDocument();
+  });
+
   it('leaves the chart unaffected when longitude is left blank (regression protection)', async () => {
     renderApp();
     await screen.findByText('生辰資料輸入');

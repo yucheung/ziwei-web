@@ -347,7 +347,7 @@ export default function App() {
     (config.dayDivide ?? 'forward') !== (frozenConfig.dayDivide ?? 'forward') ||
     astroType !== frozenAstroType ||
     solarTimeActive !== frozenSolarTimeActive ||
-    parsedLongitude !== frozenLongitude;
+    (solarTimeActive && parsedLongitude !== frozenLongitude);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-100/30 via-slate-50 to-slate-50 dark:from-indigo-950/40 dark:via-slate-950 dark:to-slate-950 transition-colors duration-300">
@@ -377,7 +377,7 @@ export default function App() {
                   yearDivide: config.yearDivide ?? 'normal',
                   dayDivide: config.dayDivide ?? 'forward',
                   astroType,
-                  ...(solarTimeActive ? { longitude: parsedLongitude } : {}),
+                  ...(solarTimeActive ? { preciseTime, longitude: parsedLongitude } : {}),
                 }}
               />
             ) : (

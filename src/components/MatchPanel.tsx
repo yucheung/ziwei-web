@@ -14,10 +14,28 @@ const TIME_KEYS = [
   'time.7', 'time.8', 'time.9', 'time.10', 'time.11', 'time.12',
 ] as const;
 
+function isNumericTimeSlot(value: string): boolean {
+  return /^\d{1,2}$/.test(value.trim());
+}
+
+function isPreciseTime(value: string): boolean {
+  return /^\d{2}:\d{2}$/.test(value.trim());
+}
+
+function toGetChartTime(value: string): number | string {
+  const trimmed = value.trim();
+  return isNumericTimeSlot(trimmed) ? Number.parseInt(trimmed, 10) : trimmed;
+}
+
+function getSafeLongitude(time: string, longitude: number | undefined): number | undefined {
+  return isNumericTimeSlot(time) ? undefined : longitude;
+}
+
 export interface MatchPersonConfig {
   name?: string;
   date?: string;
   timeIndex?: string | number;
+  preciseTime?: string;
   gender?: 'male' | 'female';
   calendarType?: 'solar' | 'lunar';
   isLeapMonth?: boolean;
@@ -36,9 +54,11 @@ interface MatchPanelProps {
 
 export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialPersonB, currentBirthData }) => {
   const { t, locale } = useTranslation();
+  const initialTimeA = String(initialPersonA?.preciseTime ?? initialPersonA?.timeIndex ?? '2');
   const [nameA, setNameA] = useState(initialPersonA?.name || t('match.defaultPersonA'));
   const [dateA, setDateA] = useState(initialPersonA?.date || '2000-08-16');
-  const [timeA, setTimeA] = useState(String(initialPersonA?.timeIndex ?? '2'));
+  const [timeA, setTimeA] = useState(initialTimeA);
+  const [preciseTimeA, setPreciseTimeA] = useState(() => isPreciseTime(initialTimeA));
   const [genderA, setGenderA] = useState<'male' | 'female'>(initialPersonA?.gender || 'male');
   const [calendarTypeA, setCalendarTypeA] = useState<'solar' | 'lunar'>(initialPersonA?.calendarType || 'solar');
   const [isLeapMonthA, setIsLeapMonthA] = useState<boolean>(initialPersonA?.isLeapMonth || false);
@@ -48,9 +68,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
   const [astroTypeA, setAstroTypeA] = useState<'heaven' | 'earth' | 'human'>(initialPersonA?.astroType || 'heaven');
   const [longitudeA, setLongitudeA] = useState<number | undefined>(initialPersonA?.longitude);
 
+  const initialTimeB = String(initialPersonB?.preciseTime ?? initialPersonB?.timeIndex ?? '6');
   const [nameB, setNameB] = useState(initialPersonB?.name || t('match.defaultPersonB'));
   const [dateB, setDateB] = useState(initialPersonB?.date || '2002-05-20');
-  const [timeB, setTimeB] = useState(String(initialPersonB?.timeIndex ?? '6'));
+  const [timeB, setTimeB] = useState(initialTimeB);
+  const [preciseTimeB, setPreciseTimeB] = useState(() => isPreciseTime(initialTimeB));
   const [genderB, setGenderB] = useState<'male' | 'female'>(initialPersonB?.gender || 'female');
   const [calendarTypeB, setCalendarTypeB] = useState<'solar' | 'lunar'>(initialPersonB?.calendarType || 'solar');
   const [isLeapMonthB, setIsLeapMonthB] = useState<boolean>(initialPersonB?.isLeapMonth || false);
@@ -66,7 +88,11 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       ? (currentBirthData.lunarDate || '')
       : (currentBirthData.solarDate || '');
     if (date) setDateA(date);
-    setTimeA(String(currentBirthData.hour));
+    const currentTime = typeof currentBirthData.hour === 'string'
+      ? currentBirthData.hour
+      : String(currentBirthData.hour);
+    setTimeA(currentTime);
+    setPreciseTimeA(typeof currentBirthData.hour === 'string');
     setGenderA(currentBirthData.gender);
     setCalendarTypeA(currentBirthData.calendarType);
     setIsLeapMonthA(currentBirthData.isLeapMonth ?? false);
@@ -79,9 +105,10 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
 
   const matchResults: MatchRuleResult[] | null = useMemo(() => {
     try {
+      const longitudeForA = getSafeLongitude(timeA, longitudeA);
       const optionsA: GetChartOptions = {
         date: dateA,
-        timeIndex: Number.isNaN(Number(timeA)) ? timeA : Number.parseInt(timeA, 10),
+        timeIndex: toGetChartTime(timeA),
         gender: genderA,
         isLunar: calendarTypeA === 'lunar',
         isLeapMonth: isLeapMonthA,
@@ -91,13 +118,14 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           dayDivide: dayDivideA,
         },
         astroType: astroTypeA,
-        ...(longitudeA !== undefined ? { longitude: longitudeA } : {}),
+        ...(longitudeForA !== undefined ? { longitude: longitudeForA } : {}),
       };
       const chartA = analyzeChart(getCanonicalAstrolabe(optionsA), locale);
 
+      const longitudeForB = getSafeLongitude(timeB, longitudeB);
       const optionsB: GetChartOptions = {
         date: dateB,
-        timeIndex: Number.isNaN(Number(timeB)) ? timeB : Number.parseInt(timeB, 10),
+        timeIndex: toGetChartTime(timeB),
         gender: genderB,
         isLunar: calendarTypeB === 'lunar',
         isLeapMonth: isLeapMonthB,
@@ -107,7 +135,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           dayDivide: dayDivideB,
         },
         astroType: astroTypeB,
-        ...(longitudeB !== undefined ? { longitude: longitudeB } : {}),
+        ...(longitudeForB !== undefined ? { longitude: longitudeForB } : {}),
       };
       const chartB = analyzeChart(getCanonicalAstrolabe(optionsB), locale);
       return applySensitivityBoundaries(evaluateMatch(chartA, chartB));
@@ -134,6 +162,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       setDayDivideA('forward');
       setAstroTypeA('heaven');
       setLongitudeA(undefined);
+      setPreciseTimeA(false);
 
       setNameB(t('match.preset1NameB'));
       setDateB('1998-11-20');
@@ -146,6 +175,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       setDayDivideB('forward');
       setAstroTypeB('heaven');
       setLongitudeB(undefined);
+      setPreciseTimeB(false);
       return;
     }
 
@@ -160,6 +190,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
     setDayDivideA('forward');
     setAstroTypeA('heaven');
     setLongitudeA(undefined);
+    setPreciseTimeA(false);
 
     setNameB(t('match.preset2NameB'));
     setDateB('1994-01-28');
@@ -172,6 +203,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
     setDayDivideB('forward');
     setAstroTypeB('heaven');
     setLongitudeB(undefined);
+    setPreciseTimeB(false);
   };
 
   const renderPersonInputs = (
@@ -182,6 +214,7 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
     setDate: (value: string) => void,
     time: string,
     setTime: (value: string) => void,
+    preciseTimeInput: boolean,
     gender: 'male' | 'female',
     setGender: (value: 'male' | 'female') => void,
   ) => {
@@ -234,9 +267,19 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
           </div>
           <div>
             <label htmlFor={`person-${person.toLowerCase()}-time`} className="block text-xs text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1"><Clock className={isA ? 'w-3.5 h-3.5 text-amber-600' : 'w-3.5 h-3.5 text-purple-600'} aria-hidden="true" />{t('form.birthTime')}</label>
-            <select id={`person-${person.toLowerCase()}-time`} value={time} onChange={(event) => setTime(event.target.value)} className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs">
-              {TIME_KEYS.map((key, index) => <option key={key} value={index}>{t(key)}</option>)}
-            </select>
+            {preciseTimeInput ? (
+              <input
+                id={`person-${person.toLowerCase()}-time`}
+                type="time"
+                value={time}
+                onChange={(event) => setTime(event.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs"
+              />
+            ) : (
+              <select id={`person-${person.toLowerCase()}-time`} value={time} onChange={(event) => setTime(event.target.value)} className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700/80 text-xs">
+                {TIME_KEYS.map((key, index) => <option key={key} value={index}>{t(key)}</option>)}
+              </select>
+            )}
           </div>
         </div>
       </div>
@@ -257,8 +300,8 @@ export const MatchPanel: React.FC<MatchPanelProps> = ({ initialPersonA, initialP
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {renderPersonInputs('A', nameA, setNameA, dateA, setDateA, timeA, setTimeA, genderA, setGenderA)}
-        {renderPersonInputs('B', nameB, setNameB, dateB, setDateB, timeB, setTimeB, genderB, setGenderB)}
+        {renderPersonInputs('A', nameA, setNameA, dateA, setDateA, timeA, setTimeA, preciseTimeA, genderA, setGenderA)}
+        {renderPersonInputs('B', nameB, setNameB, dateB, setDateB, timeB, setTimeB, preciseTimeB, genderB, setGenderB)}
       </div>
 
       {!matchResults ? (

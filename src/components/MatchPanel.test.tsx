@@ -141,4 +141,52 @@ describe('MatchPanel Component (src/components/MatchPanel.tsx)', () => {
     fireEvent.click(btn);
     expect(screen.getByDisplayValue('1995-06-18')).toBeInTheDocument();
   });
+
+  it('renders a precise Person A time as an editable time input', () => {
+    render(
+      <I18nProvider defaultLocale="zh-TW">
+        <MatchPanel
+          initialPersonA={{ ...PERSON_A, timeIndex: 2, preciseTime: '12:55' }}
+          initialPersonB={PERSON_B}
+        />
+      </I18nProvider>,
+    );
+
+    const timeInput = screen.getByLabelText('出生時辰', { selector: 'input' }) as HTMLInputElement;
+    expect(timeInput).toHaveAttribute('type', 'time');
+    expect(timeInput).toHaveValue('12:55');
+
+    fireEvent.change(timeInput, { target: { value: '13:05' } });
+    expect(timeInput).toHaveValue('13:05');
+  });
+
+  it('keeps the precise-time control after its value is cleared', () => {
+    render(
+      <I18nProvider defaultLocale="zh-TW">
+        <MatchPanel
+          initialPersonA={{ ...PERSON_A, preciseTime: '12:55' }}
+          initialPersonB={PERSON_B}
+        />
+      </I18nProvider>,
+    );
+
+    const timeInput = screen.getByLabelText('出生時辰', { selector: 'input' }) as HTMLInputElement;
+    fireEvent.change(timeInput, { target: { value: '' } });
+
+    expect(document.getElementById('person-a-time')).toHaveAttribute('type', 'time');
+  });
+
+  it('drops longitude when a numeric time slot is paired with longitude', () => {
+    render(
+      <I18nProvider defaultLocale="zh-TW">
+        <MatchPanel
+          initialPersonA={{ ...PERSON_A, longitude: 121.56 }}
+          initialPersonB={PERSON_B}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByText('合盤規則結果')).toBeInTheDocument();
+    expect(document.getElementById('person-a-time')).toHaveProperty('tagName', 'SELECT');
+  });
 });

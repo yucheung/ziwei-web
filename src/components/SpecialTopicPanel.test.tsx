@@ -204,4 +204,9 @@ describe('SpecialTopicPanel', () => {
       expect(zhCN[key]).toBeTruthy();
     }
   });
+
+  it('uses 用户 in the zh-CN special-topic system prompt', () => {
+    expect(zhCN['specialTopic.systemPrompt']).toContain('用户');
+    expect(zhCN['specialTopic.systemPrompt']).not.toContain('使用者');
+  });
 });
