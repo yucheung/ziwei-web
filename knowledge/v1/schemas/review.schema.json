@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ziwei-web.invalid/knowledge/v1/review.schema.json",
+  "title": "Knowledge v1 ReviewRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "reviewId",
+    "targetType",
+    "targetId",
+    "reviewerType",
+    "reviewerName",
+    "reviewDate",
+    "decision",
+    "checklist",
+    "findingCodes",
+    "notes"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "knowledge-v1" },
+    "reviewId": {
+      "type": "string",
+      "pattern": "^review-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "targetType": { "enum": ["source", "claim", "rule"] },
+    "targetId": {
+      "type": "string",
+      "pattern": "^(?:src|claim|rule)-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "reviewerType": { "enum": ["validator", "model", "human"] },
+    "reviewerName": { "type": "string", "minLength": 1 },
+    "reviewDate": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "decision": { "enum": ["pass", "fail", "needs_work"] },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "atomicAssertion",
+        "sourceIdentity",
+        "locatorResolves",
+        "quotationMatches",
+        "assertionSupported",
+        "conditionsPreserved",
+        "schoolAttribution",
+        "sensitivityPolicy"
+      ],
+      "properties": {
+        "atomicAssertion": { "$ref": "#/$defs/checkResult" },
+        "sourceIdentity": { "$ref": "#/$defs/checkResult" },
+        "locatorResolves": { "$ref": "#/$defs/checkResult" },
+        "quotationMatches": { "$ref": "#/$defs/checkResult" },
+        "assertionSupported": { "$ref": "#/$defs/checkResult" },
+        "conditionsPreserved": { "$ref": "#/$defs/checkResult" },
+        "schoolAttribution": { "$ref": "#/$defs/checkResult" },
+        "sensitivityPolicy": { "$ref": "#/$defs/checkResult" }
+      }
+    },
+    "findingCodes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$"
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "$defs": {
+    "checkResult": { "enum": ["pass", "fail", "not_applicable"] }
+  }
+}

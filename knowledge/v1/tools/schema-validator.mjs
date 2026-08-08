@@ -1,11 +1,15 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import claimSchema from '../schemas/claim.schema.json' with { type: 'json' };
+import reviewSchema from '../schemas/review.schema.json' with { type: 'json' };
+import ruleSchema from '../schemas/rule.schema.json' with { type: 'json' };
 import sourceSchema from '../schemas/source.schema.json' with { type: 'json' };
 
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 const validators = {
   source: ajv.compile(sourceSchema),
   claim: ajv.compile(claimSchema),
+  rule: ajv.compile(ruleSchema),
+  review: ajv.compile(reviewSchema),
 };
 
 export function validateRecord(type, value) {

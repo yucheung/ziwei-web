@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ziwei-web.invalid/knowledge/v1/rule.schema.json",
+  "title": "Knowledge v1 RuleDefinition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ruleId",
+    "name",
+    "tradition",
+    "school",
+    "ruleSetVersion",
+    "predicate",
+    "conclusionClaimIds",
+    "promptEligible",
+    "lifecycleStatus"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "knowledge-v1" },
+    "ruleId": {
+      "type": "string",
+      "pattern": "^rule-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "tradition": {
+      "$ref": "https://ziwei-web.invalid/knowledge/v1/claim.schema.json#/$defs/tradition"
+    },
+    "school": {
+      "$ref": "https://ziwei-web.invalid/knowledge/v1/claim.schema.json#/$defs/school"
+    },
+    "ruleSetVersion": { "type": "string", "minLength": 1 },
+    "predicate": {
+      "$ref": "https://ziwei-web.invalid/knowledge/v1/claim.schema.json#/$defs/predicate"
+    },
+    "conclusionClaimIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "https://ziwei-web.invalid/knowledge/v1/claim.schema.json#/$defs/claimId"
+      }
+    },
+    "promptEligible": { "type": "boolean" },
+    "lifecycleStatus": {
+      "enum": ["draft", "human_approved", "rejected", "deprecated"]
+    }
+  }
+}

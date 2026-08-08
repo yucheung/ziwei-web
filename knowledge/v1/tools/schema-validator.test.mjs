@@ -69,6 +69,42 @@ const validClaim = {
   lifecycle: { status: 'source_verified', supersedes: null },
 };
 
+const validRule = {
+  schemaVersion: 'knowledge-v1',
+  ruleId: 'rule-ziwei-life-001',
+  name: '紫微坐命',
+  tradition: 'classical_ziwei',
+  school: 'unclassified',
+  ruleSetVersion: 'classical-pilot-v1',
+  predicate: { op: 'star_in_palace', star: '紫微', palace: '命宮' },
+  conclusionClaimIds: ['claim-ziwei-life-001'],
+  promptEligible: false,
+  lifecycleStatus: 'draft',
+};
+
+const validReview = {
+  schemaVersion: 'knowledge-v1',
+  reviewId: 'review-claim-ziwei-life-001-human-01',
+  targetType: 'claim',
+  targetId: 'claim-ziwei-life-001',
+  reviewerType: 'human',
+  reviewerName: 'project-owner',
+  reviewDate: '2026-08-08',
+  decision: 'pass',
+  checklist: {
+    atomicAssertion: 'pass',
+    sourceIdentity: 'pass',
+    locatorResolves: 'pass',
+    quotationMatches: 'pass',
+    assertionSupported: 'pass',
+    conditionsPreserved: 'pass',
+    schoolAttribution: 'pass',
+    sensitivityPolicy: 'pass',
+  },
+  findingCodes: [],
+  notes: 'Verified against the cited page image.',
+};
+
 describe('source and claim schemas', () => {
   it('accepts complete source and atomic claim records', () => {
     expect(validateRecord('source', validSource)).toEqual([]);
@@ -100,4 +136,33 @@ describe('source and claim schemas', () => {
   });
 });
 
-export { validClaim, validSource };
+describe('rule and review schemas', () => {
+  it('accepts a typed rule and a complete human review', () => {
+    expect(validateRecord('rule', validRule)).toEqual([]);
+    expect(validateRecord('review', validReview)).toEqual([]);
+  });
+
+  it('rejects a rule without conclusions', () => {
+    expect(validateRecord('rule', { ...validRule, conclusionClaimIds: [] }))
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'SCHEMA_INVALID' }),
+      ]));
+  });
+
+  it('rejects incomplete or invalid review checklists', () => {
+    const { atomicAssertion: _omitted, ...incompleteChecklist } = validReview.checklist;
+    const diagnostics = [
+      ...validateRecord('review', { ...validReview, checklist: incompleteChecklist }),
+      ...validateRecord('review', {
+        ...validReview,
+        checklist: { ...validReview.checklist, assertionSupported: 'approved' },
+      }),
+    ];
+
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'SCHEMA_INVALID' }),
+    ]));
+  });
+});
+
+export { validClaim, validReview, validRule, validSource };
