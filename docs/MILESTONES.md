@@ -2,7 +2,7 @@
 
 > 建立：2026-08-12
 > 最後更新：2026-08-12
-> 基線：B8 封板（567 tests、lint 0 warnings、CI 待修復）
+> 基線：B8 封板（567 tests、lint 0 warnings、CI 通過）
 > 稽核原始紀錄：docs/MILESTONES-B1-B7.md（B1-B7 封板紀錄，477 tests 基線）
 
 ---

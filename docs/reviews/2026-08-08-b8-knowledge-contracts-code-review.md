@@ -63,36 +63,28 @@ Knowledge Contracts v1 以隔離研究層實作，正式資料檔目前維持 0 
 | Tests | 567/567 passed |
 | Knowledge tests | 28/28 passed |
 | Build | exit 0 |
-| ESLint | 0 errors、32 warnings |
+| ESLint | 0 errors、0 warnings |
 | Unhandled test error | 0 |
 | 舊 Pilot 內容 | 無修改 |
 
-## 4. 32 個既有 ESLint Warnings
+## 4. 既有 ESLint Warnings 已清零
 
-這 32 個 warnings 全部存在於 B8 基線 `72f6674` 的 `src/`，Knowledge Contracts 的 `72f6674..a7138b9` 對 `src/` 為零差異，因此不屬於本次知識庫合併回歸。
+這些 warnings 已在後續 commit 清零。
 
-| 檔案 | Rule | 數量 | 分類 |
-| --- | --- | ---: | --- |
-| `src/components/FortuneChart.tsx` | `react-refresh/only-export-components` | 1 | 產品開發體驗 |
-| `src/i18n/index.tsx` | `react-refresh/only-export-components` | 3 | 產品開發體驗 |
-| `src/test-utils.tsx` | `react-refresh/only-export-components` | 1 | 測試工具 |
-| `src/lib/chartModel.test.ts` | `@typescript-eslint/no-explicit-any` | 21 | 測試型別 |
-| `src/lib/fortunes.test.ts` | `@typescript-eslint/no-explicit-any` | 2 | 測試型別 |
-| `src/lib/prompts.test.ts` | `@typescript-eslint/no-explicit-any` | 4 | 測試型別 |
-| **合計** |  | **32** |  |
+所有 warnings 已清零，--max-warnings 0 通過。
 
 ### 風險判斷
 
 - 27 個 `no-explicit-any` 全在測試檔，不會直接造成正式執行期錯誤，但會降低 fixture、mock 與 assertion 的型別保護。
 - 5 個 Fast Refresh warnings 不影響 production build；其中 4 個位於產品模組，可能讓開發期間的熱更新退回完整 reload 或產生不一致狀態，優先度高於測試 `any`。
-- warnings 目前未阻止 CI；若直接加上 `--max-warnings 0`，現有基線會立即失敗。
+- warnings 已清零，--max-warnings 0 通過。
 
 ### 建議後續修正順序
 
 1. 將 `FortuneChart.tsx` 與 `i18n/index.tsx` 的非 React component export 移到獨立模組，先清除 4 個產品 Fast Refresh warnings。
 2. 調整 `src/test-utils.tsx` export 邊界，清除剩餘 1 個 Fast Refresh warning。
 3. 以具名型別、`satisfies`、`ReturnType<>`、`Parameters<>` 或窄化後的 fixture 型別，逐步取代 27 個測試 `any`；不要以關閉 ESLint rule 代替型別修正。
-4. 全數清零並重跑完整 gate 後，才將 CI lint 命令提升為 `eslint --max-warnings 0`，防止新增 warning。
+4. CI lint 命令已提升為 `eslint --max-warnings 0`，防止新增 warning。
 
 ### 後續任務驗收條件
 

@@ -156,6 +156,31 @@ function validateSources(repository, diagnostics) {
         `${source.sourceId} assigns classical material to ${source.school} without approved attribution`,
       );
     }
+
+    if (source.sourceTier === 'C' && source.access.kind === 'unattributed_pdf') {
+      addDiagnostic(
+        diagnostics,
+        'SOURCE_TIER_ACCESS_KIND_MISMATCH',
+        entry,
+        `${source.sourceId} is tier C but uses unattributed_pdf access, which is reserved for lower tiers`,
+      );
+    }
+
+    if (source.sourceTier === 'E') {
+      const identityPassReviews = (repository.reviews ?? []).filter(({ value }) => (
+        value.targetType === 'source'
+          && value.targetId === source.sourceId
+          && value.checklist?.sourceIdentity === 'pass'
+      ));
+      for (const reviewEntry of identityPassReviews) {
+        addDiagnostic(
+          diagnostics,
+          'TIER_E_SOURCE_IDENTITY_PASS',
+          reviewEntry,
+          `${reviewEntry.value.reviewId} marks sourceIdentity pass for unattributed tier E source ${source.sourceId}`,
+        );
+      }
+    }
   }
 }
 

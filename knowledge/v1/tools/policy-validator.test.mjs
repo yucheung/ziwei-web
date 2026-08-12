@@ -292,6 +292,47 @@ describe('validatePolicies safety, conflicts, and rule promotion', () => {
     })))).toContain('RULE_CONCLUSION_NOT_PROMPT_ELIGIBLE');
   });
 
+  it('rejects a tier C source using unattributed_pdf access', () => {
+    const tierCUnattributed = {
+      ...source,
+      sourceTier: 'C',
+      access: {
+        ...source.access,
+        kind: 'unattributed_pdf',
+        transcriptionUrl: null,
+        facsimileUrl: null,
+      },
+      verificationStatus: 'candidate',
+    };
+
+    expect(codes(validatePolicies(repository({ sources: [tierCUnattributed] }))))
+      .toContain('SOURCE_TIER_ACCESS_KIND_MISMATCH');
+  });
+
+  it('rejects a passing sourceIdentity review on a tier E source', () => {
+    const tierESource = {
+      ...source,
+      sourceId: 'src-unattributed-pdf-001',
+      sourceTier: 'E',
+      access: {
+        ...source.access,
+        kind: 'unattributed_pdf',
+        transcriptionUrl: null,
+        facsimileUrl: null,
+      },
+      verificationStatus: 'candidate',
+    };
+    const identityPassReview = humanReview('source', tierESource.sourceId, {
+      checklist: { ...passingChecklist, sourceIdentity: 'pass' },
+    });
+
+    expect(codes(validatePolicies(repository({
+      sources: [tierESource],
+      claims: [],
+      reviews: [identityPassReview],
+    })))).toContain('TIER_E_SOURCE_IDENTITY_PASS');
+  });
+
   it('reports duplicate IDs and broken claim or review references', () => {
     const brokenClaim = {
       ...claim,
