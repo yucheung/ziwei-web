@@ -1,7 +1,8 @@
 # ziwei-web 後續功能執行規畫（Implementation Plan）
 
 > 建立：2026-08-07
-> 基線：C 組完成（zh-TW/zh-CN、302 tests、Opus 9.0/10、已部署 GH Pages + CF Workers）
+> 最後更新：2026-08-12（B1-B8 全數封板）
+> 基線：B8 封板（567 tests、lint 0 warnings、CI 全綠）
 > 上游決策：docs/ROADMAP.md（D1-D5 已確認）
 > 執行模式：Hermes 發派 → claude（Sonnet 寫 / Opus 審）+ agy（掃描/審查）→ Hermes 監督 review
 > 驗收門檻（每批共用）：`npm run build` exit 0、vitest 全綠、eslint 0 error、Opus review ≥ 8.5（放行門檻）

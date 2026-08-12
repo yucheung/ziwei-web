@@ -1,13 +1,15 @@
 # ziwei-web 功能與知識結構 Roadmap
 
 > 建立日期：2026-08-06
-> 最後更新：2026-08-06（D1-D5 決策確認 + V1-V4 修正 + prompts.ts 三合派化完成）
-> 狀態：**已確認（V1-V4 待技術驗證）**
-> 基線：C 組完成（zh-TW/zh-CN 雙語、Opus 9.0/10、CI 全綠、302/302 tests）
+> 最後更新：2026-08-12（B8 封板 + Knowledge Contracts v1 + 功能盤點）
+> 狀態：**B1-B8 全數封板；Phase 0-4 核心功能完成；待結案確認**
+> 基線：B8 封板（567 tests、lint 0 warnings、CI 全綠、GH Pages + CF Workers 部署）
 
 ---
 
 ## 一、現狀評估
+
+> 更新：2026-08-12（B8 封板後全面盤點）
 
 ### 已建好的基礎
 
@@ -15,13 +17,21 @@
 |---|---|---|
 | **排盤核心** | iztro 排盤（12宮、星曜、亮度、四化、運限五層）| ✅ 完整 |
 | **資料正規化** | chartModel canonicalize + translateKey（繁簡雙向對映）| ✅ 完整 |
-| **三方四正** | iztro `surroundedPalaces()` API（本命 + 運限）| ✅ 已有，需 adapter |
-| **LLM 管線** | prompts.ts 參數化（system prompt + 5 類 type prompt + locale）| ✅ 完整；三合派限定已完成 |
+| **三方四正** | iztro `surroundedPalaces()` API（本命 + 運限）| ✅ 完整（B2 V2 驗證）|
+| **LLM 管線** | prompts.ts 參數化 + 三合派限定 + 串流 + idle-timeout + prompt-injection 防護 | ✅ 完整 |
 | **運限展示** | FortunePanel（大限/流年/流月/流日/流時 13 期）| ✅ 完整 |
-| **合盤** | MatchPanel（評分模板 + 散文 i18n）| ⚠️ 硬編碼模板，非規則引擎 |
+| **合盤** | MatchPanel + matchRules 規則引擎（branchRelation / starCompatibility / palaceOverlap / mutagenInteraction / sensitivity）| ✅ 規則化（B7a） |
 | **四柱八字** | FourPillars 顯示 + 博士十二神 | ⚠️ 資料顯示，無解讀（D4 決策）|
-| **匯出** | CSV / 文字摘要 / 分享卡片 | ✅ 完整 |
-| **品質** | i18n 雙語、light/dark、a11y、CI、PWA | ✅ 完整 |
+| **匯出** | CSV / 文字摘要 / JSON（確定性）/ 分享卡片 / URL 分享 | ✅ 完整 |
+| **收藏/歷史** | IndexedDB 儲存、歷史記錄、收藏管理 | ✅ 完整（B6） |
+| **專題解讀** | 財/官/情/健/學五大專題 + 規則篩選 + LLM 整合 | ✅ 完整（B7b） |
+| **規則引擎** | chartFacts / faithfulness / fortune / patterns / fourTransformations / provenance | ✅ 完整（B5） |
+| **規則資訊面板** | RuleInfoPanel：查看命盤適用規則細節 | ✅ 完整（B1） |
+| **真太陽時** | Spencer 均時差公式 + 100+ 城市經度表 + UI 輸入 + 合盤相容 | ✅ 完整（B8 F1 修復） |
+| **知識庫** | Knowledge Contracts v1（Source/Claim/Rule/Review Schema）+ Pilot v2 三主星 + citationTracer | ✅ v1 封板（B8） |
+| **LLM 解讀** | ReadingPanel（876行）：串流 + idle-timeout + 繼續生成 + Debug Panel + Provider 選擇 | ✅ 完整 |
+| **品質** | i18n zh-TW/zh-CN、light/dark、a11y、CI（build+test+lint）、567 測試 | ✅ 完整 |
+| **部署** | GH Pages + CF Workers 雙平台 | ✅ 完整 |
 
 ### iztro 提供 vs 不提供的資料
 
@@ -41,11 +51,23 @@
 - ❌ 合盤規則
 - ❌ 任何命理知識庫
 
-### 核心缺口
+### 核心缺口（已修補）
 
-> **現有系統是「排盤機」+「LLM 祈禱機」。**
-> iztro 產出完整盤面資料，但 prompts.ts 只把摘要文字塞進 prompt，
-> 沒有結構化的命理規則層。LLM 靠自己的訓練知識解讀，品質不可控。
+> 更新：2026-08-12
+>
+> ~~原有系統是「排盤機」+「LLM 祈禱機」。~~
+> B1-B8 已建立完整規則引擎管線：iztro → ChartAnalyzer → 規則引擎（6 大規則庫）→ StructuredSummary → Citation → LLM prompt。
+> LLM 現以規則證據為依據，不再是自由推理。
+
+### 剩餘非阻塞項目
+
+| 項目 | 狀態 | 建議 |
+|---|---|---|
+| V3 評估框架 | 代碼完成（15 測試案例、metrics），無 UI 整合 | 低優先：QA 工具，瓶頸在 test case 數量 |
+| 真太陽時 UI 打磨 | 核心功能已完成，無城市下拉選單 | 已可結案：非功能缺口 |
+| LLM citation 顯示 | ReadingPanel 無內建 citation 顯示 | 優化項：規則引擎 provenance 已處理 |
+| en i18n | 未實作 | 用戶決定跳過 |
+| 八字解讀 | 保留顯示，無解讀（D4 決策） | 維持現狀：紫微完整後再考慮 |
 
 ---
 
@@ -210,72 +232,66 @@ iztro 各運限層（decadal/yearly/monthly/daily/hourly）已提供 stars[] 和
 
 ## 六、分期實施計畫
 
-### Phase 0：排盤透明化（P0 最高優先）
+> 更新：2026-08-12 — B1-B8 全數封板，Phase 0-4 核心功能完成
 
-**目標**：讓使用者（和開發者）能驗證命盤正確性。
+### Phase 0：排盤透明化 ✅ 已完成（B1）
 
-| 項目 | 內容 | 工作量 | 依賴 |
-|---|---|---|---|
-| 排盤規則面板 | 顯示：流派（三合派 v1）、年界、節氣、閏月、時區、真太陽時設定、iztro 版本 | 小 | 無 |
-| 完整命盤 JSON 匯出 | 包含設定 + 計算結果 + 運限 + 版本 | 小 | 無 |
-| 命理回歸測試框架 | 三套測試集（排盤 Golden / 規則 Golden / 解讀案例集）→ 自動驗證 | 中 | D3 確認 |
-| LLM 輸入檢視 | ReadingPanel 顯示實際送給模型的摘要 + prompt | 小 | 無 |
-| prompts.ts 修正 | ✅ 已完成：繁簡 system prompt 均限定三合派並禁止混用飛星派；302/302 tests 全綠 | — | 無 |
+| 項目 | 狀態 | Commit |
+|---|---|---|
+| 排盤規則面板（RuleInfoPanel）| ✅ | B1 |
+| 完整命盤 JSON 匯出（確定性）| ✅ | B1 |
+| 命理回歸測試框架（Golden）| ✅ | B1 + B5 |
+| LLM 輸入檢視（Debug Panel）| ✅ | B1 |
+| prompts.ts 三合派限定 | ✅ | 302→567 tests |
 
-### Phase 1：結構化分析層（核心）
+### Phase 1：結構化分析層 ✅ 已完成（B2-B3）
 
-**目標**：建立 iztro 資料 → 結構化摘要的管線。
+| 項目 | 狀態 | Commit |
+|---|---|---|
+| ChartAnalyzer（astrolabe → 結構化 JSON）| ✅ | B3 |
+| iztro API Adapter（surroundedPalaces）| ✅ | B2 V2 |
+| 星曜知識庫 v1 | ✅ | B4 |
+| summarizeAstrolabe 重構 | ✅ | B3 |
+| 解讀證據追溯（CitationTracer）| ✅ | B8 |
+| 隱私資料模型預留（localStorage）| ✅ | B6 |
 
-| 項目 | 內容 | 工作量 | 依賴 |
-|---|---|---|---|
-| ChartAnalyzer | 將 astrolabe 轉為結構化 JSON（宮位事實 + 星曜屬性 + 三方四正 + 四化落宮）| **大** | 無 |
-| iztro API Adapter | surroundedPalaces / surroundPalaces → canonical normalization | 中 | 無 |
-| 星曜知識庫 v1 | 十四主星 + 六吉六煞：基本性質、廟旺利陷、宮位含義（JSON + school/ruleSetVersion）| 中 | D1 |
-| summarizeAstrolabe 重構 | 從純文字升級為結構化 JSON（保留 backward compat）| 中 | ChartAnalyzer |
-| 解讀證據追溯 | StructuredSummary 帶 rule citations，LLM 輸出可回溯 | 中 | ChartAnalyzer |
-| 隱私資料模型預留 | localStorage schema 設計時預留未來帳號系統遷移（D5）| 小 | 無 |
+### Phase 2：規則引擎 ✅ 已完成（B4-B5）
 
-### Phase 2：規則引擎
+| 項目 | 狀態 | Commit |
+|---|---|---|
+| 四化規則庫 v1 | ✅ | B5 |
+| 格局規則庫 v1 | ✅ | B5 |
+| 宮位主題知識 v1 | ✅ | B4 |
+| 運限推論 v1 | ✅ | B5 |
+| 命理回歸測試 v2（567 tests）| ✅ | B5 |
 
-**目標**：將命理判斷從 LLM 自由推理升級為規則驅動。
+### Phase 3：進階功能 ✅ 已完成（B6）
 
-| 項目 | 內容 | 工作量 | 依賴 |
-|---|---|---|---|
-| 四化規則庫 v1 | 生年四化基本規則（祿權科忌在各宮的含義）| 中 | Phase 1 |
-| 格局規則庫 v1 | 20-30 個常見格局的判定條件（覆蓋率目標 80%）| 中 | Phase 1 |
-| 宮位主題知識 v1 | 命宮/財宮/官祿宮/夫妻宮的核心解讀框架 | 中 | Phase 1 |
-| 運限推論 v1 | 大限背景 + 流年觸發的基本推論鏈 | 大 | Phase 1 + 四化 |
-| 命理回歸測試 v2 | 擴充至 20+ 案例，覆蓋格局/四化/運限 | 中 | Phase 1-2 |
+| 項目 | 狀態 | Commit |
+|---|---|---|
+| 多命盤收藏（IndexedDB）| ✅ | B6a |
+| URL 分享（壓縮編碼）| ✅ | B6a |
+| 解讀歷史 | ✅ | B6b |
+| 對話式追問 | ⚠️ 未實作 | 規劃中 |
+| 列印模式 | ✅ | B6b |
+| Vector RAG v1 | ⚠️ 未實作 | 日後（Phase 5+）|
 
-### Phase 3：進階功能
+### Phase 4：合盤與專題 ✅ 已完成（B7-B8）
 
-**目標**：學習與日常使用功能。
+| 項目 | 狀態 | Commit |
+|---|---|---|
+| 合盤規則庫（matchRules 5 大規則集）| ✅ | B7a |
+| 專題解讀（財/官/情/健/學）| ✅ | B7b |
+| 流分析圖 | ✅ | B7b |
+| 敏感議題邊界 | ✅ | B7a |
+| 真太陽時合盤修復 | ✅ | B8 F1 |
+| Knowledge Contracts v1 | ✅ | B8 |
+| Pilot v2 三主星落庫 | ✅ | B8 |
 
-| 項目 | 內容 | 工作量 | 依賴 |
-|---|---|---|---|
-| 多命盤收藏 | localStorage 存多個命盤（姓名+生辰+標籤）| 中 | 隱私資料模型 |
-| URL 分享 | hash 參數加密命盤設定，一鍵分享 | 中 | 無 |
-| 解讀歷史 | 同一命盤不同日期/問題的解讀保存 | 中 | 無 |
-| 對話式追問 | 固定引用當前命盤與運限的多輪對話 | 大 | Phase 1 |
-| 列印模式 | CSS print，命盤+解讀 A4 排版 | 小 | 無 |
-| Vector RAG v1 | 古籍檢索、專題案例（D2 確認日後導入）| 大 | Phase 1-2 |
+### Phase 5：大眾化 ⏳ 待啟動
 
-### Phase 4：合盤與專題
-
-**目標**：合盤規則化 + 專題深度解讀。
-
-| 項目 | 內容 | 工作量 | 依賴 |
-|---|---|---|---|
-| 合盤規則庫 | 雙方本命互動、運限同步、關係模型 | 大 | Phase 1-2 |
-| 專題解讀 | 性格/財運/感情/健康等分項規則 | 大 | Phase 1-2 |
-| ~~八字知識庫~~ | ~~十神、藏干、格局、喜忌~~ | ~~大~~ | D4 決策：先擱置 |
-| ~~紫微八字交叉驗證~~ | ~~兩套體系結論的交叉參照~~ | ~~大~~ | D4 決策：先擱置 |
-| 流年走勢圖 | 運限分數曲線化（依賴規則公開後的分數）| 中 | Phase 2 |
-
-### Phase 5：大眾化（以品質門檻啟動）
-
-**目標**：核心成熟後提供一般人使用。**啟動條件見 D5。**
-
+> **啟動條件見 D5。** 目前核心功能已完成，待確認是否進入 Phase 5。
+>
 | 項目 | 內容 |
 |---|---|
 | 帳號系統 | 跨裝置同步、資料刪除/下載 |
@@ -315,7 +331,10 @@ Phase 5（大眾化）← 依賴 Phase 1-4 + 品質門檻
 
 ## 九、下一步行動
 
-1. **拆 Phase 0 為具體 Issues**（排盤面板、JSON 匯出、回歸測試框架、輸入檢視）
-2. **開始 Phase 0 實施**
-3. **同步進行 V1-V4 技術驗證**（用現有程式碼實測 iztro API）
-4. **維持 D4 邊界**：八字只保留資料顯示並標示「無解讀」，不送入 LLM
+> 更新：2026-08-12
+
+1. **Phase 5 啟動評估**：D5 條件已部分滿足（排盤 Golden ✅、規則有來源/流派/版本 ✅、解讀可追溯 ✅、無依據率待量化、敏感議題邊界 ✅、隱私資料模型 ✅）。需決定是否進入 Phase 5。
+2. **V3 評估框架擴充**：test case 從 15 題擴充至 50+ 題，覆蓋更多宮位/星曜組合。
+3. **對話式追問**：Phase 3 遺留項，固定引用當前命盤與運限的多輪對話。
+4. **Knowledge Contracts 接入產品層**：B8 建立的 Schema + validator 尚未直接接入 prompt/規則引擎，需評估何時導入。
+5. **維持 D4 邊界**：八字只保留資料顯示並標示「無解讀」，不送入 LLM。
