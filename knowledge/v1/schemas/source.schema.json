@@ -89,7 +89,8 @@
             "aligned_transcription",
             "transcription",
             "partial_preview",
-            "user_scan"
+            "user_scan",
+            "unattributed_pdf"
           ]
         },
         "landingUrl": { "type": "string", "minLength": 1 },

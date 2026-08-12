@@ -3,7 +3,7 @@
 > 建立日期：2026-08-06
 > 最後更新：2026-08-12（B8 封板 + Knowledge Contracts v1 + 功能盤點）
 > 狀態：**B1-B8 全數封板；Phase 0-4 核心功能完成；待結案確認**
-> 基線：B8 封板（562 tests、lint 0 warnings、CI 待修復、GH Pages + CF Workers 部署）
+> 基線：B8 封板（567 tests、lint 0 warnings、CI 待修復、GH Pages + CF Workers 部署）
 
 ---
 
@@ -273,7 +273,7 @@ iztro 各運限層（decadal/yearly/monthly/daily/hourly）已提供 stars[] 和
 | 格局規則庫 v1 | ✅ | B5 |
 | 宮位主題知識 v1 | ✅ | B4 |
 | 運限推論 v1 | ✅ | B5 |
-| 命理回歸測試 v2（562 tests）| ✅ | B5 |
+| 命理回歸測試 v2（567 tests）| ✅ | B5 |
 
 ### Phase 3：進階功能 ⚠️ 核心子集完成（B6）
 

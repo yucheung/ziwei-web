@@ -50,7 +50,7 @@
       ],
       "properties": {
         "atomicAssertion": { "$ref": "#/$defs/checkResult" },
-        "sourceIdentity": { "$ref": "#/$defs/checkResult" },
+        "sourceIdentity": { "$ref": "#/$defs/identityCheckResult" },
         "locatorResolves": { "$ref": "#/$defs/checkResult" },
         "quotationMatches": { "$ref": "#/$defs/checkResult" },
         "assertionSupported": { "$ref": "#/$defs/checkResult" },
@@ -70,6 +70,7 @@
     "notes": { "type": "string" }
   },
   "$defs": {
-    "checkResult": { "enum": ["pass", "fail", "not_applicable"] }
+    "checkResult": { "enum": ["pass", "fail", "not_applicable"] },
+    "identityCheckResult": { "enum": ["pass", "fail", "not_applicable", "blocked"] }
   }
 }

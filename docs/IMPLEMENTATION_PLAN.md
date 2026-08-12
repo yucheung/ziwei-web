@@ -150,6 +150,6 @@
 |---|---|
 | ChartAnalyzer 過大重蹈 1b max-turns | 拆 3.1/3.2/3.3 獨立 run |
 | iztro 四化疊盤資料不完整 | B2 先驗證，不足則調整設計 |
-| 結構化重構破壞既有行為 | backward compat + 302→562 tests 守護 |
+| 結構化重構破壞既有行為 | backward compat + 302→567 tests 守護 |
 | 規則庫內容品質 | D3 Golden Set 三套 + 使用者領域審查 |
 | 範圍膨脹 | 三個邊界補強已簽入基線，退出條件明確 |
