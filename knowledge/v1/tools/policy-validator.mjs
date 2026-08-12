@@ -139,6 +139,22 @@ function validateReviewTargets(repository, indexes, diagnostics) {
         `Review target ${entry.value.targetType}:${entry.value.targetId} was not found`,
       );
     }
+
+    if (entry.value.targetType === 'claim'
+      && entry.value.checklist?.sourceIdentity === 'pass') {
+      const claimEntry = indexes.claims.get(entry.value.targetId);
+      const tierESource = claimEntry?.value.evidence
+        .map((evidence) => indexes.sources.get(evidence.sourceId))
+        .find((sourceEntry) => sourceEntry?.value.sourceTier === 'E');
+      if (tierESource) {
+        addDiagnostic(
+          diagnostics,
+          'TIER_E_CLAIM_REVIEW_IDENTITY_PASS',
+          entry,
+          `${entry.value.reviewId} marks sourceIdentity pass for claim ${entry.value.targetId} backed by unattributed tier E source ${tierESource.value.sourceId}`,
+        );
+      }
+    }
   }
 }
 

@@ -333,6 +333,34 @@ describe('validatePolicies safety, conflicts, and rule promotion', () => {
     })))).toContain('TIER_E_SOURCE_IDENTITY_PASS');
   });
 
+  it('rejects a passing claim sourceIdentity review backed by a tier E source', () => {
+    const tierESource = {
+      ...source,
+      sourceId: 'src-unattributed-pdf-001',
+      sourceTier: 'E',
+      access: {
+        ...source.access,
+        kind: 'unattributed_pdf',
+        transcriptionUrl: null,
+        facsimileUrl: null,
+      },
+      verificationStatus: 'candidate',
+    };
+    const tierEClaim = {
+      ...claim,
+      evidence: [{ ...claim.evidence[0], sourceId: tierESource.sourceId }],
+    };
+    const identityPassReview = humanReview('claim', tierEClaim.claimId, {
+      checklist: { ...passingChecklist, sourceIdentity: 'pass' },
+    });
+
+    expect(codes(validatePolicies(repository({
+      sources: [tierESource],
+      claims: [tierEClaim],
+      reviews: [identityPassReview],
+    })))).toContain('TIER_E_CLAIM_REVIEW_IDENTITY_PASS');
+  });
+
   it('reports duplicate IDs and broken claim or review references', () => {
     const brokenClaim = {
       ...claim,

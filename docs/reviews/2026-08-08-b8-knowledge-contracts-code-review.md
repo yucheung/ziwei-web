@@ -60,8 +60,8 @@ Knowledge Contracts v1 以隔離研究層實作，正式資料檔目前維持 0 
 | Gate | 結果 |
 | --- | --- |
 | Test files | 53 passed |
-| Tests | 567/567 passed |
-| Knowledge tests | 28/28 passed |
+| Tests | 575/575 passed |
+| Knowledge tests | 6 files / 40 tests |
 | Build | exit 0 |
 | ESLint | 0 errors、0 warnings |
 | Unhandled test error | 0 |

@@ -3,7 +3,7 @@
 > 建立日期：2026-08-06
 > 最後更新：2026-08-12（B8 封板 + Knowledge Contracts v1 + 功能盤點）
 > 狀態：**B1-B8 全數封板；Phase 0-4 核心功能完成；待結案確認**
-> 基線：B8 封板（567 tests、lint 0 warnings、CI 通過、GH Pages + CF Workers 部署）
+> 基線：B8 封板（575 tests、lint 0 warnings、CI 通過、GH Pages + CF Workers 部署）
 
 ---
 
@@ -30,7 +30,7 @@
 | **真太陽時** | Spencer 均時差公式 + 100+ 城市經度表 + UI 輸入 + 合盤相容 | ✅ 完整（B8 F1 修復） |
 | **知識庫** | Knowledge Contracts v1（Source/Claim/Rule/Review Schema）+ Pilot v2 三主星 + citationTracer | ✅ v1 封板（B8） |
 | **LLM 解讀** | ReadingPanel（876行）：串流 + idle-timeout + 繼續生成 + Debug Panel + Provider 選擇 | ✅ 完整 |
-| **品質** | i18n zh-TW/zh-CN、light/dark、a11y、CI（build+test+lint）、567 測試 | ✅ 完整 |
+| **品質** | i18n zh-TW/zh-CN、light/dark、a11y、CI（build+test+lint）、575 測試 | ✅ 完整 |
 | **部署** | GH Pages + CF Workers 雙平台 | ✅ 完整 |
 
 ### iztro 提供 vs 不提供的資料
@@ -61,7 +61,7 @@
 > - 27 星曜中僅紫微 1 筆具 human_approved 來源，其餘 26 筆為 collected
 > - 12 宮知識全部為 collected
 > - Pilot 15 claims 全為 draft、promptEligible=false
-> - 15 reviews 全為 needs_work，quotationMatches/conditionsPreserved 全部失敗
+> - 15 reviews 全為 needs_work，quotationMatches 全部失敗、conditionsPreserved 全部 pass
 > - Rules 檔仍為空白
 > - Knowledge Contracts 尚未接入產品層
 >
@@ -252,7 +252,7 @@ iztro 各運限層（decadal/yearly/monthly/daily/hourly）已提供 stars[] 和
 | 完整命盤 JSON 匯出（確定性）| ✅ | B1 |
 | 命理回歸測試框架（Golden）| ✅ | B1 + B5 |
 | LLM 輸入檢視（Debug Panel）| ✅ | B1 |
-| prompts.ts 三合派限定 | ✅ | 302→567 tests |
+| prompts.ts 三合派限定 | ✅ | 302→575 tests |
 
 ### Phase 1：結構化分析層 ✅ 已完成（B2-B3）
 
@@ -273,7 +273,7 @@ iztro 各運限層（decadal/yearly/monthly/daily/hourly）已提供 stars[] 和
 | 格局規則庫 v1 | ✅ | B5 |
 | 宮位主題知識 v1 | ✅ | B4 |
 | 運限推論 v1 | ✅ | B5 |
-| 命理回歸測試 v2（567 tests）| ✅ | B5 |
+| 命理回歸測試 v2（575 tests）| ✅ | B5 |
 
 ### Phase 3：進階功能 ⚠️ 核心子集完成（B6）
 

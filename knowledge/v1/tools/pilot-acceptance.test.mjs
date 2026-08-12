@@ -1,4 +1,4 @@
-import { readdir, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadJsonLines } from './load-jsonl.mjs';
@@ -7,7 +7,7 @@ const CLAIMS_PATH = path.resolve('knowledge/v1/claims/pilot-3stars.jsonl');
 const REVIEWS_PATH = path.resolve('knowledge/v1/reviews/pilot-3stars.jsonl');
 const RULES_DIR = path.resolve('knowledge/v1/rules');
 const RULES_PILOT_PATH = path.resolve('knowledge/v1/rules/pilot-3stars.jsonl');
-const HUMAN_REVIEW_PACKAGE_PATH = path.resolve('docs/research/pilot-3stars.md');
+const HUMAN_REVIEW_PACKAGE_PATH = path.resolve('knowledge/v1/reviews/pilot-3stars.md');
 
 const EXPECTED_CLAIM_IDS = [
   'claim-ziwei-life-001',
@@ -106,8 +106,19 @@ describe('pilot acceptance', () => {
     expect(stats.size).toBe(1);
   });
 
-  it('has a non-empty human review package', async () => {
+  it('has a complete blocked human review package', async () => {
     const stats = await stat(HUMAN_REVIEW_PACKAGE_PATH);
     expect(stats.size).toBeGreaterThan(0);
+    const reviewPackage = await readFile(HUMAN_REVIEW_PACKAGE_PATH, 'utf8');
+
+    for (const claimId of EXPECTED_CLAIM_IDS) {
+      expect(reviewPackage).toContain(claimId);
+    }
+
+    expect(reviewPackage.match(/blocked/gu)?.length ?? 0).toBeGreaterThanOrEqual(15);
+    expect(reviewPackage).toContain('非產品');
+    expect(reviewPackage).toContain('待查入口');
+    expect(reviewPackage).toContain('Google Books 1964 竹林書局（id=if1IAAAAMAAJ）');
+    expect(reviewPackage).toContain('國家圖書館古籍影像檢索 rbook.ncl.edu.tw');
   });
 });
