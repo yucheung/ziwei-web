@@ -3,7 +3,7 @@
 > 建立日期：2026-08-06
 > 最後更新：2026-08-12（B8 封板 + Knowledge Contracts v1 + 功能盤點）
 > 狀態：**B1-B8 全數封板；Phase 0-4 核心功能完成；待結案確認**
-> 基線：B8 封板（567 tests、lint 0 warnings、CI 全綠、GH Pages + CF Workers 部署）
+> 基線：B8 封板（562 tests、lint 0 warnings、CI 待修復、GH Pages + CF Workers 部署）
 
 ---
 
@@ -51,13 +51,21 @@
 - ❌ 合盤規則
 - ❌ 任何命理知識庫
 
-### 核心缺口（已修補）
+### 核心缺口（部分修補）
 
 > 更新：2026-08-12
 >
-> ~~原有系統是「排盤機」+「LLM 祈禱機」。~~
-> B1-B8 已建立完整規則引擎管線：iztro → ChartAnalyzer → 規則引擎（6 大規則庫）→ StructuredSummary → Citation → LLM prompt。
-> LLM 現以規則證據為依據，不再是自由推理。
+> B1-B8 已建立規則引擎管線基礎設施：iztro → ChartAnalyzer → 規則引擎（6 大規則庫）→ StructuredSummary → Citation → LLM prompt。
+>
+> **但知識庫內容仍處於受阻 Pilot 狀態**：
+> - 27 星曜中僅紫微 1 筆具 human_approved 來源，其餘 26 筆為 collected
+> - 12 宮知識全部為 collected
+> - Pilot 15 claims 全為 draft、promptEligible=false
+> - 15 reviews 全為 needs_work，quotationMatches/conditionsPreserved 全部失敗
+> - Rules 檔仍為空白
+> - Knowledge Contracts 尚未接入產品層
+>
+> **準確狀態**：「知識治理基礎設施 v1 完成；內容仍處於受阻 Pilot。」
 
 ### 剩餘非阻塞項目
 
@@ -68,6 +76,8 @@
 | LLM citation 顯示 | ReadingPanel 無內建 citation 顯示 | 優化項：規則引擎 provenance 已處理 |
 | en i18n | 未實作 | 用戶決定跳過 |
 | 八字解讀 | 保留顯示，無解讀（D4 決策） | 維持現狀：紫微完整後再考慮 |
+| 對話式追問 | Phase 3 遺留項 | 需決定是否重新納入 |
+| Vector RAG | Phase 3 遺留項 | 日後（Phase 5+）|
 
 ---
 
@@ -263,16 +273,16 @@ iztro 各運限層（decadal/yearly/monthly/daily/hourly）已提供 stars[] 和
 | 格局規則庫 v1 | ✅ | B5 |
 | 宮位主題知識 v1 | ✅ | B4 |
 | 運限推論 v1 | ✅ | B5 |
-| 命理回歸測試 v2（567 tests）| ✅ | B5 |
+| 命理回歸測試 v2（562 tests）| ✅ | B5 |
 
-### Phase 3：進階功能 ✅ 已完成（B6）
+### Phase 3：進階功能 ⚠️ 核心子集完成（B6）
 
 | 項目 | 狀態 | Commit |
 |---|---|---|
 | 多命盤收藏（IndexedDB）| ✅ | B6a |
 | URL 分享（壓縮編碼）| ✅ | B6a |
 | 解讀歷史 | ✅ | B6b |
-| 對話式追問 | ⚠️ 未實作 | 規劃中 |
+| 對話式追問 | ⚠️ 未實作 | 原 B6 退出條件包含，需決定是否重新納入 |
 | 列印模式 | ✅ | B6b |
 | Vector RAG v1 | ⚠️ 未實作 | 日後（Phase 5+）|
 

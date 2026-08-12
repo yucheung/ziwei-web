@@ -1,8 +1,10 @@
 # ziwei-web 後續功能執行規畫（Implementation Plan）
 
+> ⚠️ **本文件為歷史執行計畫（B1-B7），已執行完畢。** 當前狀態請見 docs/MILESTONES.md。
+>
 > 建立：2026-08-07
-> 最後更新：2026-08-12（B1-B8 全數封板）
-> 基線：B8 封板（567 tests、lint 0 warnings、CI 全綠）
+> 執行期間：2026-08-04 ~ 2026-08-08（B1-B8）
+> 基線（執行時）：C 組完成（zh-TW/zh-CN、302 tests、Opus 9.0/10、已部署 GH Pages + CF Workers）
 > 上游決策：docs/ROADMAP.md（D1-D5 已確認）
 > 執行模式：Hermes 發派 → claude（Sonnet 寫 / Opus 審）+ agy（掃描/審查）→ Hermes 監督 review
 > 驗收門檻（每批共用）：`npm run build` exit 0、vitest 全綠、eslint 0 error、Opus review ≥ 8.5（放行門檻）
@@ -138,7 +140,7 @@
 1. 每批獨立 run（claude Sonnet 寫 / Opus 審），拆小避開 1b max-turns 教訓
 2. 每批先出 Issue 級規格 + 驗收測試，使用者 review 後發派
 3. B1 / B2 可並行；B3 主線；B5「LOGO 清單」可提前收集
-4. **下一步**：將 B1 拆成 Issue 級規格與驗收測試
+4. ~~下一步：將 B1 拆成 Issue 級規格與驗收測試~~ → **已執行完畢（2026-08-04 ~ 08-08）**
 
 ---
 
@@ -148,6 +150,6 @@
 |---|---|
 | ChartAnalyzer 過大重蹈 1b max-turns | 拆 3.1/3.2/3.3 獨立 run |
 | iztro 四化疊盤資料不完整 | B2 先驗證，不足則調整設計 |
-| 結構化重構破壞既有行為 | backward compat + 302 tests 守護 |
+| 結構化重構破壞既有行為 | backward compat + 302→562 tests 守護 |
 | 規則庫內容品質 | D3 Golden Set 三套 + 使用者領域審查 |
 | 範圍膨脹 | 三個邊界補強已簽入基線，退出條件明確 |
