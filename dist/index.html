@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>紫微斗數專業版 | Ziwei Astrolabe</title>
+    <meta name="description" content="專業級紫微斗數排盤與 AI 命盤解讀系統" />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('ziwei-theme');
+          var isDark = stored ? stored === 'dark' : (!window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches || !window.matchMedia('(prefers-color-scheme: light)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="./assets/index-BJZqPbai.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-B0Z9INg1.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-vendor-JBdU6nFZ.js">
+    <link rel="modulepreload" crossorigin href="./assets/ui-vendor-DM49NKxS.js">
+    <link rel="modulepreload" crossorigin href="./assets/iztro-vendor-XNLIM3h8.js">
+    <link rel="modulepreload" crossorigin href="./assets/chartModel-DwS9ycOo.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-CcWyg8BE.css">
+  <link rel="manifest" href="./manifest.webmanifest"></head>
+  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased font-sans min-h-screen">
+    <div id="root"></div>
+  </body>
+</html>
