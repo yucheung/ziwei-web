@@ -8,14 +8,24 @@ import {
 } from './v3Evaluation';
 
 describe('v3Evaluation', () => {
-  it('provides 15 fixed test cases across the three evaluation groups', () => {
+  it('provides at least 54 fixed test cases across the three evaluation groups', () => {
     expect(DEFAULT_V3_MODEL).toBe('gpt-5.6-luna');
-    expect(V3_TEST_CASES).toHaveLength(15);
+    expect(V3_TEST_CASES.length).toBeGreaterThanOrEqual(54);
+    expect(V3_TEST_CASES).toHaveLength(54);
     expect(Object.isFrozen(V3_TEST_CASES)).toBe(true);
+
+    const groupA = V3_TEST_CASES.filter((testCase) => testCase.group === 'A');
+    const groupB = V3_TEST_CASES.filter((testCase) => testCase.group === 'B');
+    const groupC = V3_TEST_CASES.filter((testCase) => testCase.group === 'C');
+
+    expect(groupA.length).toBeGreaterThanOrEqual(18);
+    expect(groupB.length).toBeGreaterThanOrEqual(18);
+    expect(groupC.length).toBeGreaterThanOrEqual(18);
+
     expect(V3_TEST_CASES.map((testCase) => testCase.group)).toEqual([
-      'A', 'A', 'A', 'A', 'A',
-      'B', 'B', 'B', 'B', 'B',
-      'C', 'C', 'C', 'C', 'C',
+      ...Array(groupA.length).fill('A'),
+      ...Array(groupB.length).fill('B'),
+      ...Array(groupC.length).fill('C'),
     ]);
 
     for (const testCase of V3_TEST_CASES) {
@@ -23,6 +33,15 @@ describe('v3Evaluation', () => {
       expect(testCase.question.length).toBeGreaterThan(0);
       expect(testCase.expectedFacts.length).toBeGreaterThan(0);
       expect(testCase.expectedCitations.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('ensures all expectedCitations conform to the standard citation key format', () => {
+    const citationKeyRegex = /^(?:palace|star)-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    for (const testCase of V3_TEST_CASES) {
+      for (const citation of testCase.expectedCitations) {
+        expect(citation).toMatch(citationKeyRegex);
+      }
     }
   });
 
