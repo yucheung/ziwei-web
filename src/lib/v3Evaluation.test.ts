@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { getPalaceKnowledgeById } from './palaceKnowledge';
+import { getStarKnowledgeById } from './starKnowledge';
 import {
   DEFAULT_V3_MODEL,
   V3_TEST_CASES,
@@ -8,9 +10,8 @@ import {
 } from './v3Evaluation';
 
 describe('v3Evaluation', () => {
-  it('provides at least 54 fixed test cases across the three evaluation groups', () => {
+  it('provides 54 fixed test cases across the three evaluation groups', () => {
     expect(DEFAULT_V3_MODEL).toBe('gpt-5.6-luna');
-    expect(V3_TEST_CASES.length).toBeGreaterThanOrEqual(54);
     expect(V3_TEST_CASES).toHaveLength(54);
     expect(Object.isFrozen(V3_TEST_CASES)).toBe(true);
 
@@ -18,9 +19,9 @@ describe('v3Evaluation', () => {
     const groupB = V3_TEST_CASES.filter((testCase) => testCase.group === 'B');
     const groupC = V3_TEST_CASES.filter((testCase) => testCase.group === 'C');
 
-    expect(groupA.length).toBeGreaterThanOrEqual(18);
-    expect(groupB.length).toBeGreaterThanOrEqual(18);
-    expect(groupC.length).toBeGreaterThanOrEqual(18);
+    expect(groupA).toHaveLength(18);
+    expect(groupB).toHaveLength(18);
+    expect(groupC).toHaveLength(18);
 
     expect(V3_TEST_CASES.map((testCase) => testCase.group)).toEqual([
       ...Array(groupA.length).fill('A'),
@@ -36,11 +37,30 @@ describe('v3Evaluation', () => {
     }
   });
 
+  it('ensures all test case IDs are unique', () => {
+    const ids = V3_TEST_CASES.map((testCase) => testCase.id);
+    expect(new Set(ids).size).toBe(V3_TEST_CASES.length);
+  });
+
   it('ensures all expectedCitations conform to the standard citation key format', () => {
     const citationKeyRegex = /^(?:palace|star)-[a-z0-9]+(?:-[a-z0-9]+)*$/;
     for (const testCase of V3_TEST_CASES) {
       for (const citation of testCase.expectedCitations) {
         expect(citation).toMatch(citationKeyRegex);
+      }
+    }
+  });
+
+  it('validates that all expectedCitations exist in palace and star knowledge repositories', () => {
+    for (const testCase of V3_TEST_CASES) {
+      for (const citation of testCase.expectedCitations) {
+        if (citation.startsWith('palace-')) {
+          expect(getPalaceKnowledgeById(citation)).toBeDefined();
+        } else if (citation.startsWith('star-')) {
+          expect(getStarKnowledgeById(citation)).toBeDefined();
+        } else {
+          expect.fail(`Unexpected citation key prefix: ${citation}`);
+        }
       }
     }
   });

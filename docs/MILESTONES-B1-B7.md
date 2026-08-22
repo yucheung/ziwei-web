@@ -50,7 +50,7 @@
 - `starKnowledge.ts`：27 星曜知識條目（14 主星 + 6 吉星 + 6 煞星 + 祿存）
 - `palaceKnowledge.ts`：12 宮位知識 + alias
 - `citationTracer.ts`：證據追溯
-- `v3Evaluation.ts`：15 test cases（A/B/C）
+- `v3Evaluation.ts`：54 test cases（A/B/C）
 - Citations 接入 system prompt（zh-TW/zh-CN）
 
 ### B5：規則引擎（Phase 2）
