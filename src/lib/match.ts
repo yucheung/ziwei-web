@@ -50,10 +50,15 @@ export interface FlyingMutagenDetail {
 export interface CrossMutagenGroup {
   sourcePerson: string;
   targetPerson: string;
-  stemType: '生年天干' | '命宮天干' | '夫妻宮天干';
+  stemType: string;
   stem: string;
   details: FlyingMutagenDetail[];
 }
+
+const STEM_TYPE_LABELS: Record<AppLocale, Record<string, string>> = {
+  'zh-TW': { year: '生年天干', soul: '命宮天干', spouse: '夫妻宮天干' },
+  'zh-CN': { year: '生年天干', soul: '命宫天干', spouse: '夫妻宫天干' },
+};
 
 export interface MatchCompatibility {
   overallScore: number;
@@ -143,40 +148,53 @@ export function getPalaceContainingStar(astrolabe: IFunctionalAstrolabe, starNam
   });
 }
 
+/** 四化描述句模板，依 locale 輸出繁簡措辭 */
+const MUTAGEN_DESC_TEMPLATES: Record<AppLocale, Record<MutagenKind, (source: string, stemType: string, stem: string, target: string, palaceName: string, starName: string) => string>> = {
+  'zh-TW': {
+    祿: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化祿入${target}的${palaceName}（${starName}），代表帶來情意、財富或順遂能量。`,
+    權: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化權入${target}的${palaceName}（${starName}），代表主導、帶動或積極督促的影響力。`,
+    科: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化科入${target}的${palaceName}（${starName}），代表文雅交流、名聲幫助與理性溝通。`,
+    忌: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化忌入${target}的${palaceName}（${starName}），代表關注執著、課業提醒或需多耐心的溝通點。`,
+  },
+  'zh-CN': {
+    祿: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化禄入${target}的${palaceName}（${starName}），代表带来情意、财富或顺遂能量。`,
+    權: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化权入${target}的${palaceName}（${starName}），代表主导、带动或积极督促的影响力。`,
+    科: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化科入${target}的${palaceName}（${starName}），代表文雅交流、名声帮助与理性沟通。`,
+    忌: (source, stemType, stem, target, palaceName, starName) =>
+      `${source}的${stemType}【${stem}】化忌入${target}的${palaceName}（${starName}），代表关注执着、课业提醒或需多耐心的沟通点。`,
+  },
+};
+
 /** 計算天干飛入目標星盤之四化細節 */
 export function calculateFlyingMutagens(
   sourceStem: string,
   targetAstrolabe: IFunctionalAstrolabe,
   sourcePersonName: string,
   targetPersonName: string,
-  stemType: '生年天干' | '命宮天干' | '夫妻宮天干'
+  stemType: string,
+  locale: AppLocale = 'zh-TW'
 ): CrossMutagenGroup {
   const stem = normalizeStem(sourceStem);
   const mutagenMap = MUTAGEN_STARS_MAP[stem] || MUTAGEN_STARS_MAP['甲'];
   const mutagens: MutagenKind[] = ['祿', '權', '科', '忌'];
+  const descTemplates = MUTAGEN_DESC_TEMPLATES[locale];
 
   const details: FlyingMutagenDetail[] = mutagens.map((mutagen) => {
     const starName = mutagenMap[mutagen];
     const targetPalace = getPalaceContainingStar(targetAstrolabe, starName);
 
+    // 宮位名稱沿用呼叫端傳入的 canonical zh-TW 命理字形，不隨 locale 轉換 (同 RELATIONSHIP_TEMPLATES 慣例)
     const palaceName = targetPalace ? targetPalace.name : '未知宮位';
     const palaceIndex = targetPalace ? targetPalace.index : 0;
 
-    let desc = '';
-    switch (mutagen) {
-      case '祿':
-        desc = `${sourcePersonName}的${stemType}【${stem}】化祿入${targetPersonName}的${palaceName}（${starName}），代表帶來情意、財富或順遂能量。`;
-        break;
-      case '權':
-        desc = `${sourcePersonName}的${stemType}【${stem}】化權入${targetPersonName}的${palaceName}（${starName}），代表主導、帶動或積極督促的影響力。`;
-        break;
-      case '科':
-        desc = `${sourcePersonName}的${stemType}【${stem}】化科入${targetPersonName}的${palaceName}（${starName}），代表文雅交流、名聲幫助與理性溝通。`;
-        break;
-      case '忌':
-        desc = `${sourcePersonName}的${stemType}【${stem}】化忌入${targetPersonName}的${palaceName}（${starName}），代表關注執著、課業提醒或需多耐心的溝通點。`;
-        break;
-    }
+    const desc = descTemplates[mutagen](sourcePersonName, stemType, stem, targetPersonName, palaceName, starName);
 
     return {
       mutagen,
@@ -196,13 +214,36 @@ export function calculateFlyingMutagens(
   };
 }
 
-/** 地支關係計算 */
-export function calculateEarthlyBranchRelation(branchA: string, branchB: string): string {
+/** 地支關係種類，語系無關，供 calculateCompatibility 判斷加分邏輯 */
+type BranchRelationKind = 'same' | 'sanhe' | 'liuhe' | 'liuchong' | 'liuhai' | 'default';
+
+/** 地支關係描述句，依 locale 輸出繁簡措辭 */
+const BRANCH_RELATION_LABELS: Record<AppLocale, Record<BranchRelationKind, string>> = {
+  'zh-TW': {
+    same: '命宮同支 (比和)',
+    sanhe: '地支三合 (相生相成)',
+    liuhe: '地支六合 (暗合情深)',
+    liuchong: '地支六沖 (性格火花，需多包容)',
+    liuhai: '地支六害 (微有磨合，需細心照顧)',
+    default: '地支相和 (平穩順遂)',
+  },
+  'zh-CN': {
+    same: '命宫同支 (比和)',
+    sanhe: '地支三合 (相生相成)',
+    liuhe: '地支六合 (暗合情深)',
+    liuchong: '地支六冲 (性格火花，需多包容)',
+    liuhai: '地支六害 (微有磨合，需细心照顾)',
+    default: '地支相和 (平稳顺遂)',
+  },
+};
+
+/** 判斷兩地支間的關係種類，語系無關 */
+function detectBranchRelationKind(branchA: string, branchB: string): BranchRelationKind {
   const sanitize = (b: string) => b.replace(/宮|Earthly/g, '').trim();
   const a = sanitize(branchA);
   const b = sanitize(branchB);
 
-  if (a === b) return '命宮同支 (比和)';
+  if (a === b) return 'same';
 
   const sanHeGroup = [
     ['申', '子', '辰'],
@@ -212,7 +253,7 @@ export function calculateEarthlyBranchRelation(branchA: string, branchB: string)
   ];
   for (const group of sanHeGroup) {
     if (group.includes(a) && group.includes(b)) {
-      return '地支三合 (相生相成)';
+      return 'sanhe';
     }
   }
 
@@ -221,7 +262,7 @@ export function calculateEarthlyBranchRelation(branchA: string, branchB: string)
   ];
   for (const [x, y] of liuHePairs) {
     if ((a === x && b === y) || (a === y && b === x)) {
-      return '地支六合 (暗合情深)';
+      return 'liuhe';
     }
   }
 
@@ -230,7 +271,7 @@ export function calculateEarthlyBranchRelation(branchA: string, branchB: string)
   ];
   for (const [x, y] of liuChongPairs) {
     if ((a === x && b === y) || (a === y && b === x)) {
-      return '地支六沖 (性格火花，需多包容)';
+      return 'liuchong';
     }
   }
 
@@ -239,11 +280,17 @@ export function calculateEarthlyBranchRelation(branchA: string, branchB: string)
   ];
   for (const [x, y] of liuHaiPairs) {
     if ((a === x && b === y) || (a === y && b === x)) {
-      return '地支六害 (微有磨合，需細心照顧)';
+      return 'liuhai';
     }
   }
 
-  return '地支相和 (平穩順遂)';
+  return 'default';
+}
+
+/** 地支關係計算 */
+export function calculateEarthlyBranchRelation(branchA: string, branchB: string, locale: AppLocale = 'zh-TW'): string {
+  const kind = detectBranchRelationKind(branchA, branchB);
+  return BRANCH_RELATION_LABELS[locale][kind];
 }
 
 /** 獲取宮位主星名稱列表 */
@@ -254,7 +301,7 @@ export function getPalaceMajorStarNames(palace?: IFunctionalPalace): string[] {
 }
 
 /** 從 Astrolabe 提取個人摘要 */
-export function extractPersonInfo(astrolabe: IFunctionalAstrolabe, name: string): PersonInfo {
+export function extractPersonInfo(astrolabe: IFunctionalAstrolabe, name: string, locale: AppLocale = 'zh-TW'): PersonInfo {
   const mingPalace = astrolabe.palaces.find((p) => String(p.name).includes('命')) || astrolabe.palaces[0];
   const fuqiPalace = astrolabe.palaces.find((p) => String(p.name).includes('夫妻'));
   const propertyPalace = astrolabe.palaces.find((p) => String(p.name).includes('田宅'));
@@ -274,9 +321,9 @@ export function extractPersonInfo(astrolabe: IFunctionalAstrolabe, name: string)
 
   return {
     name,
-    // extractPersonInfo 一律吃 getCanonicalAstrolabe 的產物 (zh-TW 排盤)，
-    // 但仍走 toGenderKey 以免日後傳入其他顯示語言的 astrolabe 時失準。
-    gender: toGenderKey(astrolabe.gender, 'zh-TW') ?? 'male',
+    // gender 文字本身繁簡同形，但一律經 toGenderKey 取得語系無關 key，
+    // 並改用呼叫端傳入的 locale（而非寫死 'zh-TW'）以免日後傳入其他顯示語言的 astrolabe 時失準。
+    gender: toGenderKey(astrolabe.gender, locale) ?? 'male',
     solarDate: astrolabe.solarDate,
     lunarDate: astrolabe.lunarDate,
     chineseDate: astrolabe.chineseDate || `${yearStem}${yearBranch}年`,
@@ -321,14 +368,15 @@ export function calculateCompatibility(
   let stability = 82;
 
   // 1. 地支關係調整
-  const branchRelation = calculateEarthlyBranchRelation(personA.soulPalaceBranch, personB.soulPalaceBranch);
-  if (branchRelation.includes('六合')) {
+  const branchKind = detectBranchRelationKind(personA.soulPalaceBranch, personB.soulPalaceBranch);
+  const branchRelation = BRANCH_RELATION_LABELS[locale][branchKind];
+  if (branchKind === 'liuhe') {
     emotional += 10;
     stability += 8;
-  } else if (branchRelation.includes('三合')) {
+  } else if (branchKind === 'sanhe') {
     personality += 10;
     careerWealth += 8;
-  } else if (branchRelation.includes('六沖')) {
+  } else if (branchKind === 'liuchong') {
     personality -= 6;
     stability -= 5;
   }
@@ -512,22 +560,23 @@ export function analyzeMatch(options: AnalyzeMatchOptions): MatchResult {
   const chartA = getCanonicalAstrolabe(options.personA as GetChartOptions);
   const chartB = getCanonicalAstrolabe(options.personB as GetChartOptions);
 
-  const infoA = extractPersonInfo(chartA, personAName);
-  const infoB = extractPersonInfo(chartB, personBName);
+  const locale = options.locale ?? 'zh-TW';
+
+  const infoA = extractPersonInfo(chartA, personAName, locale);
+  const infoB = extractPersonInfo(chartB, personBName, locale);
 
   // 四化互飛計算:
   // 1. A 生年天干 飛入 B 盤
-  const cross1 = calculateFlyingMutagens(infoA.yearStem, chartB, personAName, personBName, '生年天干');
+  const cross1 = calculateFlyingMutagens(infoA.yearStem, chartB, personAName, personBName, STEM_TYPE_LABELS[locale].year, locale);
   // 2. B 生年天干 飛入 A 盤
-  const cross2 = calculateFlyingMutagens(infoB.yearStem, chartA, personBName, personAName, '生年天干');
+  const cross2 = calculateFlyingMutagens(infoB.yearStem, chartA, personBName, personAName, STEM_TYPE_LABELS[locale].year, locale);
   // 3. A 命宮天干 飛入 B 盤
-  const cross3 = calculateFlyingMutagens(infoA.soulPalaceStem, chartB, personAName, personBName, '命宮天干');
+  const cross3 = calculateFlyingMutagens(infoA.soulPalaceStem, chartB, personAName, personBName, STEM_TYPE_LABELS[locale].soul, locale);
   // 4. B 命宮天干 飛入 A 盤
-  const cross4 = calculateFlyingMutagens(infoB.soulPalaceStem, chartA, personBName, personAName, '命宮天干');
+  const cross4 = calculateFlyingMutagens(infoB.soulPalaceStem, chartA, personBName, personAName, STEM_TYPE_LABELS[locale].soul, locale);
 
   const crossMutagens = [cross1, cross2, cross3, cross4];
 
-  const locale = options.locale ?? 'zh-TW';
   const compatibility = calculateCompatibility(infoA, infoB, crossMutagens, locale);
   const relationshipPoints = generateRelationshipPoints(infoA, infoB, crossMutagens, compatibility.branchRelation, locale);
 
