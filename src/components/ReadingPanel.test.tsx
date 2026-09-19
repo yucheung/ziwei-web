@@ -680,4 +680,179 @@ describe('ReadingPanel Component Test Suite', () => {
       vi.unstubAllGlobals();
     });
   });
+
+  describe('Follow-up (對話追問) UI 接線', () => {
+    it('does not render follow-up input before initial reading completes', () => {
+      render(<ReadingPanel chart={mockChart} />);
+      expect(screen.queryByPlaceholderText(/針對此命盤提出追問/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /送出追問/i })).not.toBeInTheDocument();
+    });
+
+    it('renders input box and submit button after initial reading completes (zh-TW and zh-CN)', async () => {
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: '首輪解讀完成' };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      const { unmount } = render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} chartId="chart-1" />
+        </I18nProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(screen.getByText('首輪解讀完成')).toBeInTheDocument());
+
+      expect(screen.getByPlaceholderText('針對此命盤提出追問，例如：事業上的貴人何時出現？')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '送出追問' })).toBeInTheDocument();
+
+      unmount();
+
+      // Test zh-CN locale placeholder
+      render(
+        <I18nProvider defaultLocale="zh-CN">
+          <ReadingPanel chart={mockChart} chartId="chart-1" />
+        </I18nProvider>
+      );
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盘解读/i }));
+      await waitFor(() => expect(screen.getByText('首輪解讀完成')).toBeInTheDocument());
+
+      expect(screen.getByPlaceholderText('针对此命盘提出追问，例如：事业上的贵人何时出现？')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '发送追问' })).toBeInTheDocument();
+    });
+
+    it('submits follow-up with initial system prompt and renders markdown response', async () => {
+      let callCount = 0;
+      let followUpSentMessages: llmModule.ChatMessage[] | undefined;
+
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (msg, _cfg, callbacks) => {
+        callCount++;
+        if (callCount === 1) {
+          const result = { status: 'completed' as const, text: '首輪解讀內容' };
+          callbacks.onFinish?.(result);
+          return result;
+        } else {
+          followUpSentMessages = msg;
+          callbacks.onChunk?.('**事業有貴人**，特別是在', '**事業有貴人**，特別是在');
+          callbacks.onChunk?.('今年秋季。', '**事業有貴人**，特別是在今年秋季。');
+          const result = { status: 'completed' as const, text: '**事業有貴人**，特別是在今年秋季。' };
+          callbacks.onFinish?.(result);
+          return result;
+        }
+      });
+
+      render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} chartId="chart-1" />
+        </I18nProvider>
+      );
+
+      // 1. First round
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(screen.getByText('首輪解讀內容')).toBeInTheDocument());
+
+      // 2. Submit follow-up question
+      const input = screen.getByPlaceholderText(/針對此命盤提出追問/i);
+      fireEvent.change(input, { target: { value: '我的事業貴人何時會出現？<script>alert(1)</script>' } });
+      const submitBtn = screen.getByRole('button', { name: /送出追問/i });
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => {
+        expect(callCount).toBe(2);
+      });
+
+      // Verify messages sent
+      expect(followUpSentMessages).toBeDefined();
+      expect(followUpSentMessages![0].role).toBe('system');
+      // System prompt contains structured chart facts
+      expect(followUpSentMessages![0].content).toMatch(/命[宮宫]|紫微/);
+      // User question is sanitized (script tags encoded)
+      expect(followUpSentMessages![1].role).toBe('user');
+      expect(followUpSentMessages![1].content).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+      expect(followUpSentMessages![1].content).not.toContain('<script>');
+
+      // Verify Markdown rendering in AI follow-up reply (strong tag for bold)
+      await waitFor(() => {
+        expect(screen.getByText('事業有貴人')).toBeInTheDocument();
+      });
+      const strongElement = screen.getByText('事業有貴人');
+      expect(strongElement.tagName).toBe('STRONG');
+    });
+
+    it('clears dialogue and shows stale notice when chartId changes (isFollowUpStale)', async () => {
+      let callCount = 0;
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        callCount++;
+        const result = { status: 'completed' as const, text: `解讀或回覆內容 ${callCount}` };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      const { rerender } = render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} chartId="chart-A" />
+        </I18nProvider>
+      );
+
+      // Complete initial reading
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(screen.getByText('解讀或回覆內容 1')).toBeInTheDocument());
+
+      // Send follow-up
+      const input = screen.getByPlaceholderText(/針對此命盤提出追問/i);
+      fireEvent.change(input, { target: { value: '第一個命盤的追問問題' } });
+      fireEvent.click(screen.getByRole('button', { name: /送出追問/i }));
+      await waitFor(() => expect(screen.getByText('第一個命盤的追問問題')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('解讀或回覆內容 2')).toBeInTheDocument());
+
+      // Now chartId changes to chart-B
+      rerender(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} chartId="chart-B" />
+        </I18nProvider>
+      );
+
+      // Stale notice should be displayed
+      expect(screen.getByText('命盤已變更，先前的追問對話已清空。')).toBeInTheDocument();
+      // Previous conversation messages should be cleared
+      expect(screen.queryByText('第一個命盤的追問問題')).not.toBeInTheDocument();
+      expect(screen.queryByText('解讀或回覆內容 2')).not.toBeInTheDocument();
+    });
+
+    it('supports stopping follow-up generation', async () => {
+      let followUpSignal: AbortSignal | undefined;
+      let callCount = 0;
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        callCount++;
+        if (callCount === 1) {
+          const result = { status: 'completed' as const, text: '首輪完成' };
+          callbacks.onFinish?.(result);
+          return result;
+        } else {
+          followUpSignal = callbacks.signal;
+          return new Promise(() => {});
+        }
+      });
+
+      render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} chartId="chart-1" />
+        </I18nProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+      await waitFor(() => expect(screen.getByText('首輪完成')).toBeInTheDocument());
+
+      const input = screen.getByPlaceholderText(/針對此命盤提出追問/i);
+      fireEvent.change(input, { target: { value: '想問健康' } });
+      fireEvent.click(screen.getByRole('button', { name: /送出追問/i }));
+
+      const stopBtn = await screen.findByRole('button', { name: /停止生成/i });
+      expect(stopBtn).toBeInTheDocument();
+      fireEvent.click(stopBtn);
+
+      expect(followUpSignal?.aborted).toBe(true);
+    });
+  });
 });

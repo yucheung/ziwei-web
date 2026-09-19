@@ -229,6 +229,12 @@ export const zhCN: Record<TranslationKey, string> = {
   'reading.status.timeout': '响应超时中断，内容可能不完整',
 
   // ─── Follow-Up (对话式追问) ───
+  'followUp.title': '对话追问',
+  'followUp.placeholder': '针对此命盘提出追问，例如：事业上的贵人何时出现？',
+  'followUp.send': '发送追问',
+  'followUp.stop': '停止生成',
+  'followUp.loading': 'AI 正在生成追问回复...',
+  'followUp.staleNotice': '命盘已变更，先前的追问对话已清空。',
   'followUp.error.emptyQuestion': '追问问题不可为空',
 
   // ─── Special Topic Panel ───

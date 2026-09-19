@@ -19,6 +19,7 @@ import {
   PlayCircle,
   Terminal,
   Printer,
+  Send,
 } from 'lucide-react';
 import {
   LLMConfig,
@@ -33,7 +34,8 @@ import {
   validateBaseUrl,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '../lib/llm';
-import { buildReadingPrompt, ReadingType, PROMPT_VERSION, RULE_SET_VERSION } from '../lib/prompts';
+import { buildReadingPrompt, ReadingType, PROMPT_VERSION, RULE_SET_VERSION, sanitizeUserInput } from '../lib/prompts';
+import { buildFollowUpMessages, isFollowUpStale, MAX_FOLLOW_UP_HISTORY_MESSAGES } from '../lib/followUp';
 import { canonicalizeAstrolabeForReading, type AppLocale, type IFunctionalAstrolabe } from '../lib/chartModel';
 import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
@@ -142,6 +144,18 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
   const [debugPrompt, setDebugPrompt] = useState<{ systemPrompt: string; userPrompt: string } | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
 
+  // ─── Follow-Up Chat State ───
+  const [initialSystemPrompt, setInitialSystemPrompt] = useState('');
+  const [frozenChartId, setFrozenChartId] = useState<string | null>(null);
+  const [followUpMessages, setFollowUpMessages] = useState<ChatMessage[]>([]);
+  const [followUpInput, setFollowUpInput] = useState('');
+  const [isFollowUpLoading, setIsFollowUpLoading] = useState(false);
+  const [followUpError, setFollowUpError] = useState<string | null>(null);
+  const [currentFollowUpAnswer, setCurrentFollowUpAnswer] = useState('');
+  const [chartStaleNotice, setChartStaleNotice] = useState(false);
+
+  const effectiveChartId = chartId ?? (chart ? 'default-chart' : undefined);
+
   const handleSelectHistoryReading = (stored: StoredReading) => {
     setReadingText(stored.reading);
     if (onSelectReading) {
@@ -150,13 +164,27 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
   };
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const followUpAbortControllerRef = useRef<AbortController | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
+  const followUpBottomRef = useRef<HTMLDivElement | null>(null);
   const lastMessagesRef = useRef<ChatMessage[] | null>(null);
+
+  // Adjust follow-up state when chartId changes (avoids cascading render effect)
+  const [prevChartId, setPrevChartId] = useState(effectiveChartId);
+  if (effectiveChartId !== prevChartId) {
+    setPrevChartId(effectiveChartId);
+    if (frozenChartId && isFollowUpStale(frozenChartId, effectiveChartId)) {
+      setFollowUpMessages([]);
+      setChartStaleNotice(true);
+      setFrozenChartId(null);
+    }
+  }
 
   // Abort active SSE connection on unmount
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
+      followUpAbortControllerRef.current?.abort();
     };
   }, []);
 
@@ -177,6 +205,13 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
       outputEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [readingText, isLoading]);
+
+  // Auto scroll to follow-up bottom
+  useEffect(() => {
+    if (isFollowUpLoading && followUpBottomRef.current) {
+      followUpBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentFollowUpAnswer, isFollowUpLoading]);
 
   const runStream = async (messages: ChatMessage[], baseText: string) => {
     lastMessagesRef.current = messages;
@@ -222,6 +257,10 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
           setIsLoading(false);
           setFinishStatus(result.status);
           recordMeta(result.status);
+
+          if (result.status === 'completed') {
+            setFrozenChartId(effectiveChartId ?? null);
+          }
 
           if (chartId && result.status === 'completed' && latestFullText.trim()) {
             void saveReading({
@@ -273,6 +312,11 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
     });
 
     setDebugPrompt({ systemPrompt, userPrompt });
+    setInitialSystemPrompt(systemPrompt);
+    setFrozenChartId(effectiveChartId ?? null);
+    setFollowUpMessages([]);
+    setChartStaleNotice(false);
+    setFollowUpError(null);
 
     const messages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -302,6 +346,112 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
       abortControllerRef.current = null;
     }
     setIsLoading(false);
+  };
+
+  const handleStopFollowUp = () => {
+    if (followUpAbortControllerRef.current) {
+      followUpAbortControllerRef.current.abort();
+      followUpAbortControllerRef.current = null;
+    }
+    setIsFollowUpLoading(false);
+  };
+
+  const handleSendFollowUp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const rawQuestion = followUpInput.trim();
+    if (!rawQuestion || isFollowUpLoading) return;
+
+    if (isFollowUpStale(frozenChartId, effectiveChartId)) {
+      setFollowUpMessages([]);
+      setChartStaleNotice(true);
+      return;
+    }
+
+    const sanitizedQuestion = sanitizeUserInput(rawQuestion);
+    if (!sanitizedQuestion) {
+      setFollowUpError(t('followUp.error.emptyQuestion'));
+      return;
+    }
+
+    let sysPrompt = initialSystemPrompt;
+    if (!sysPrompt && chart) {
+      const appLocale: AppLocale = locale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
+      const canonicalChart = canonicalizeAstrolabeForReading(chart, appLocale);
+      const built = buildReadingPrompt(canonicalChart, {
+        type: readingType,
+        customInstructions,
+        focusPalace: focusPalace || undefined,
+        locale: appLocale,
+        rules,
+      });
+      sysPrompt = built.systemPrompt;
+      setInitialSystemPrompt(sysPrompt);
+    }
+
+    let messages: ChatMessage[];
+    try {
+      messages = buildFollowUpMessages(sysPrompt, followUpMessages, rawQuestion, locale);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setFollowUpError(msg);
+      return;
+    }
+
+    setFollowUpError(null);
+    setFollowUpInput('');
+    setIsFollowUpLoading(true);
+    setCurrentFollowUpAnswer('');
+
+    const newHistoryWithUser: ChatMessage[] = [
+      ...followUpMessages,
+      { role: 'user', content: sanitizedQuestion },
+    ];
+    setFollowUpMessages(newHistoryWithUser);
+
+    followUpAbortControllerRef.current?.abort();
+    followUpAbortControllerRef.current = new AbortController();
+
+    try {
+      await callLLMStream(
+        messages,
+        llmConfig,
+        {
+          signal: followUpAbortControllerRef.current.signal,
+          onChunk: (_chunk, fullText) => {
+            setCurrentFollowUpAnswer(fullText);
+          },
+          onError: (err) => {
+            setFollowUpError(`${t('reading.error.prefix')}: ${err.message || String(err)}`);
+            setIsFollowUpLoading(false);
+          },
+          onFinish: (result) => {
+            setIsFollowUpLoading(false);
+            if (result.text.trim()) {
+              setFollowUpMessages(() => {
+                const updated: ChatMessage[] = [
+                  ...newHistoryWithUser,
+                  { role: 'assistant', content: result.text },
+                ];
+                if (updated.length > MAX_FOLLOW_UP_HISTORY_MESSAGES) {
+                  const sliced = updated.slice(-MAX_FOLLOW_UP_HISTORY_MESSAGES);
+                  return sliced[0]?.role === 'assistant' ? sliced.slice(1) : sliced;
+                }
+                return updated;
+              });
+            }
+            setCurrentFollowUpAnswer('');
+          },
+        },
+        DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+        locale
+      );
+    } catch (err: unknown) {
+      if (!(err instanceof Error) || err.name !== 'AbortError') {
+        const message = err instanceof Error ? err.message || String(err) : String(err);
+        setFollowUpError(`${t('reading.error.apiError')}: ${message}`);
+      }
+      setIsFollowUpLoading(false);
+    }
   };
 
   const handleCopy = () => {
@@ -596,6 +746,101 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
         )}
         <div ref={outputEndRef} />
       </div>
+
+      {/* Follow-Up Chat Area */}
+      {finishStatus === 'completed' && (
+        <div className="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800/80">
+          {/* Stale notice */}
+          {chartStaleNotice && (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true" />
+              <span>{t('followUp.staleNotice')}</span>
+            </div>
+          )}
+
+          {/* Follow-up messages history */}
+          {followUpMessages.length > 0 && (
+            <div className="space-y-3">
+              {followUpMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 text-slate-800 dark:text-slate-100 ml-4 sm:ml-8 font-medium'
+                      : 'bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200 mr-4 sm:mr-8 space-y-2'
+                  }`}
+                >
+                  {msg.role === 'user' ? (
+                    <div>{msg.content}</div>
+                  ) : (
+                    <div className="font-sans space-y-2">
+                      {renderMarkdown(msg.content)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Streaming in-progress response */}
+          {isFollowUpLoading && currentFollowUpAnswer && (
+            <div className="p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200 mr-4 sm:mr-8 space-y-2">
+              <div className="font-sans space-y-2">
+                {renderMarkdown(currentFollowUpAnswer)}
+              </div>
+            </div>
+          )}
+
+          {/* Streaming loading spinner before first chunk */}
+          {isFollowUpLoading && !currentFollowUpAnswer && (
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 py-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-600 dark:text-amber-400" />
+              <span>{t('followUp.loading')}</span>
+            </div>
+          )}
+
+          {/* Follow-up Error */}
+          {followUpError && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" aria-hidden="true" />
+              <span>{followUpError}</span>
+            </div>
+          )}
+
+          {/* Follow-up input form */}
+          <form onSubmit={handleSendFollowUp} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={followUpInput}
+              onChange={(e) => setFollowUpInput(e.target.value)}
+              placeholder={t('followUp.placeholder')}
+              disabled={isFollowUpLoading}
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs sm:text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-50"
+            />
+            {isFollowUpLoading ? (
+              <button
+                type="button"
+                onClick={handleStopFollowUp}
+                className="px-4 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold text-xs sm:text-sm hover:bg-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer animate-pulse focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 shrink-0"
+              >
+                <Square className="w-3.5 h-3.5 fill-rose-600 dark:fill-rose-300" aria-hidden="true" />
+                {t('followUp.stop')}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!followUpInput.trim()}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-amber-500/10 transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 shrink-0"
+              >
+                <Send className="w-3.5 h-3.5" aria-hidden="true" />
+                {t('followUp.send')}
+              </button>
+            )}
+          </form>
+
+          <div ref={followUpBottomRef} />
+        </div>
+      )}
 
       {chartId && (
         <div className="mt-2 no-print">

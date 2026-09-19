@@ -219,6 +219,12 @@ export const zhTW = {
   'reading.status.timeout': '回應逾時中斷，內容可能不完整',
 
   // ─── Follow-Up (對話式追問) ───
+  'followUp.title': '對話追問',
+  'followUp.placeholder': '針對此命盤提出追問，例如：事業上的貴人何時出現？',
+  'followUp.send': '送出追問',
+  'followUp.stop': '停止生成',
+  'followUp.loading': 'AI 正在生成追問回覆...',
+  'followUp.staleNotice': '命盤已變更，先前的追問對話已清空。',
   'followUp.error.emptyQuestion': '追問問題不可為空',
 
   // ─── Special Topic Panel ───
