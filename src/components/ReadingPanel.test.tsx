@@ -903,9 +903,9 @@ describe('ReadingPanel Component Test Suite', () => {
       expect(screen.getByText(/解讀內容忠實度提醒/i)).toBeInTheDocument();
       const warning = screen.getByTestId('faithfulness-warning');
       expect(within(warning).getByText(/廉貞化忌落在命宮/i)).toBeInTheDocument();
-      expect(screen.getByText(/廉貞化祿/i)).toBeInTheDocument();
-      expect(screen.getByText(/天府化祿落在財帛宮/i)).toBeInTheDocument();
-      expect(screen.getByText(/沒有規則支持/i)).toBeInTheDocument();
+      expect(within(warning).getByText(/廉貞化祿/i)).toBeInTheDocument();
+      expect(within(warning).getByText(/天府化祿落在財帛宮/i)).toBeInTheDocument();
+      expect(within(warning).getByText(/沒有規則支持/i)).toBeInTheDocument();
     });
 
     it('shows pass hint when all claims are faithful', async () => {
