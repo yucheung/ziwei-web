@@ -76,4 +76,21 @@ describe('starKnowledge', () => {
       entry.source.reviewedBy === 'human' && entry.source.status === 'human_approved'
     )).toBe(true);
   });
+
+  it('ensures entries with source_checked or higher have non-empty reference, excerpt, and page', () => {
+    const entries = getAllStarKnowledge();
+    const verifiedEntries = entries.filter((entry) =>
+      ['source_checked', 'cross_supported', 'human_approved'].includes(entry.source.status),
+    );
+
+    expect(verifiedEntries.length).toBeGreaterThan(0);
+    for (const entry of verifiedEntries) {
+      expect(entry.source.reference).toBeDefined();
+      expect(entry.source.reference?.trim().length).toBeGreaterThan(0);
+      expect(entry.source.excerpt).toBeDefined();
+      expect(entry.source.excerpt?.trim().length).toBeGreaterThan(0);
+      expect(entry.source.page).toBeDefined();
+      expect(entry.source.page?.trim().length).toBeGreaterThan(0);
+    }
+  });
 });

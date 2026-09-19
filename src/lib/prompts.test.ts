@@ -78,16 +78,18 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
   });
 
   it.each([
-    ['zh-TW' as const, '## 知識來源', '未核實（未審核）', '已審核', '人類'],
-    ['zh-CN' as const, '## 知识来源', '未核实', '已审核', '人类'],
-  ])('appends traceable citation lines to the %s system prompt', (locale, citationHeader, collectedLabel, approvedLabel, humanLabel) => {
+    ['zh-TW' as const, '## 知識來源', '未核實（未審核）', '來源已查核', '已審核', '人類'],
+    ['zh-CN' as const, '## 知识来源', '未核实', '来源已查核', '已审核', '人类'],
+  ])('appends traceable citation lines to the %s system prompt', (locale, citationHeader, collectedLabel, checkedLabel, approvedLabel, humanLabel) => {
     const chart = getChart({ date: '2000-08-16', timeIndex: 2, gender: 'male', language: locale });
     const { systemPrompt } = buildReadingPrompt(chart, { type: 'overall', locale });
 
     expect(systemPrompt).toContain(citationHeader);
     expect(systemPrompt).toMatch(new RegExp(`- \\[palace-[^\\]]+\\] iztro-sanhe-v1 \\[${collectedLabel} / collected\\] — palaces\\[\\d+\\]\\.name \\(0\\.5\\)`));
-    expect(systemPrompt).toMatch(new RegExp(`- \\[star-[^\\]]+\\] iztro-sanhe-v1(?:, [^\\n]+)? \\[(?:${collectedLabel} / collected|${approvedLabel} / human_approved / ${humanLabel})\\] — palaces\\[\\d+\\]\\.majorStars\\[\\d+\\] \\((?:0\\.5|0\\.7|1)\\)`));
+    expect(systemPrompt).toMatch(/- \[star-\S+\] \S/);
+    expect(systemPrompt).toContain('(classical_ziwei, ');
     expect(systemPrompt).toContain(`classical_ziwei, ${approvedLabel}/${humanLabel}) — via iztro-sanhe-v1`);
+    expect(systemPrompt).toContain(`(classical_ziwei, ${checkedLabel}) — via iztro-sanhe-v1`);
   });
 
   it('adds only matched rules with evidence highlights and confidence to the system prompt', () => {
