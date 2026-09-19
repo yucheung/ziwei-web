@@ -218,6 +218,9 @@ export const zhTW = {
   'reading.status.aborted': '回應已中止',
   'reading.status.timeout': '回應逾時中斷，內容可能不完整',
 
+  // ─── Follow-Up (對話式追問) ───
+  'followUp.error.emptyQuestion': '追問問題不可為空',
+
   // ─── Special Topic Panel ───
   'specialTopic.title': 'AI 專題命盤解讀',
   'specialTopic.subtitle': '依據已驗證規則與命盤來源，生成事業、財運等專題分析',

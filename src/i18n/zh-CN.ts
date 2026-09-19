@@ -228,6 +228,9 @@ export const zhCN: Record<TranslationKey, string> = {
   'reading.status.aborted': '响应已中止',
   'reading.status.timeout': '响应超时中断，内容可能不完整',
 
+  // ─── Follow-Up (对话式追问) ───
+  'followUp.error.emptyQuestion': '追问问题不可为空',
+
   // ─── Special Topic Panel ───
   'specialTopic.title': 'AI 专题命盘解读',
   'specialTopic.subtitle': '根据已验证规则与命盘来源，生成事业、财运等专题分析',
