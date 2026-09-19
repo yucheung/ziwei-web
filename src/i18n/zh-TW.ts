@@ -217,6 +217,10 @@ export const zhTW = {
   'reading.status.completed': '已收到全部回應',
   'reading.status.aborted': '回應已中止',
   'reading.status.timeout': '回應逾時中斷，內容可能不完整',
+  'reading.faithfulness.warningTitle': '解讀內容忠實度提醒',
+  'reading.faithfulness.warningDesc': '部分解讀內容與命盤規則不符或缺乏規則依據：',
+  'reading.faithfulness.passed': '忠實度檢查通過：解讀內容與星盤規則相符',
+
 
   // ─── Follow-Up (對話式追問) ───
   'followUp.title': '對話追問',

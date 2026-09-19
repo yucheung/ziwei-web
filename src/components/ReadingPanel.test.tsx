@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReadingPanel } from './ReadingPanel';
 import * as llmModule from '../lib/llm';
@@ -853,6 +853,108 @@ describe('ReadingPanel Component Test Suite', () => {
       fireEvent.click(stopBtn);
 
       expect(followUpSignal?.aborted).toBe(true);
+    });
+  });
+
+  describe('Faithfulness runtime checking', () => {
+    const lianzhenLu: RuleResult = {
+      ruleId: 'four-transformation-lianzhen-huaLu',
+      ruleName: '廉貞化祿',
+      matched: true,
+      confidence: 0.9,
+      evidence: [
+        {
+          knowledgeId: 'star-lianzhen',
+          field: 'palaces[0].majorStars[0]',
+          source: 'iztro-sanhe-v1',
+          value: '廉貞化祿',
+          reasoning: '廉貞化祿的規則證據。',
+        },
+        {
+          knowledgeId: 'palace-ming',
+          field: 'palaces[0].name',
+          source: 'iztro-sanhe-v1',
+          value: '命宮',
+          reasoning: '命宮的規則證據。',
+        },
+      ],
+    };
+
+    it('flags unfaithful items in warning style when LLM output contradicts or lacks rule support', async () => {
+      const mockLlmText = '命主廉貞化忌落在命宮，且天府化祿落在財帛宮。';
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: mockLlmText };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} rules={[lianzhenLu]} />
+        </I18nProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('faithfulness-warning')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText(/解讀內容忠實度提醒/i)).toBeInTheDocument();
+      const warning = screen.getByTestId('faithfulness-warning');
+      expect(within(warning).getByText(/廉貞化忌落在命宮/i)).toBeInTheDocument();
+      expect(screen.getByText(/廉貞化祿/i)).toBeInTheDocument();
+      expect(screen.getByText(/天府化祿落在財帛宮/i)).toBeInTheDocument();
+      expect(screen.getByText(/沒有規則支持/i)).toBeInTheDocument();
+    });
+
+    it('shows pass hint when all claims are faithful', async () => {
+      const mockLlmText = '廉貞化祿落在命宮，資源主題較容易被引動。';
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        const result = { status: 'completed' as const, text: mockLlmText };
+        callbacks.onFinish?.(result);
+        return result;
+      });
+
+      render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} rules={[lianzhenLu]} />
+        </I18nProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('faithfulness-passed')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('忠實度檢查通過：解讀內容與星盤規則相符')).toBeInTheDocument();
+      expect(screen.queryByTestId('faithfulness-warning')).not.toBeInTheDocument();
+    });
+
+    it('does not display check result during streaming before stream completes', async () => {
+      let triggerChunk: ((chunk: string, full: string) => void) | undefined;
+      vi.mocked(llmModule.callLLMStream).mockImplementation(async (_msg, _cfg, callbacks) => {
+        triggerChunk = callbacks.onChunk;
+        return new Promise(() => {});
+      });
+
+      render(
+        <I18nProvider defaultLocale="zh-TW">
+          <ReadingPanel chart={mockChart} rules={[lianzhenLu]} />
+        </I18nProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /生成 AI 命盤解讀/i }));
+
+      triggerChunk?.('廉貞化忌', '廉貞化忌落在命宮。');
+
+      await waitFor(() => {
+        expect(screen.getByText(/廉貞化忌落在命宮。/i)).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('faithfulness-warning')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('faithfulness-passed')).not.toBeInTheDocument();
     });
   });
 });

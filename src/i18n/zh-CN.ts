@@ -227,6 +227,10 @@ export const zhCN: Record<TranslationKey, string> = {
   'reading.status.completed': '已收到全部响应',
   'reading.status.aborted': '响应已中止',
   'reading.status.timeout': '响应超时中断，内容可能不完整',
+  'reading.faithfulness.warningTitle': '解读内容忠实度提醒',
+  'reading.faithfulness.warningDesc': '部分解读内容与命盘规则不符或缺乏规则依据：',
+  'reading.faithfulness.passed': '忠实度检查通过：解读内容与星盘规则相符',
+
 
   // ─── Follow-Up (对话式追问) ───
   'followUp.title': '对话追问',

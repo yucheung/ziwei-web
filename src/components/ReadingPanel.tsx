@@ -41,6 +41,7 @@ import { renderMarkdown } from '../lib/markdown';
 import { useTranslation, type TranslationKey } from '../i18n';
 import { saveReading, type StoredReading } from '../lib/storage';
 import type { RuleResult } from '../lib/rules/types';
+import { compareFaithfulness, type FaithfulnessResult } from '../lib/rules/faithfulness';
 import type { ChartConfig } from '../lib/chartConfig';
 import { HistoryPanel } from './HistoryPanel';
 
@@ -143,6 +144,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
   const [lastRequestMeta, setLastRequestMeta] = useState<LastRequestMeta | null>(loadLastRequestMeta);
   const [debugPrompt, setDebugPrompt] = useState<{ systemPrompt: string; userPrompt: string } | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
+  const [faithfulnessResults, setFaithfulnessResults] = useState<FaithfulnessResult[] | null>(null);
+  const unfaithfulResults = faithfulnessResults
+    ? faithfulnessResults.filter(
+        (r, i, arr) => !r.faithful && arr.findIndex((x) => x.llmClaim === r.llmClaim) === i,
+      )
+    : [];
 
   // ─── Follow-Up Chat State ───
   const [initialSystemPrompt, setInitialSystemPrompt] = useState('');
@@ -158,6 +165,12 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
 
   const handleSelectHistoryReading = (stored: StoredReading) => {
     setReadingText(stored.reading);
+    const activeRules = stored.rules ?? rules;
+    if (activeRules) {
+      setFaithfulnessResults(compareFaithfulness(stored.reading, activeRules));
+    } else {
+      setFaithfulnessResults(null);
+    }
     if (onSelectReading) {
       onSelectReading(stored);
     }
@@ -219,6 +232,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
     setIsLoading(true);
     setFinishStatus(null);
     setCopied(false);
+    setFaithfulnessResults(null);
 
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
@@ -260,6 +274,10 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
 
           if (result.status === 'completed') {
             setFrozenChartId(effectiveChartId ?? null);
+            if (rules) {
+              const checkResults = compareFaithfulness(latestFullText, rules);
+              setFaithfulnessResults(checkResults);
+            }
           }
 
           if (chartId && result.status === 'completed' && latestFullText.trim()) {
@@ -296,6 +314,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
     }
 
     setReadingText('');
+    setFaithfulnessResults(null);
 
     // A-3: chart 為 App 層依目前 UI 顯示語言排出的 astrolabe (可能為 en-US 顯示字串)，
     // 先還原為 zh-TW canonical key 再交給 buildReadingPrompt，避免英文模式下 iztro
@@ -746,6 +765,49 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
         )}
         <div ref={outputEndRef} />
       </div>
+
+      {/* Faithfulness Check Result */}
+      {!isLoading && faithfulnessResults !== null && (
+        <div>
+          {unfaithfulResults.length > 0 ? (
+            <div
+              data-testid="faithfulness-warning"
+              className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-2"
+            >
+              <div className="flex items-center gap-2 font-medium">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true" />
+                <span>{t('reading.faithfulness.warningTitle')}</span>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 text-xs">
+                {t('reading.faithfulness.warningDesc')}
+              </p>
+              <ul className="space-y-1.5 pl-1 text-slate-700 dark:text-slate-300">
+                {unfaithfulResults.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-1.5 text-xs">
+                    <span className="text-rose-500 shrink-0">•</span>
+                    <div>
+                      <span className="font-medium text-rose-700 dark:text-rose-300">{item.llmClaim}</span>
+                      {item.ruleConclusion && (
+                        <span className="text-slate-500 dark:text-slate-400 ml-1.5">
+                          ({item.ruleConclusion})
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : faithfulnessResults.length > 0 ? (
+            <div
+              data-testid="faithfulness-passed"
+              className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 py-1"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span>{t('reading.faithfulness.passed')}</span>
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {/* Follow-Up Chat Area */}
       {finishStatus === 'completed' && (
