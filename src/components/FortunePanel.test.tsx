@@ -175,5 +175,9 @@ describe('FortunePanel Component', () => {
     // Switch to 午時 (index 6) and verify the hourly stem-branch badge updates accordingly
     fireEvent.change(hourSelect, { target: { value: '6' } });
     expect(screen.getByText(/^[甲乙丙丁戊己庚辛壬癸]午 流時$/)).toBeInTheDocument();
+
+    // Switch to 夜子時 (index 12) and verify the hourly stem-branch badge updates to 子
+    fireEvent.change(hourSelect, { target: { value: '12' } });
+    expect(screen.getByText(/^[甲乙丙丁戊己庚辛壬癸]子 流時$/)).toBeInTheDocument();
   });
 });

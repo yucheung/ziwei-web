@@ -190,8 +190,8 @@ export function calculateFlyingMutagens(
     const starName = mutagenMap[mutagen];
     const targetPalace = getPalaceContainingStar(targetAstrolabe, starName);
 
-    // 宮位名稱沿用呼叫端傳入的 canonical zh-TW 命理字形，不隨 locale 轉換 (同 RELATIONSHIP_TEMPLATES 慣例)
-    const palaceName = targetPalace ? targetPalace.name : '未知宮位';
+    const unknownPalaceLabel = locale === 'zh-CN' ? '未知宫位' : '未知宮位';
+    const palaceName = targetPalace ? targetPalace.name : unknownPalaceLabel;
     const palaceIndex = targetPalace ? targetPalace.index : 0;
 
     const desc = descTemplates[mutagen](sourcePersonName, stemType, stem, targetPersonName, palaceName, starName);

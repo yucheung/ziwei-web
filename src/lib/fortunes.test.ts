@@ -269,9 +269,16 @@ describe('fortunes.ts - 紫微斗數運限與四化計算', () => {
 
     // 大限/流年命宮名稱與四化應為簡體，不受全域語系洩漏影響
     expect(summary.yearly.name).toBe('命宫');
+    expect(summary.hourly.name).toBe('流时');
     expect(summary.decadal.mutagen.lu).toBe('廉贞');
     expect(summary.decadal.mutagen.ji).toBe('太阳');
     expect(summary.yearly.mutagen.ji).toBe('廉贞');
+
+    // 大限表格文字也應為簡體（歲數單位為「岁」，宮位名稱為簡體）
+    expect(summary.decadalTable[0].rangeText).toContain('岁');
+    expect(summary.decadalTable[0].rangeText).not.toContain('歲');
+    expect(summary.decadalTable.map((d) => d.palaceName)).toContain('命宫');
+    expect(summary.decadalTable.map((d) => d.palaceName)).not.toContain('命宮');
 
     // 大限/流年重新排名的 12 宮位名稱也應為簡體
     expect(summary.decadal.palaceNames).toContain('命宫');

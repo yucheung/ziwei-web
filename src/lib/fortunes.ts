@@ -167,6 +167,11 @@ export function getDecadalTable(
     return [];
   }
 
+  const normalizeText = (display: string, category: TranslationCategory): string =>
+    translateKey(toCanonicalKey(display, category, 'zh-CN'), category, locale);
+
+  const ageUnit = locale === 'zh-CN' ? '岁' : '歲';
+
   const items: DecadalItem[] = astrolabe.palaces.map((palace, index) => {
     const range: [number, number] = palace.decadal?.range ?? ([0, 0] as [number, number]);
     const heavenlyStem = palace.decadal?.heavenlyStem || palace.heavenlyStem || '';
@@ -174,7 +179,7 @@ export function getDecadalTable(
     const stemBranch = `${heavenlyStem}${earthlyBranch}`;
 
     const majorStars = Array.isArray(palace.majorStars)
-      ? palace.majorStars.map((star) => star.name || String(star))
+      ? palace.majorStars.map((star) => normalizeText(star.name || String(star), 'star'))
       : [];
 
     const mutagen = getMutagensByStemForLocale(heavenlyStem, locale);
@@ -184,12 +189,12 @@ export function getDecadalTable(
 
     return {
       index,
-      palaceName: palace.name,
+      palaceName: normalizeText(palace.name, 'palace'),
       heavenlyStem,
       earthlyBranch,
       stemBranch,
       range,
-      rangeText: `${range[0]} - ${range[1]} 歲`,
+      rangeText: `${range[0]} - ${range[1]} ${ageUnit}`,
       majorStars,
       mutagen,
       isCurrent,
@@ -355,7 +360,7 @@ export function getHoroscopeSummary(
     },
     hourly: {
       index: h.hourly?.index ?? 0,
-      name: h.hourly?.name || '流時',
+      name: locale === 'zh-CN' ? '流时' : '流時',
       stemBranch: `${h.hourly?.heavenlyStem || ''}${h.hourly?.earthlyBranch || ''}`,
       mutagen: hourlyMutagenObj,
       palaceNames: (h.hourly?.palaceNames || []).map((n) => normalizeScopeText(n, 'palace')),

@@ -81,7 +81,7 @@ export function FortunePanel({
   const [targetDate, setTargetDate] = useState<string>(defaultDateStr);
   const [selectedPalaceIndex, setSelectedPalaceIndex] = useState<number | null>(null);
   const [fortuneLevel, setFortuneLevel] = useState<FortuneLevel>('yearly');
-  // 流時查詢時辰 (0=子時 ... 11=亥時)，預設 0 與原本行為 (未帶時辰參數) 一致
+  // 流時查詢時辰 (0=早子時 ... 11=亥時, 12=夜子時)，預設 0 與原本行為 (未帶時辰參數) 一致
   const [hourlyTimeIndex, setHourlyTimeIndex] = useState<number>(0);
 
   // 快捷切換年份

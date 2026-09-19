@@ -222,6 +222,7 @@ export const zhCN: Record<TranslationKey, string> = {
   'reading.hint': '点击“生成 AI 命盘解读”，即刻获得多模型结构化命理剖析',
   'reading.timeoutBanner': '⚠️ 响应中断，内容可能不完整',
   'reading.continueGenerating': '继续生成',
+  'reading.continuePrompt': '请从上方中断处直接接续输出，不要重复已经输出过的内容，也不要加上任何开场白。',
   'reading.status.loading': 'AI 正在生成响应中，请稍候…',
   'reading.status.completed': '已收到全部响应',
   'reading.status.aborted': '响应已中止',

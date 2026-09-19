@@ -185,24 +185,53 @@ describe('prompts.ts - Astrolabe Prompt Generator', () => {
     expect(systemPrompt).not.toContain('generatedAt');
   });
 
-  it('should generate mutagens and special patterns prompts correctly', () => {
+  it('should generate mutagens and special patterns prompts correctly in zh-TW and zh-CN', () => {
     const chart = getChart({
       date: '1988-10-10',
       timeIndex: 4,
       gender: 'male',
     });
 
-    const mutagensPrompt = buildReadingPrompt(chart, { type: 'mutagens' });
-    expect(mutagensPrompt.userPrompt).toContain('生年四化與關鍵能量');
-    expect(mutagensPrompt.userPrompt).toContain('化祿宮位');
+    const mutagensPromptTW = buildReadingPrompt(chart, { type: 'mutagens', locale: 'zh-TW' });
+    expect(mutagensPromptTW.userPrompt).toContain('生年四化與關鍵能量');
+    expect(mutagensPromptTW.userPrompt).toContain('化祿宮位');
 
-    const patternsPrompt = buildReadingPrompt(chart, { type: 'patterns' });
-    expect(patternsPrompt.userPrompt).toContain('特殊格局與吉凶組合');
+    const patternsPromptTW = buildReadingPrompt(chart, { type: 'patterns', locale: 'zh-TW' });
+    expect(patternsPromptTW.userPrompt).toContain('特殊格局與吉凶組合');
+
+    const mutagensPromptCN = buildReadingPrompt(chart, { type: 'mutagens', locale: 'zh-CN' });
+    expect(mutagensPromptCN.userPrompt).toContain('生年四化与关键能量');
+    expect(mutagensPromptCN.userPrompt).toContain('化禄宫位');
+
+    const patternsPromptCN = buildReadingPrompt(chart, { type: 'patterns', locale: 'zh-CN' });
+    expect(patternsPromptCN.userPrompt).toContain('特殊格局与吉凶组合');
   });
 
-  it('should handle empty or null astrolabe gracefully', () => {
-    const summary = summarizeAstrolabe(null);
-    expect(summary).toBe('【無命盤資料】');
+  it('should handle empty or null astrolabe gracefully across locales', () => {
+    expect(summarizeAstrolabe(null, 'zh-TW')).toBe('【無命盤資料】');
+    expect(summarizeAstrolabe(null, 'zh-CN')).toBe('【无命盘数据】');
+  });
+
+  it('falls back to localized unknownPalace when a palace has no name', () => {
+    const mockChart: AstrolabeSummaryLike = {
+      gender: '男',
+      palaces: [
+        {
+          name: '',
+          heavenlyStem: '甲',
+          earthlyBranch: '子',
+          majorStars: [],
+          minorStars: [],
+          adjectiveStars: [],
+        },
+      ],
+    };
+
+    const summaryTW = summarizeAstrolabe(mockChart, 'zh-TW');
+    expect(summaryTW).toContain('### 未知宮 [甲子]');
+
+    const summaryCN = summarizeAstrolabe(mockChart, 'zh-CN');
+    expect(summaryCN).toContain('### 未知宫 [甲子]');
   });
 
   // --- Prompt Injection Defense Tests ---

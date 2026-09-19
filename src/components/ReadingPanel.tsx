@@ -286,10 +286,7 @@ export const ReadingPanel: React.FC<ReadingPanelProps> = ({
     if (!lastMessagesRef.current) return;
 
     const baseText = readingText;
-    const continuePrompt =
-      locale === 'zh-CN'
-        ? '请从上方中断处直接接续输出，不要重复已经输出的内容，也不要加上任何开场白。'
-        : '請從上方中斷處直接接續輸出，不要重複已經輸出過的內容，也不要加上任何開場白。';
+    const continuePrompt = t('reading.continuePrompt');
     const continuationMessages: ChatMessage[] = [
       ...lastMessagesRef.current,
       { role: 'assistant', content: baseText },

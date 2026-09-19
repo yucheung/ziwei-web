@@ -71,6 +71,32 @@ describe('Zi Hour (早/晚子時) & Midnight Boundary Cases Test Suite', () => {
       expect(lateZiChart.solarDate).toBe('2024-5-20');
       expect(nextEarlyZiChart.solarDate).toBe('2024-5-21');
     });
+
+    it('distinguishes dayDivide "current" vs "forward" for 晚子時 (23:00-24:00)', () => {
+      const chartCurrent = getChart({
+        date: '2000-08-16',
+        timeIndex: 12,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { dayDivide: 'current' },
+      });
+
+      const chartForward = getChart({
+        date: '2000-08-16',
+        timeIndex: 12,
+        gender: 'male',
+        language: 'zh-TW',
+        config: { dayDivide: 'forward' },
+      });
+
+      // 當日: 日柱為丙午，時柱為戊子
+      expect(chartCurrent.rawDates.chineseDate.daily.join('')).toBe('丙午');
+      expect(chartCurrent.rawDates.chineseDate.hourly.join('')).toBe('戊子');
+
+      // 隔日 (forward): 日柱進到隔日丁未，時柱為庚子
+      expect(chartForward.rawDates.chineseDate.daily.join('')).toBe('丁未');
+      expect(chartForward.rawDates.chineseDate.hourly.join('')).toBe('庚子');
+    });
   });
 
   describe('True Solar Time Midnight Boundary Crossing (真太陽時跨日)', () => {

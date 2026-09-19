@@ -53,6 +53,15 @@ describe('Ziwei Match Engine (src/lib/match.ts)', () => {
     expect(luDetail?.targetPalaceName).not.toBe('');
   });
 
+  it('falls back to localized unknown palace label when star is missing', () => {
+    const empty = { palaces: [] } as unknown as Parameters<typeof calculateFlyingMutagens>[1];
+    const tw = calculateFlyingMutagens('甲', empty, 'A', 'B', '生年天干', 'zh-TW');
+    expect(tw.details).toHaveLength(4);
+    expect(tw.details.every((d) => d.targetPalaceName === '未知宮位')).toBe(true);
+    const cn = calculateFlyingMutagens('甲', empty, 'A', 'B', '生年天干', 'zh-CN');
+    expect(cn.details.every((d) => d.targetPalaceName === '未知宫位')).toBe(true);
+  });
+
   it('executes full analyzeMatch and returns complete MatchResult structure', () => {
     const result = analyzeMatch({
       personA: {

@@ -81,7 +81,7 @@ export function Settings({ config, setConfig, astroType, setAstroType }: Setting
         <label htmlFor="setting-late-zi-select" className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('settings.lateZi')}</label>
         <select
           id="setting-late-zi-select"
-          value={config.dayDivide ?? 'current'}
+          value={config.dayDivide ?? 'forward'}
           onChange={(e) => setConfig((c) => ({ ...c, dayDivide: e.target.value as 'current' | 'forward' }))}
           className="w-full px-2 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >

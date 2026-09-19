@@ -212,6 +212,7 @@ export const zhTW = {
   'reading.hint': '點擊「生成 AI 命盤解讀」，即刻獲得多模型結構化命理剖析',
   'reading.timeoutBanner': '⚠️ 回應中斷，內容可能不完整',
   'reading.continueGenerating': '繼續生成',
+  'reading.continuePrompt': '請從上方中斷處直接接續輸出，不要重複已經輸出過的內容，也不要加上任何開場白。',
   'reading.status.loading': 'AI 正在生成回應中，請稍候…',
   'reading.status.completed': '已收到全部回應',
   'reading.status.aborted': '回應已中止',
